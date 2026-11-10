@@ -78,6 +78,8 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px 
 /* Kopblad */
 .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 6px 0 12px; border-bottom: 3px double var(--ink); }
 .brand { font-family: var(--f-frak); font-size: 44px; line-height: .95; letter-spacing: .01em; }
+.home { display: inline-block; font-family: var(--f-display); font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); text-decoration: none; margin-bottom: 4px; }
+.home:hover { color: var(--ink); }
 .sub { font-family: var(--f-display); font-size: 13px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
 .iconbtn { width: 42px; height: 42px; border-radius: 2px; border: 1px solid var(--ink); background: var(--surface); display: grid; place-items: center; flex: none; }
 .iconbtn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: square; stroke-linejoin: miter; }
@@ -713,7 +715,7 @@ table.sb th { font-family: var(--f-display); font-size: 13px; color: var(--ink);
     if (!view.date || !info(view.date)) { const w = currentWeek(); view.date = posKey(w, firstOpenDay(w)); }
     try { localStorage.setItem(VK, JSON.stringify({ date: view.date, tab: view.tab })); } catch (e) {}
     const syncTxt = mode === 'db' ? 'Im Konto gesichert' : 'Nur auf diesem Gerät';
-    let h = `<header class="top"><div><div class="brand">Setboek</div><div class="sub">Dienstplan · Leibesübungen</div><span class="sync ${mode === 'db' ? 'on' : ''}"><i></i>${syncTxt}</span></div>
+    let h = `<header class="top"><div><a class="home" href="../">← VG726</a><div class="brand">Setboek</div><div class="sub">Dienstplan · Leibesübungen</div><span class="sync ${mode === 'db' ? 'on' : ''}"><i></i>${syncTxt}</span></div>
       <button class="iconbtn" data-settings type="button" aria-label="Einstellungen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </header>
     <div class="tabs" role="group" aria-label="Weergave">
