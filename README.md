@@ -10,7 +10,7 @@ Klein platform met een startpagina en zeven onderdelen:
 | `setboek/` | Setboek, de sport-app (12-weken trainingsschema, werkt offline) |
 | `reibert/` | Reibert Online: de inhoud van het boekje *Der Dienstunterricht im Heere* (2026), doorzoekbaar en met correcties |
 | `funkgeraet/` | Bediensimulator Tornisterfunkgerät d2 (Torn.Fu.d2): opbouwen, afstemmen, morse-oefenen en online morsen via Ably |
-| `maps/` | Kaarten: kaartbladen in periodestijl (Meßtischblätter) als PDF |
+| `downloads/` | Downloads: Merkblätter (Buchstabiertafel A6, Führungszeichen A5 gevouwen) en kaartbladen in periodestijl (Meßtischblätter) als PDF. `maps/` stuurt door naar hier. |
 | `tarntafel/` | Tarntafel-generator: codetabel voor het Funksprechverkehr naar het systeem van de Tarntafel J.R. 726 (1942), af te drukken als PDF, met Excel-sleutel |
 
 Alles is statische HTML en draait op GitHub Pages: **Settings → Pages → Deploy from a branch → `main` / root**.
