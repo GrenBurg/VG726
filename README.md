@@ -7,7 +7,7 @@ Klein platform met een startpagina en vijf onderdelen:
 | `/` | Startpagina: kies wat je wilt doen |
 | `uitrusting/` | Uitrustingsgids voor nieuwe leden (klikbare soldaat, voor- en achterkant) |
 | `carpoolkaart/` | Carpoolkaart: woonplaatsen van deelnemers om samen te rijden |
-| `setboek/` | Setboek, de sport-app (6-weken trainingsschema, werkt offline) |
+| `setboek/` | Setboek, de sport-app (12-weken trainingsschema, werkt offline) |
 | `reibert/` | Reibert Online: de inhoud van het boekje *Der Dienstunterricht im Heere* (2026), doorzoekbaar en met correcties |
 | `funkgeraet/` | Bediensimulator Tornisterfunkgerät d2 (Torn.Fu.d2): opbouwen, afstemmen, morse-oefenen en online morsen via Ably |
 
