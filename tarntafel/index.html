@@ -49,6 +49,14 @@
   .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:640px){.two{grid-template-columns:1fr}}
 
+  .quick{border-left-color:var(--accent)}
+  .qrow{display:grid;grid-template-columns:1fr 120px;gap:12px}
+  .quick input{font-size:17px;padding:10px 12px}
+  details{background:transparent}
+  summary{cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:6px 0;list-style-position:inside}
+  summary:hover,summary:focus-visible{color:var(--ink);outline:none}
+  .moregrid{display:grid;gap:16px;margin-top:10px}
+  .btn[disabled]{opacity:.5;cursor:wait}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--ink);background:var(--paper);
     color:var(--ink);font:13px "IBM Plex Mono",monospace;letter-spacing:.06em;cursor:pointer;text-decoration:none;transition:background .15s,color .15s}
   .btn:hover,.btn:focus-visible{background:var(--ink);color:var(--paper);outline:none}
@@ -100,10 +108,22 @@
   <header>
     <div class="kicker">Funksprechverkehr · Tarntafel</div>
     <h1>Tarntafel</h1>
-    <p class="lead">Vul het gebied en de eenheden in en maak een eigen codetabel, zoals die van het J.R. 726 uit 1942.</p>
+    <p class="lead">Vul een gebied en het aantal eenheden in. Je krijgt een codetabel zoals die van het J.R. 726 uit 1942.</p>
   </header>
 
   <form id="f" autocomplete="off" onsubmit="return false">
+    <fieldset class="quick">
+      <legend>Gebied</legend>
+      <div class="qrow">
+        <label class="qarea">Gebied (gemeente, streek of plaats)<input type="text" name="area" placeholder="bijv. Utrechtse Heuvelrug" enterkeyhint="go"></label>
+        <label class="qn">Eenheden<input type="number" name="n" min="1" max="8" inputmode="numeric"></label>
+      </div>
+      <p class="hint">De pagina zoekt zelf de dorpen, heuvels, bossen en kerken op (OpenStreetMap). De eerste eenheid is de Kdo.Gruppe, daarna 1., 2. Gruppe enzovoort.</p>
+    </fieldset>
+
+    <details id="more">
+    <summary>Meer opties</summary>
+    <div class="moregrid">
     <fieldset>
       <legend><span class="nr">I.</span>Kop</legend>
       <div class="grid">
@@ -124,7 +144,7 @@
     <fieldset>
       <legend><span class="nr">II.</span>Eenheden</legend>
       <label>Dienststellen, één per regel<textarea name="units" style="min-height:96px"></textarea></label>
-      <p class="hint">Alleen de naam, dan kiest de generator een deknaam. Eigen deknaam? Schrijf <code>1. Gruppe; Uhu</code>. Seinletters: eerste twee letters met een j ertussen.</p>
+      <p class="hint">Wordt ingevuld uit het aantal eenheden. Alleen de naam, dan kiest de generator een deknaam. Eigen deknaam? Schrijf <code>1. Gruppe; Uhu</code>. Seinletters: eerste twee letters met een j ertussen.</p>
     </fieldset>
 
     <fieldset>
@@ -133,7 +153,7 @@
         <label>Plaatsen, één per regel<textarea name="places"></textarea></label>
         <label>Terreinpunten (bossen, heuvels, kruispunten)<textarea name="terrain"></textarea></label>
       </div>
-      <p class="hint">De generator kiest een Duitse stad met dezelfde beginletter, zoals in het origineel. Eigen deknaam: <code>Leersum; Leipzig</code>.</p>
+      <p class="hint">Wordt ingevuld na het opzoeken van het gebied; je kunt hier schrappen en aanvullen. De generator kiest een Duitse stad met dezelfde beginletter, zoals in het origineel. Eigen deknaam: <code>Leersum; Leipzig</code>.</p>
       <label style="margin-top:12px">Zielgeviertafelpunkte (max. 8, bijv. kerken)<textarea name="ziel" style="min-height:120px"></textarea></label>
     </fieldset>
 
@@ -155,10 +175,13 @@
       </div>
       <p class="hint">Dezelfde sleutel met dezelfde invoer geeft altijd dezelfde tafel. Zo kan iedereen hem opnieuw maken, en een nieuwe sleutel geeft een nieuwe tafel.</p>
     </fieldset>
+    </div>
+    </details>
   </form>
 
   <div class="actions">
     <button type="button" class="btn main" id="gen">Tafel maken</button>
+    <button type="button" class="btn" id="again">Nieuwe codes</button>
     <button type="button" class="btn" id="print">Afdrukken / PDF</button>
     <button type="button" class="btn" id="xlsx">Excel-sleutel (met NL)</button>
     <button type="button" class="btn" id="link">Link kopiëren</button>
@@ -169,8 +192,10 @@
   <div id="out"></div>
 
   <div class="note">
+    <p><strong>Nieuwe codes:</strong> elke keer dat je op "Nieuwe codes" drukt, krijg je een nieuwe tafel voor hetzelfde gebied. Een tafel die je wilt delen, deel je met "Link kopiëren".</p>
     <p><strong>Afdrukken:</strong> kies A4, marges "geen" en schaal 100 %. Sommige browsers zetten anders een eigen kop- en voettekst op het blad.</p>
     <p><strong>Excel-sleutel:</strong> dezelfde tafel met Nederlandse vertaling van alle begrippen, bedoeld voor de leiding.</p>
+    <p><strong>Kaartgegevens:</strong> plaatsnamen, heuvels, bossen en kerken komen uit OpenStreetMap (© OpenStreetMap-bijdragers). Controleer de lijst onder "Meer opties" voor je hem gebruikt.</p>
     <p><strong>Systeem:</strong> nagebouwd naar de <em>Tarntafel des J.R. 726 für den Funksprechverkehr</em> van 15.6.1942. Plaatsen krijgen een Duitse stad als deknaam en een signaal letter–teken–letter. Tactische begrippen hebben een drieletter-signaal voor het seinen en een onschuldig dekwoord voor het spreken. Het is bedoeld voor reenactment en het is geen echte versleuteling.</p>
   </div>
   <footer>VG726</footer>
@@ -179,6 +204,7 @@
 <script>
 const DATA = {"begr": [["Abmarschweg", "vertrekroute"], ["Abschnitt", "sector, vak"], ["Abteilung", "afdeling"], ["abgeschlagen", "afgeslagen"], ["Abwehr", "afweer, verdediging"], ["Angriff", "aanval"], ["Anmarschweg", "aanmarsroute"], ["Ansammlung", "troepenconcentratie"], ["Artillerie", "artillerie"], ["Art.Verb.Kdo.", "artillerie-verbindingscommando"], ["Aufkl.Flieger", "verkenningsvliegtuig"], ["Auftrag", "opdracht"], ["Ausgang (bei Orten usw.)", "uitgang (van plaatsen enz.)"], ["aufklären", "verkennen"], ["Bahnhof", "station"], ["Bahnlinie", "spoorlijn"], ["Bataillon", "bataljon"], ["Batterie", "batterij"], ["Bomben", "bommen"], ["Bombenwurf", "bombardement"], ["Bomber", "bommenwerper"], ["Baumsperre", "boomversperring"], ["befahrbar", "berijdbaar"], ["Befehl", "bevel"], ["bekämpfen (t)", "bestrijden"], ["Berg, Höhe", "berg, hoogte"], ["Brücke", "brug"], ["B.Stelle", "waarnemingspost"], ["beobachten (t)", "waarnemen"], ["belegen (t)", "beschieten, onder vuur nemen"], ["bereitstellen (ung)", "gereedstellen, opstelling"], ["beschießen", "beschieten"], ["beschossen", "beschoten"], ["genommen", "genomen"], ["Gros", "hoofdmacht"], ["Hilfe", "hulp"], ["besetzen (t)", "bezetten"], ["Brückenkopf", "bruggenhoofd"], ["Drahthindernisse", "prikkeldraadversperringen"], ["Durchbruch", "doorbraak"], ["durchstoßen", "doorstoten"], ["eigene", "eigen (troepen)"], ["eindringen, eingedrungen", "binnendringen, binnengedrongen"], ["einschließen (geschlossen)", "omsingelen (omsingeld)"], ["einstellen", "staken, stopzetten"], ["Entfernung", "afstand"], ["Ende, hinten", "einde, achter"], ["erbitten, erbeten auf", "verzoeken, verzocht op"], ["erkunden (ung)", "verkennen, verkenning"], ["Fabrik", "fabriek"], ["Feind", "vijand"], ["feindfrei", "vrij van vijand"], ["feindlich (e)", "vijandelijk"], ["Feuer", "vuur"], ["Flanke", "flank"], ["Flieger", "vliegtuig, vlieger"], ["Flügel", "vleugel"], ["Fluß", "rivier"], ["Frage (?)", "vraag (?)"], ["Furt", "doorwaadplaats"], ["gangbar", "begaanbaar"], ["Gebäude", "gebouw"], ["Gefechtsstand", "commandopost"], ["Gelände", "terrein"], ["Gas", "gas"], ["Graben", "loopgraaf, sloot"], ["Panzerspähwagen", "pantserverkenningswagen"], ["Planzeiger", "kaartcoördinatenmeter"], ["Panzer", "tank"], ["Infanterie", "infanterie"], ["in Stellung gehen", "stelling innemen"], ["Kampfstoffe", "strijdgassen"], ["keine", "geen"], ["Kilometer", "kilometer"], ["Kirche", "kerk"], ["Kompanie", "compagnie"], ["Kanone", "kanon"], ["Lage", "situatie"], ["liegen, liegt auf", "liggen, ligt op"], ["links", "links"], ["langsam", "langzaam"], ["Luftüberlegenheit", "luchtoverwicht"], ["leichte Inf.Geschütze", "lichte infanteriekanonnen"], ["Marschkolonne", "marscolonne"], ["melden (t)", "melden"], ["Minen", "mijnen"], ["Minensperre", "mijnenversperring"], ["Munition", "munitie"], ["motorisierte Kräfte", "gemotoriseerde troepen"], ["Mangel", "gebrek"], ["marschbereit", "marsgereed"], ["Marschrichtung", "marsrichting"], ["Meßstelle", "meetpost"], ["Masch.Gewehr", "mitrailleur"], ["Mühle", "molen"], ["nein, nicht", "nee, niet"], ["Nachhut", "achterhoede"], ["notwendig", "noodzakelijk"], ["Ortschaft", "plaats, dorp"], ["ohne", "zonder"], ["verzögern", "vertragen"], ["zerstören (t)", "vernietigen"], ["Ziel", "doel"], ["Widerstandslinie", "weerstandslinie"], ["Wirkungsschießen", "werkingsvuur"], ["rechts", "rechts"], ["Radfahrer", "wielrijder"], ["Reiter", "ruiter"], ["rückwärts, zurück", "achterwaarts, terug"], ["Regiment", "regiment"], ["Richtung", "richting"], ["Spähtrupp", "verkenningspatrouille"], ["Spitze", "spits, voorhoede"], ["Schwadron", "eskadron"], ["Straßengabel", "wegsplitsing"], ["Straßenkreuz", "kruispunt"], ["Straßenspinne", "knooppunt van wegen"], ["Sicherung", "beveiliging"], ["Sperre", "versperring"], ["Stärke", "sterkte"], ["Stellungswechsel", "stellingwissel"], ["Straße, Weg", "straat, weg"], ["Teich, See", "vijver, meer"], ["Unterstützung, nötig", "steun nodig"], ["umgehen", "omtrekken"], ["Verpflegung", "voedselvoorziening"], ["verteidigen (ung)", "verdedigen, verdediging"], ["vorwärts, vom", "voorwaarts, van"], ["Vorhut", "voorhoede"], ["viel, groß, stark", "veel, groot, sterk"], ["vorgehen", "oprukken"], ["vorderste Linie", "voorste linie"], ["vorderste Teile", "voorste eenheden"], ["verfolgen (ung)", "achtervolgen, achtervolging"], ["Wald", "bos"], ["wenig, klein, schwach", "weinig, klein, zwak"], ["Zielgeviertafel", "doelkwadranttabel"], ["zu kurz", "te kort"], ["zu weit", "te ver"], ["Gruppe", "groep"], ["Zug", "peloton"], ["Stellung", "stelling"], ["Deckung", "dekking"], ["Handgranate", "handgranaat"], ["Granatwerfer", "mortier"], ["Sanitäter", "hospik"], ["Verwundete", "gewonden"], ["Gefangene", "gevangenen"], ["Melder", "ordonnans"], ["Funkgerät", "radio"], ["Hinterhalt", "hinderlaag"], ["Sammelpunkt", "verzamelpunt"], ["ausweichen", "uitwijken"]], "orig": [["Abmarschweg", "vertrekroute", "d l z", "Leuchtkäfer", "vuurvliegje", "3"], ["Abschnitt", "sector, vak", "d u s", "Limonade", "limonade", "3"], ["Abteilung", "afdeling", "d u l", "Lausbube", "kwajongen", "3"], ["abgeschlagen", "afgeslagen", "d g k", "Lachen", "lachen", "3"], ["Abwehr", "afweer, verdediging", "d f a", "Lebemann", "levensgenieter", "3"], ["Angriff", "aanval", "d h i", "Leinöl", "lijnolie", "3"], ["Anmarschweg", "aanmarsroute", "d v a", "Leonore", "Leonore", "3"], ["Ansammlung", "troepenconcentratie", "d n t", "Lanze", "lans", "3"], ["Artillerie", "artillerie", "d u m", "Lampe", "lamp", "3"], ["Art.Verb.Kdo.", "artillerie-verbindingscommando", "d r e", "Max", "Max", "3"], ["Aufkl.Flieger", "verkenningsvliegtuig", "d a v", "Marzipan", "marsepein", "3"], ["Auftrag", "opdracht", "d k ?", "Mistkäfer", "mestkever", "3"], ["Ausgang (bei Orten usw.)", "uitgang (van plaatsen enz.)", "d c r", "Maibaum", "meiboom", "3"], ["aufklären", "verkennen", "d i e", "melken", "melken", "3"], ["Bahnhof", "station", "e d h", "Maulesel", "muilezel", "3"], ["Bahnlinie", "spoorlijn", "e c i", "Notenblatt", "bladmuziek", "3"], ["Bataillon", "bataljon", "e g l", "Nashorn", "neushoorn", "3"], ["Batterie", "batterij", "e a k", "Neuling", "nieuweling", "3"], ["Bomben", "bommen", "e f n", "Nordpol", "noordpool", "3"], ["Bombenwurf", "bombardement", "e b o", "Ottokar", "Ottokar", "3"], ["Bomber", "bommenwerper", "e e m", "Orakel", "orakel", "3"], ["Baumsperre", "boomversperring", "f a k", "Pfannkuchen", "pannenkoek", "3"], ["befahrbar", "berijdbaar", "f l n", "poltern", "stommelen", "3"], ["Befehl", "bevel", "f i m", "Papagei", "papegaai", "3"], ["bekämpfen (t)", "bestrijden", "f i o", "prügeln", "afranselen", "3"], ["Berg, Höhe", "berg, hoogte", "f g f", "Paradies", "paradijs", "3"], ["Brücke", "brug", "f c b", "Pickelhaube", "punthelm", "3"], ["B.Stelle", "waarnemingspost", "f e u", "Professor", "professor", "3"], ["beobachten (t)", "waarnemen", "f p r", "picken", "pikken", "3"], ["belegen (t)", "beschieten, onder vuur nemen", "f b q", "quälen", "kwellen", "3"], ["bereitstellen (ung)", "gereedstellen, opstelling", "g k o", "Quälgeist", "kwelgeest", "3"], ["beschießen", "beschieten", "g h t", "quaken", "kwaken", "3"], ["beschossen", "beschoten", "g r g", "quer", "dwars", "3"], ["genommen", "genomen", "o a d", "verlassen", "verlaten", "3"], ["Gros", "hoofdmacht", "o h r", "Vesuv", "Vesuvius", "3"], ["Hilfe", "hulp", "p l c", "Vase", "vaas", "3"], ["besetzen (t)", "bezetten", "g b n", "radeln", "fietsen", "3"], ["Brückenkopf", "bruggenhoofd", "g i m", "Realschule", "middelbare school", "3"], ["Drahthindernisse", "prikkeldraadversperringen", "g e z", "Reblaus", "druifluis", "3"], ["Durchbruch", "doorbraak", "g f l", "Reisekoffer", "reiskoffer", "3"], ["durchstoßen", "doorstoten", "k c d", "rupfen", "plukken", "3"], ["eigene", "eigen (troepen)", "k e l", "schimpfen", "schelden", "3"], ["eindringen, eingedrungen", "binnendringen, binnengedrongen", "k f h", "singen", "zingen", "3"], ["einschließen (geschlossen)", "omsingelen (omsingeld)", "k a e", "saugen", "zuigen", "3"], ["einstellen", "staken, stopzetten", "l a w", "schwimmen", "zwemmen", "3"], ["Entfernung", "afstand", "l s x", "Strumpfband", "kousenband", "3"], ["Ende, hinten", "einde, achter", "l b y", "Staubtuch", "stofdoek", "3"], ["erbitten, erbeten auf", "verzoeken, verzocht op", "l u t", "schaukeln", "schommelen", "3"], ["erkunden (ung)", "verkennen, verkenning", "l y r", "Steinhäger", "Steinhäger (jenever)", "3"], ["Fabrik", "fabriek", "l d a", "Schlüsselbund", "sleutelbos", "3"], ["Feind", "vijand", "l e s", "Schwarzsender", "clandestiene zender", "3"], ["feindfrei", "vrij van vijand", "m a c", "trommeln", "trommelen", "3"], ["feindlich (e)", "vijandelijk", "m a f", "tanzen", "dansen", "3"], ["Feuer", "vuur", "m e d", "Tintenfisch", "inktvis", "3"], ["Flanke", "flank", "m c g", "Taubenschlag", "duiventil", "3"], ["Flieger", "vliegtuig, vlieger", "m h b", "Türklinke", "deurklink", "3"], ["Flügel", "vleugel", "n f e", "Tasche", "tas", "3"], ["Fluß", "rivier", "n c r", "Torbogen", "poortboog", "3"], ["Frage (?)", "vraag (?)", "n d s", "Ursula", "Ursula", "3"], ["Furt", "doorwaadplaats", "n g i", "Unmensch", "onmens", "3"], ["gangbar", "begaanbaar", "n a q", "umlegen", "omleggen", "3"], ["Gebäude", "gebouw", "n l p", "Urteil", "oordeel", "3"], ["Gefechtsstand", "commandopost", "n b e", "Unkraut", "onkruid", "3"], ["Gelände", "terrein", "o g n", "Violine", "viool", "3"], ["Gas", "gas", "o m p", "Vereinsfahne", "verenigingsvaandel", "3"], ["Graben", "loopgraaf, sloot", "o l q", "Vogelscheuche", "vogelverschrikker", "3"], ["Panzerspähwagen", "pantserverkenningswagen", "t l q", "Brennschere", "krultang", "3"], ["Planzeiger", "kaartcoördinatenmeter", "t d p", "Blondkopf", "blondje", "3"], ["Panzer", "tank", "t z y", "Brauerei", "brouwerij", "3"], ["Infanterie", "infanterie", "p a e", "Wickelkind", "baby in luiers", "4"], ["in Stellung gehen", "stelling innemen", "p k d", "Weißbier", "witbier", "4"], ["Kampfstoffe", "strijdgassen", "p d a", "Wunderland", "wonderland", "4"], ["keine", "geen", "p c f", "wachsen", "groeien", "4"], ["Kilometer", "kilometer", "p f i", "Wächter", "bewaker", "4"], ["Kirche", "kerk", "p g l", "Wilhelm", "Wilhelm", "4"], ["Kompanie", "compagnie", "r a o", "Walze", "wals", "4"], ["Kanone", "kanon", "r b p", "Zuchthengst", "fokhengst", "4"], ["Lage", "situatie", "r d q", "Zivilist", "burger", "4"], ["liegen, liegt auf", "liggen, ligt op", "r f s", "zupacken", "toetasten", "4"], ["links", "links", "r g t", "zaghaft", "schuchter", "4"], ["langsam", "langzaam", "r k u", "zittern", "beven", "4"], ["Luftüberlegenheit", "luchtoverwicht", "r m v", "Zwiebel", "ui", "4"], ["leichte Inf.Geschütze", "lichte infanteriekanonnen", "r n x", "Zuckerrübe", "suikerbiet", "4"], ["Marschkolonne", "marscolonne", "s f e", "Zirkus", "circus", "4"], ["melden (t)", "melden", "s b x", "zwinkern", "knipogen", "4"], ["Minen", "mijnen", "s a p", "Amtsgericht", "kantongerecht", "4"], ["Minensperre", "mijnenversperring", "s g q", "Auspuff", "uitlaat", "4"], ["Munition", "munitie", "s k r", "Adam", "Adam", "4"], ["motorisierte Kräfte", "gemotoriseerde troepen", "s c w", "Austern", "oesters", "4"], ["Mangel", "gebrek", "s l t", "Apfelbaum", "appelboom", "4"], ["marschbereit", "marsgereed", "s d u", "aufspiessen", "spietsen", "4"], ["Marschrichtung", "marsrichting", "s m y", "Bernstein", "barnsteen", "4"], ["Meßstelle", "meetpost", "s e n", "Brigitte", "Brigitte", "4"], ["Masch.Gewehr", "mitrailleur", "t r f", "Beißzange", "nijptang", "4"], ["Mühle", "molen", "t a g", "Backenzahn", "kies", "4"], ["nein, nicht", "nee, niet", "t n h", "boxen", "boksen", "4"], ["Nachhut", "achterhoede", "t b w", "Bauchredner", "buikspreker", "4"], ["notwendig", "noodzakelijk", "t m i", "backen", "bakken", "4"], ["Ortschaft", "plaats, dorp", "t d k", "Bleistift", "potlood", "4"], ["ohne", "zonder", "t c z", "bürsten", "borstelen", "4"], ["verzögern", "vertragen", "a d g", "fließen", "stromen", "4"], ["zerstören (t)", "vernietigen", "b g f", "fluchen", "vloeken", "4"], ["Ziel", "doel", "b e d", "Flammen", "vlammen", "4"], ["Widerstandslinie", "weerstandslinie", "b k m", "Flieder", "sering", "4"], ["Wirkungsschießen", "werkingsvuur", "b i c", "Flügel", "vleugel", "4"], ["rechts", "rechts", "t o r", "brennen", "branden", "4"], ["Radfahrer", "wielrijder", "t e s", "Chemiker", "chemicus", "4"], ["Reiter", "ruiter", "u h a", "Dietrich", "loper (sleutel)", "4"], ["rückwärts, zurück", "achterwaarts, terug", "u g k", "donnern", "donderen", "4"], ["Regiment", "regiment", "u i b", "Donnerschlag", "donderslag", "4"], ["Richtung", "richting", "u l m", "Dampfmaschine", "stoommachine", "4"], ["Spähtrupp", "verkenningspatrouille", "u f n", "Dromedar", "dromedaris", "4"], ["Spitze", "spits, voorhoede", "u c d", "Eskimo", "eskimo", "4"], ["Schwadron", "eskadron", "w d c", "Erdbeere", "aardbei", "4"], ["Straßengabel", "wegsplitsing", "w e k", "Erntefest", "oogstfeest", "4"], ["Straßenkreuz", "kruispunt", "w f b", "Eigentümer", "eigenaar", "4"], ["Straßenspinne", "knooppunt van wegen", "w g a", "Extrablatt", "extra editie", "4"], ["Sicherung", "beveiliging", "x i g", "Eva", "Eva", "4"], ["Sperre", "versperring", "x k l", "Ehemann", "echtgenoot", "4"], ["Stärke", "sterkte", "x m n", "Eberesche", "lijsterbes", "4"], ["Stellungswechsel", "stellingwissel", "x a b", "Elisabeth", "Elisabeth", "4"], ["Straße, Weg", "straat, weg", "y z u", "Eiche", "eik", "4"], ["Teich, See", "vijver, meer", "y s p", "Ente", "eend", "4"], ["Unterstützung, nötig", "steun nodig", "z e o", "Erbsenblatt", "erwtenblad", "4"], ["umgehen", "omtrekken", "z f p", "Espenlaub", "espenblad", "4"], ["Verpflegung", "voedselvoorziening", "z c y", "Eisbein", "varkenspoot (Eisbein)", "4"], ["verteidigen (ung)", "verdedigen, verdediging", "z d q", "einkaufen", "inkopen", "4"], ["vorwärts, vom", "voorwaarts, van", "z g m", "elastisch", "elastisch", "4"], ["Vorhut", "voorhoede", "z b n", "Flanellhose", "flanellen broek", "4"], ["viel, groß, stark", "veel, groot, sterk", "z a k", "flechten", "vlechten", "4"], ["vorgehen", "oprukken", "a m b", "fürchten", "vrezen", "4"], ["vorderste Linie", "voorste linie", "a c l", "Flickschuster", "schoenlapper", "4"], ["vorderste Teile", "voorste eenheden", "a r z", "Filiale", "filiaal", "4"], ["verfolgen (ung)", "achtervolgen, achtervolging", "a i k", "fegen", "vegen", "4"], ["Wald", "bos", "a f e", "Fußball", "voetbal", "4"], ["wenig, klein, schwach", "weinig, klein, zwak", "b l u", "fleißig", "vlijtig", "4"], ["Zielgeviertafel", "doelkwadranttabel", "c f b", "Fischerboot", "vissersboot", "4"], ["zu kurz", "te kort", "c g a", "füttern", "voeren", "4"], ["zu weit", "te ver", "c a k", "farblos", "kleurloos", "4"]], "words": [["Ameise", "mier"], ["Ananas", "ananas"], ["Anker", "anker"], ["Apfelsine", "sinaasappel"], ["Aquarium", "aquarium"], ["Backofen", "oven"], ["Badewanne", "badkuip"], ["Bärlauch", "daslook"], ["Bergkristall", "bergkristal"], ["Besenstiel", "bezemsteel"], ["Bienenwachs", "bijenwas"], ["Birnbaum", "perenboom"], ["Blaubeere", "bosbes"], ["Blumenkohl", "bloemkool"], ["Bohnenstange", "bonenstaak"], ["Bratapfel", "gepofte appel"], ["Brezel", "krakeling"], ["Briefmarke", "postzegel"], ["Butterbrot", "boterham"], ["Dachboden", "zolder"], ["Dackel", "tekkel"], ["Dattel", "dadel"], ["Distel", "distel"], ["Dorfschmied", "dorpssmid"], ["Drachen", "vlieger (speelgoed)"], ["Dudelsack", "doedelzak"], ["Eichhörnchen", "eekhoorn"], ["Eierlikör", "advocaat"], ["Eimer", "emmer"], ["Eisvogel", "ijsvogel"], ["Elster", "ekster"], ["Engelwurz", "engelwortel"], ["Erbsensuppe", "erwtensoep"], ["Fahrrad", "fiets"], ["Federball", "badminton"], ["Feldhase", "veldhaas"], ["Fensterbank", "vensterbank"], ["Fingerhut", "vingerhoed"], ["Flaschenpost", "flessenpost"], ["Forelle", "forel"], ["Frosch", "kikker"], ["Fuchsbau", "vossenhol"], ["Gänseblümchen", "madeliefje"], ["Gartenzaun", "tuinhek"], ["Gießkanne", "gieter"], ["Glühwein", "glühwein"], ["Goldfisch", "goudvis"], ["Grashüpfer", "sprinkhaan"], ["Gurke", "komkommer"], ["Haferbrei", "havermout"], ["Hagebutte", "rozenbottel"], ["Hampelmann", "hansworst"], ["Harmonika", "harmonica"], ["Haselnuss", "hazelnoot"], ["Heuschober", "hooiberg"], ["Himbeere", "framboos"], ["Holzschuh", "klomp"], ["Honigtopf", "honingpot"], ["Hutmacher", "hoedenmaker"], ["Igel", "egel"], ["Ingwer", "gember"], ["Johannisbeere", "aalbes"], ["Kachelofen", "tegelkachel"], ["Kaffeemühle", "koffiemolen"], ["Kamille", "kamille"], ["Kanarienvogel", "kanarie"], ["Kartoffel", "aardappel"], ["Kerzenständer", "kandelaar"], ["Kirschkuchen", "kersentaart"], ["Klavier", "piano"], ["Kleiderbügel", "kleerhanger"], ["Knopfloch", "knoopsgat"], ["Kochlöffel", "pollepel"], ["Kohlrabi", "koolrabi"], ["Korkenzieher", "kurkentrekker"], ["Kuckucksuhr", "koekoeksklok"], ["Kürbis", "pompoen"], ["Lakritz", "drop"], ["Laterne", "lantaarn"], ["Lebkuchen", "peperkoek"], ["Leierkasten", "draaiorgel"], ["Liegestuhl", "ligstoel"], ["Löwenzahn", "paardenbloem"], ["Lindenblüte", "lindebloesem"], ["Maikäfer", "meikever"], ["Mandel", "amandel"], ["Maulwurf", "mol"], ["Meerrettich", "mierikswortel"], ["Milchkanne", "melkbus"], ["Mohnblume", "klaproos"], ["Mondschein", "maneschijn"], ["Murmel", "knikker"], ["Nachtigall", "nachtegaal"], ["Nähkästchen", "naaidoos"], ["Nudelholz", "deegroller"], ["Nussknacker", "notenkraker"], ["Ofenrohr", "kachelpijp"], ["Ohrensessel", "oorfauteuil"], ["Osterhase", "paashaas"], ["Pantoffel", "pantoffel"], ["Pfefferminz", "pepermunt"], ["Pfirsich", "perzik"], ["Pflaume", "pruim"], ["Pilz", "paddenstoel"], ["Pinsel", "penseel"], ["Pudding", "pudding"], ["Puppenhaus", "poppenhuis"], ["Quark", "kwark"], ["Quitte", "kweepeer"], ["Radieschen", "radijsje"], ["Regenschirm", "paraplu"], ["Rhabarber", "rabarber"], ["Rosenkohl", "spruitjes"], ["Rotkehlchen", "roodborstje"], ["Rucksack", "rugzak"], ["Salzstange", "zoutstengel"], ["Sauerkraut", "zuurkool"], ["Schaukelpferd", "hobbelpaard"], ["Schlitten", "slee"], ["Schmetterling", "vlinder"], ["Schneeglöckchen", "sneeuwklokje"], ["Schnürsenkel", "veter"], ["Schornsteinfeger", "schoorsteenveger"], ["Sonnenblume", "zonnebloem"], ["Spatz", "mus"], ["Spieluhr", "speeldoos"], ["Stachelbeere", "kruisbes"], ["Stiefel", "laars"], ["Storch", "ooievaar"], ["Strohhut", "strohoed"], ["Tannenzapfen", "dennenappel"], ["Teekessel", "theeketel"], ["Teppich", "tapijt"], ["Tischtuch", "tafelkleed"], ["Tomate", "tomaat"], ["Trompete", "trompet"], ["Tulpe", "tulp"], ["Uhrmacher", "horlogemaker"], ["Ulme", "iep"], ["Veilchen", "viooltje"], ["Vogelhaus", "vogelhuisje"], ["Waffel", "wafel"], ["Walnuss", "walnoot"], ["Wanduhr", "wandklok"], ["Waschbrett", "wasbord"], ["Weidenkorb", "wilgenmand"], ["Weinberg", "wijngaard"], ["Wetterhahn", "windhaan"], ["Windmühle", "windmolen"], ["Wollmütze", "wollen muts"], ["Zahnbürste", "tandenborstel"], ["Zaunkönig", "winterkoning"], ["Zimt", "kaneel"], ["Zitrone", "citroen"], ["Zuckerwatte", "suikerspin"], ["Zylinder", "hoge hoed"], ["Apfelstrudel", "appelstrudel"], ["Blockflöte", "blokfluit"], ["Bilderbuch", "prentenboek"], ["Christbaum", "kerstboom"], ["Erdnuss", "pinda"], ["Gänsefeder", "ganzenveer"], ["Hängematte", "hangmat"], ["Kakao", "cacao"], ["Kastanie", "kastanje"], ["Kreisel", "tol"], ["Lampion", "lampion"], ["Marmelade", "jam"], ["Nelke", "anjer"], ["Pelikan", "pelikaan"], ["Rosine", "rozijn"], ["Seifenblase", "zeepbel"], ["Tintenfass", "inktpot"], ["Vanille", "vanille"], ["Walross", "walrus"], ["Zebra", "zebra"], ["Zwieback", "beschuit"], ["Abendbrot", "avondeten"], ["Ahornblatt", "esdoornblad"], ["Amsel", "merel"], ["Apfelmus", "appelmoes"], ["Armbanduhr", "polshorloge"], ["Baumkuchen", "baumkuchen"], ["Bettdecke", "dekbed"], ["Bienenkorb", "bijenkorf"], ["Blumenvase", "bloemenvaas"], ["Bratwurst", "braadworst"], ["Brombeere", "braam"], ["Brunnen", "waterput"], ["Buchfink", "vink"], ["Daunenkissen", "donskussen"], ["Deckel", "deksel"], ["Dorfplatz", "dorpsplein"], ["Eule", "uil"], ["Eisbär", "ijsbeer"], ["Essig", "azijn"], ["Federhalter", "penhouder"], ["Feigenbaum", "vijgenboom"], ["Fliegenpilz", "vliegenzwam"], ["Flusskiesel", "rivierkiezel"], ["Fuchsie", "fuchsia"], ["Gartenbank", "tuinbank"], ["Gewürzgurke", "augurk"], ["Giraffe", "giraf"], ["Glockenspiel", "klokkenspel"], ["Gugelhupf", "tulband"], ["Haarkamm", "haarkam"], ["Hahnenkamm", "hanenkam"], ["Heckenrose", "hondsroos"], ["Heidekraut", "heidekruid"], ["Holunder", "vlier"], ["Hufeisen", "hoefijzer"], ["Hummel", "hommel"], ["Kaminuhr", "schoorsteenklok"], ["Karussell", "draaimolen"], ["Käsekuchen", "kwarktaart"], ["Kiefer", "grove den"], ["Kleeblatt", "klaverblad"], ["Knödel", "knoedel"], ["Kopfkissen", "hoofdkussen"], ["Kranich", "kraanvogel"], ["Krokus", "krokus"], ["Kuhglocke", "koebel"], ["Lavendel", "lavendel"], ["Lilie", "lelie"], ["Mohnkuchen", "maanzaadtaart"], ["Nebelhorn", "misthoorn"], ["Notizbuch", "notitieboek"], ["Obstkorb", "fruitmand"], ["Orgelpfeife", "orgelpijp"], ["Papierschiff", "papieren bootje"], ["Pfau", "pauw"], ["Pilzsuppe", "paddenstoelensoep"], ["Platzregen", "stortbui"], ["Preiselbeere", "vossenbes"], ["Rabe", "raaf"], ["Rapsfeld", "koolzaadveld"], ["Reh", "ree"], ["Ringelblume", "goudsbloem"], ["Rotwein", "rode wijn"], ["Sahnetorte", "slagroomtaart"], ["Salbei", "salie"], ["Schachbrett", "schaakbord"], ["Schaf", "schaap"], ["Schnecke", "slak"], ["Schwalbe", "zwaluw"], ["Seerose", "waterlelie"], ["Sellerie", "selderij"], ["Spinnrad", "spinnewiel"], ["Stachelschwein", "stekelvarken"], ["Steinpilz", "eekhoorntjesbrood"], ["Strickjacke", "vest"], ["Teelöffel", "theelepel"], ["Thymian", "tijm"], ["Tischglocke", "tafelbel"], ["Uhrkette", "horlogeketting"], ["Wachtel", "kwartel"], ["Waldmeister", "lievevrouwebedstro"], ["Wiesel", "wezel"], ["Wiege", "wieg"], ["Zichorie", "cichorei"], ["Zwetschge", "kwets"], ["Zimtstern", "kaneelster"], ["Zuckerdose", "suikerpot"], ["Ziege", "geit"], ["Zapfhahn", "tapkraan"]], "cities": {"a": ["Aachen", "Allenstein", "Ansbach", "Augsburg", "Arnstadt", "Aschersleben", "Altenburg", "Apolda", "Aurich", "Amberg"], "b": ["Bielefeld", "Bamberg", "Bautzen", "Bayreuth", "Bochum", "Bonn", "Brandenburg", "Braunschweig", "Bremen", "Bromberg"], "c": ["Celle", "Coburg", "Cottbus", "Chemnitz", "Cuxhaven", "Crailsheim", "Cloppenburg"], "d": ["Darmstadt", "Dessau", "Detmold", "Dülmen", "Delmenhorst", "Döbeln", "Düren", "Dinkelsbühl", "Demmin"], "e": ["Emden", "Erlangen", "Eisenach", "Esslingen", "Eutin", "Eschwege", "Emmerich"], "f": ["Fulda", "Freiburg", "Forchheim", "Fürth", "Frankenthal", "Friedberg", "Finsterwalde"], "g": ["Gotha", "Göttingen", "Gera", "Goslar", "Gießen", "Greifswald", "Güstrow", "Gumbinnen"], "h": ["Hameln", "Heilbronn", "Halberstadt", "Hanau", "Hildesheim", "Husum", "Herne", "Höxter"], "i": ["Ingolstadt", "Iserlohn", "Itzehoe", "Ilmenau", "Insterburg", "Idstein"], "j": ["Jena", "Jever", "Jüterbog", "Jülich"], "k": ["Kassel", "Kiel", "Koblenz", "Konstanz", "Kempten", "Krefeld", "Königsberg", "Kolberg"], "l": ["Lübeck", "Leipzig", "Lüneburg", "Lindau", "Landsberg", "Lahr", "Lemgo", "Lingen"], "m": ["Magdeburg", "Memmingen", "Marburg", "Meißen", "Minden", "Mainz", "Merseburg", "Mosbach"], "n": ["Naumburg", "Nordhausen", "Neuruppin", "Nienburg", "Neustrelitz", "Nördlingen", "Neuss"], "o": ["Offenburg", "Oldenburg", "Osterode", "Oschatz", "Oppeln", "Ohrdruf"], "p": ["Paderborn", "Passau", "Pirna", "Plauen", "Potsdam", "Prenzlau", "Peine", "Pforzheim"], "q": ["Quedlinburg", "Querfurt", "Quakenbrück"], "r": ["Regensburg", "Rendsburg", "Rostock", "Rathenow", "Rheine", "Rosenheim", "Rudolstadt", "Ratzeburg"], "s": ["Stettin", "Schwerin", "Stralsund", "Soest", "Stendal", "Saalfeld", "Siegen", "Speyer", "Schleswig"], "t": ["Torgau", "Trier", "Tilsit", "Tübingen", "Traunstein", "Templin", "Tangermünde"], "u": ["Ulm", "Uelzen", "Unna", "Usedom", "Uslar"], "v": ["Verden", "Vechta", "Villingen", "Völklingen", "Vilsbiburg"], "w": ["Weimar", "Würzburg", "Wetzlar", "Wismar", "Worms", "Wittenberg", "Wesel", "Wolfenbüttel"], "x": ["Xanten"], "y": [], "z": ["Zwickau", "Zittau", "Zerbst", "Zeitz", "Zweibrücken"]}, "units": [["Habicht", "havik"], ["Uhu", "oehoe"], ["Specht", "specht"], ["Biber", "bever"], ["Dachs", "das"], ["Elch", "eland"], ["Falke", "valk"], ["Gemse", "gems"], ["Iltis", "bunzing"], ["Luchs", "lynx"], ["Marder", "marter"], ["Nerz", "nerts"], ["Otter", "otter"], ["Pirol", "wielewaal"], ["Reiher", "reiger"], ["Taube", "duif"], ["Wolf", "wolf"], ["Zobel", "sabelmarter"], ["Auerhahn", "auerhoen"], ["Kauz", "bosuil"], ["Fink", "vink"], ["Gimpel", "goudvink"], ["Hirsch", "hert"], ["Ibis", "ibis"], ["Möwe", "meeuw"], ["Natter", "ringslang"], ["Eber", "beer (zwijn)"], ["Kiebitz", "kievit"], ["Lerche", "leeuwerik"], ["Star", "spreeuw"], ["Steinbock", "steenbok"], ["Bussard", "buizerd"], ["Dohle", "kauw"], ["Fasan", "fazant"]]};
 const DEFAULTS = {
+  area:"Utrechtse Heuvelrug", n:"3", resolved:"Utrechtse Heuvelrug",
   stelle:"Kdo.Gruppe", abt:"Ic", raum:"Utrechter Hügelrücken", stempel:"Geheim!",
   bezug:"Anlage Nr. 1 zu Befehl Nr. ___/__ g.Kdos.", datum:"__.__.194_", aant:"___", ausf:"___",
   units:"Kdo.Gruppe\n1. Gruppe\n2. Gruppe",
@@ -187,13 +213,14 @@ const DEFAULTS = {
   ziel:"Kirche Amerongen\nKirche Doorn\nKirche Leersum\nKirche Rhenen\nKirche Maarn\nKirche Woudenberg\nKirche Driebergen\nKirche Soest",
   mode:"new", tx:"0900", ty:"1500", key:"VG-1942"
 };
+const HIDDEN={resolved:""}; // niet zichtbaar veld: voor welk gebied de lijsten zijn opgehaald
 const L = "abcdefghiklmnopqrstuvwxyz"; // zonder j, zoals het origineel
 const $ = s => document.querySelector(s);
 const form = $("#f");
 
 /* ---------- formulier ---------- */
-function readForm(){ const o={}; for(const k of Object.keys(DEFAULTS)) o[k]=form.elements[k].value; return o; }
-function fillForm(o){ for(const k of Object.keys(DEFAULTS)) if(o[k]!=null) form.elements[k].value=o[k]; }
+function readForm(){ const o={}; for(const k of Object.keys(DEFAULTS)) o[k]= k==="resolved"?HIDDEN.resolved:form.elements[k].value; return o; }
+function fillForm(o){ for(const k of Object.keys(DEFAULTS)) if(o[k]!=null){ if(k==="resolved") HIDDEN.resolved=o[k]; else form.elements[k].value=o[k]; } }
 function save(o){ try{ localStorage.setItem("tarntafel",JSON.stringify(o)); }catch(e){} }
 function load(){
   if(location.hash.length>1){ try{ return Object.assign({},DEFAULTS,JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(1)))))); }catch(e){} }
@@ -428,17 +455,110 @@ function exportXlsx(t){
 }
 
 /* ---------- knoppen ---------- */
+function newKey(){ const r=Math.random; return "VG-"+Math.floor(1000+r()*9000)+"-"+L[Math.floor(r()*25)].toUpperCase()+L[Math.floor(r()*25)].toUpperCase(); }
+
+/* ---------- gebied opzoeken in OpenStreetMap ---------- */
+const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+async function lookup(area){
+  const q=new URLSearchParams({q:area,format:"jsonv2",limit:"1",countrycodes:"nl,be,de,fr,lu"});
+  const nr=await fetch("https://nominatim.openstreetmap.org/search?"+q,{headers:{"Accept-Language":"nl"}});
+  if(!nr.ok) throw new Error("Gebied opzoeken lukt nu niet (Nominatim "+nr.status+").");
+  const hit=(await nr.json())[0];
+  if(!hit) throw new Error(`"${area}" niet gevonden. Probeer de naam van een gemeente of streek.`);
+  let sel;
+  if(hit.osm_type==="relation") sel=`area(${3600000000+Number(hit.osm_id)})->.a;`;
+  else if(hit.osm_type==="way") sel=`area(${2400000000+Number(hit.osm_id)})->.a;`;
+  const bb=hit.boundingbox.map(Number); // [zuid,noord,west,oost]
+  let filt;
+  if(sel && ["boundary","place","natural","landuse"].includes(hit.category)) filt="(area.a)";
+  else{ // een losse plaats: neem een vak van ongeveer 12 x 12 km eromheen
+    sel=""; const la=Number(hit.lat), lo=Number(hit.lon), d=.055, e=.09;
+    filt=`(${la-d},${lo-e},${la+d},${lo+e})`;
+  }
+  const ql=`[out:json][timeout:60];${sel}(
+    node["place"~"^(city|town|village|hamlet)$"]["name"]${filt};
+    node["natural"~"^(peak|hill)$"]["name"]${filt};
+    nwr["natural"~"^(wood|heath)$"]["name"]${filt};
+    nwr["landuse"="forest"]["name"]${filt};
+    nwr["amenity"="place_of_worship"]["religion"="christian"]${filt};
+  );out center tags;`;
+  let data, last;
+  for(const url of OVERPASS){
+    try{ const r=await fetch(url,{method:"POST",body:"data="+encodeURIComponent(ql),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
+      if(r.ok){ data=await r.json(); break; } last=r.status; }catch(e){ last=e.message; }
+  }
+  if(!data) throw new Error("Kaartgegevens ophalen lukt nu niet ("+last+"). Probeer het over een minuut opnieuw.");
+  return pickFeatures(data.elements, hit);
+}
+
+function pickFeatures(els, hit){
+  const pt=e=>e.center?{lat:e.center.lat,lon:e.center.lon}:{lat:e.lat,lon:e.lon};
+  const name=e=>(e.tags&&(e.tags["name:nl"]||e.tags.name)||"").trim();
+  const rank={city:4,town:3,village:2,hamlet:1};
+  // plaatsen: steden en dorpen eerst, dan buurtschappen tot ongeveer 36 namen
+  const seen=new Set();
+  let places=els.filter(e=>e.tags&&rank[e.tags.place]&&name(e)).map(e=>({n:name(e),r:rank[e.tags.place],pop:+(e.tags.population||0),...pt(e)}))
+    .filter(p=>!seen.has(p.n)&&seen.add(p.n))
+    .sort((a,b)=>b.r-a.r||b.pop-a.pop);
+  const main=places.filter(p=>p.r>=2), small=places.filter(p=>p.r<2);
+  places=main.slice(0,36).concat(small.slice(0,Math.max(0,30-main.length)));
+  // terreinpunten: heuvels eerst (hoogste eerst), dan heide en bossen
+  const tSeen=new Set(places.map(p=>p.n));
+  const hills=els.filter(e=>e.tags&&/^(peak|hill)$/.test(e.tags.natural)&&name(e)).sort((a,b)=>(+b.tags.ele||0)-(+a.tags.ele||0));
+  const heath=els.filter(e=>e.tags&&e.tags.natural==="heath"&&name(e));
+  const woods=els.filter(e=>e.tags&&(e.tags.natural==="wood"||e.tags.landuse==="forest")&&name(e));
+  const terrain=[];
+  for(const [lst,max] of [[hills,4],[heath,3],[woods,8]]){
+    let k=0; for(const e of lst){ const n=name(e); if(terrain.length>=8||k>=max) break; if(tSeen.has(n)||n.length>32) continue; tSeen.add(n); terrain.push(n); k++; }
+  }
+  // kerken: één per dorp, in de grootste dorpen, van west naar oost
+  const churches=els.filter(e=>e.tags&&e.tags.amenity==="place_of_worship").map(pt);
+  const near=c=>{ let best=null,bd=1e9; for(const p of places){ const d=(p.lat-c.lat)**2+((p.lon-c.lon)*Math.cos(p.lat*Math.PI/180))**2; if(d<bd){bd=d;best=p;} } return bd<0.0004?best:null; };
+  const withChurch=new Map(); for(const c of churches){ const p=near(c); if(p&&!withChurch.has(p.n)) withChurch.set(p.n,p); }
+  const ziel=[...withChurch.values()].sort((a,b)=>b.r-a.r||b.pop-a.pop).slice(0,8).sort((a,b)=>a.lon-b.lon).map(p=>"Kirche "+p.n);
+  if(!places.length) throw new Error("Geen plaatsen gevonden in dit gebied. Probeer een groter gebied.");
+  return {places:places.map(p=>p.n).sort(sortDe), terrain:terrain.sort(sortDe), ziel, label:(hit.name||hit.display_name.split(",")[0])};
+}
+
+function unitLines(n){
+  n=Math.max(1,Math.min(8,parseInt(n)||1));
+  const a=["Kdo.Gruppe"]; for(let i=1;i<n;i++) a.push(i+". Gruppe"); return a.join("\n");
+}
+
 let current=null;
-function run(){
+async function run(){
+  const btn=$("#gen"), area=form.elements.area.value.trim();
+  form.elements.units.value=unitLines(form.elements.n.value);
+  if(area && area!==HIDDEN.resolved){
+    btn.disabled=true; $("#msg").textContent=`${area} opzoeken…`; $("#warn").innerHTML="";
+    try{
+      const g=await lookup(area);
+      form.elements.places.value=g.places.join("\n");
+      form.elements.terrain.value=g.terrain.join("\n");
+      form.elements.ziel.value=g.ziel.join("\n");
+      form.elements.raum.value=g.label;
+      form.elements.key.value=newKey();
+      HIDDEN.resolved=area;
+    }catch(e){
+      btn.disabled=false; $("#msg").textContent="";
+      $("#warn").textContent = e instanceof TypeError
+        ? "OpenStreetMap is vanaf deze pagina niet bereikbaar. In de voorbeeldweergave in Claude is internet afgeschermd; op de VG726-site werkt het opzoeken wel. Je kunt de plaatsen ook zelf invullen onder Meer opties."
+        : e.message;
+      return;
+    }
+    btn.disabled=false;
+  }
   const o=readForm(); save(o); current=generate(o); render(current);
   $("#warn").innerHTML=current.warn.join("<br>");
   const n=document.querySelectorAll("#out .page").length;
-  $("#msg").textContent=`${n} bladen · ${current.places.length} plaatsen · ${current.tak.length} tactische uitdrukkingen · sleutel ${o.key}`;
+  $("#msg").textContent=`${current.o.raum} · ${n} bladen · ${current.places.length} plaatsen · ${current.units.length} eenheden · sleutel ${o.key}`;
 }
 $("#gen").onclick=run;
+form.elements.area.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); run(); } });
+$("#again").onclick=()=>{ form.elements.key.value=newKey(); run(); };
 $("#print").onclick=()=>{ if(!current) run(); window.print(); };
 $("#xlsx").onclick=()=>{ if(!current) run(); exportXlsx(current); };
-$("#newkey").onclick=()=>{ const r=Math.random; form.elements.key.value="VG-"+Math.floor(1000+r()*9000)+"-"+L[Math.floor(r()*25)].toUpperCase()+L[Math.floor(r()*25)].toUpperCase(); run(); };
+$("#newkey").onclick=()=>{ form.elements.key.value=newKey(); run(); };
 $("#link").onclick=async()=>{
   const o=readForm(), url=location.href.split("#")[0]+"#"+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
   try{ await navigator.clipboard.writeText(url); $("#msg").textContent="Link gekopieerd: wie hem opent, krijgt dezelfde invoer en dus dezelfde tafel."; }
