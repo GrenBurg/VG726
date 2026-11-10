@@ -1,0 +1,3483 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torn.Fu.d2 — Bediensimulator (v6.5) · VG726</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=UnifrakturMaguntia&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --outer:#4b5a3e;
+    --outer-dark:#333f29;
+    --panel:#8e9797;      /* sampled from both reference photos: neutral, slightly cool grey */
+    --panel-hi:#a5adac;
+    --panel-shadow:#6c7474;
+    --cream:#efe6cc;
+    --cream-dim:#cfc6a8;
+    --ink:#1c1a15;
+    --screw-red:#8a2620;
+    --screw-metal:#8f9380;
+    --lamp-off:#3a2a22;
+    --lamp-on:#e8c15a;
+    --ok-green:#5f8a53;
+    --mono:'Oswald', 'Courier New', ui-monospace, monospace;
+    --stencil:'Oswald', 'Arial Narrow', Arial, sans-serif;
+    --plate-black:#141310;
+    --plate-cream:#eee5c9;
+    --plate-serial:#d8c67a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#15160f;color:var(--cream);font-family:var(--stencil);}
+  body{padding:18px;min-height:100vh;}
+  .wrap{max-width:1303px;margin:0 auto;}
+
+  .title{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #6d6b4a;padding-bottom:10px;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .title h1{font-size:22px;letter-spacing:3px;margin:0;font-weight:700;text-transform:uppercase;color:var(--cream);}
+  .title .sub{font-size:11px;color:var(--cream-dim);letter-spacing:1px;}
+  .title .tag{font-family:var(--mono);font-size:11px;color:#c7c197;border:1px solid #6d6b4a;padding:3px 8px;letter-spacing:1px;}
+
+  .layout{display:grid;grid-template-columns:290px 1fr 300px;gap:16px;align-items:start;}
+  @media (max-width:1100px){.layout{grid-template-columns:1fr;}}
+
+  /* ===== fit to screen: on any desktop-size window the whole set is visible at once, scaled to
+     the free space (width AND height); the side columns scroll on their own instead of the page ===== */
+  @media (min-width:1100px) and (min-height:600px){
+    html,body{height:100%;overflow:hidden;}
+    body{padding:10px 14px 6px;}
+    .wrap{max-width:none;height:100%;display:flex;flex-direction:column;}
+    .title{flex:0 0 auto;margin-bottom:10px;padding-bottom:6px;}
+    .title h1{font-size:19px;}
+    .layout{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr);align-items:stretch;
+      grid-template-columns:clamp(260px,19vw,330px) minmax(0,1fr) clamp(270px,20vw,340px);gap:14px;}
+    .morse-col,.side{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 4px 8px 0;
+      scrollbar-width:thin;scrollbar-color:#6d6b4a transparent;}
+    .center-col{min-height:0;align-items:center;gap:10px;}
+    .plate-fit{--fit:1;flex:1 1 auto;min-height:0;align-items:center;}
+    .case{padding:10px 12px 12px;}
+    .carry-handle{margin-bottom:8px;height:13px;}
+    .table-top{flex:0 0 auto;align-self:stretch;padding:10px 14px 8px;gap:12px;}
+    footer{flex:0 0 auto;margin-top:6px;line-height:1.3;}
+    footer br{display:none;}
+  }
+  @media (min-width:1100px) and (min-height:600px) and (max-height:820px){
+    /* short screens (laptops): slimmer accessory tray so the set gets the height */
+    .table-top{padding:6px 12px 4px;}
+    .table-top .acc{flex-direction:row;gap:10px;}
+    .table-top .key-assembly svg{width:40px !important;}
+    .table-top .fpruefer{transform:scale(.8);margin:-8px -12px;}
+    .table-top .sim-vol .knob.small{width:48px;height:48px;}
+    .acc-lbl{text-align:left;}
+    footer{display:none;}
+  }
+  .morse-col .card{position:relative;}
+  /* ===== floating, draggable, minimizable "extra" windows (checklist / plug-connect / morse) ===== */
+  .floaty{position:relative;}
+  .floaty.undocked{
+    position:absolute;z-index:500;width:290px;
+    max-height:calc(100vh - 24px);display:flex;flex-direction:column;
+  }
+  .floaty.undocked .floaty-titlebar{flex:0 0 auto;}
+  .floaty.undocked .floaty-body{flex:1 1 auto;overflow-y:auto;min-height:0;}
+  .floaty.minimized.undocked{max-height:none;}
+  .floaty-titlebar{
+    display:flex;justify-content:space-between;align-items:center;gap:8px;
+    margin:-16px -16px 12px -16px;padding:7px 10px 7px 12px;
+    background:linear-gradient(180deg,#3d3b32,#211f19);border-radius:6px 6px 0 0;
+    cursor:grab;user-select:none;touch-action:none;
+  }
+  .floaty-titlebar:active{cursor:grabbing;}
+  .floaty-titlebar h3{margin:0;padding:0;border:none;font-size:11px;}
+  .floaty-btns{display:flex;gap:4px;flex:0 0 auto;}
+  .floaty-min-btn{
+    width:19px;height:19px;border-radius:3px;background:#17150f;border:1px solid #000;
+    color:var(--cream);font-size:12px;line-height:17px;text-align:center;cursor:pointer;flex:0 0 auto;
+  }
+  .floaty-dock-btn{
+    width:19px;height:19px;border-radius:3px;background:#17150f;border:1px solid #000;
+    color:var(--cream);font-size:11px;line-height:17px;text-align:center;cursor:pointer;flex:0 0 auto;
+    opacity:.4;pointer-events:none;
+  }
+  .floaty.undocked .floaty-dock-btn{opacity:1;pointer-events:auto;}
+  .floaty-dock-btn:hover{background:#262419;}
+  .floaty-min-btn:hover{background:#26241c;}
+  .floaty-body{position:relative;}
+  .floaty.minimized .floaty-body{display:none;}
+  .floaty.minimized .floaty-titlebar{margin-bottom:0;border-radius:6px;}
+
+  /* ===== Notizbuch: a little kraft-paper field notebook, styled after the reference photo
+     (embossed Fraktur title, "Dieses Buch gehört" ownership page, ruled handwritten pages) ===== */
+  #notebookCard{
+    background:#c7b596;color:#3a3122;border:1px solid #8a765a;
+  }
+  #notebookCard .floaty-titlebar{
+    background:linear-gradient(180deg,#a68e68,#8a7350);color:#2c2417;
+  }
+  /* Morse gets the exact same kraft-paper look as the Notizbuch */
+  #morseCard{background:#c7b596;color:#3a3122;border:1px solid #8a765a;}
+  #morseCard .floaty-titlebar{background:linear-gradient(180deg,#a68e68,#8a7350);color:#2c2417;}
+  #morseCard .floaty-min-btn{background:#5a4a34;border-color:#3a2f20;color:#e8dcc0;}
+  #morseCard .floaty-dock-btn{background:#5a4a34;border-color:#3a2f20;color:#e8dcc0;}
+  #morseCard p{color:#3a3122;}
+  #morseCard .morse-ref{background:#faf6ec;color:#3a3122;box-shadow:inset 0 0 0 1px #d8cba8;}
+  #morseCard .morse-ref .mr-row b{color:#1c1810;}
+  #morseCard .morse-ref .mr-row i{color:#8a7a5e;}
+  #morseCard .status-line{color:#3a3122;border-bottom:1px dotted #8a765a;}
+  #morseCard .status-line b{color:#1c1810;}
+  #morseCard .radios label{color:#3a3122;}
+  #morseCard .btn{background:#efe4c8;color:#2c2417;border:1px solid #8a765a;}
+  #morseCard .btn:hover{background:#e2d3ac;}
+  #morseCard .btn.primary{background:#8a7350;color:#faf6ec;border-color:#5a4a34;}
+  #morseCard input[type="text"]{background:#faf6ec;color:#25324a;border:1px solid #8a765a;}
+  #morseCard .lock-indicator{background:#efe4c8;color:#3a3122;border:1px solid #8a765a;}
+  #morseCard .lock-indicator.locked{background:#5f7a4a;color:#f0f5e6;}
+  #notebookCard .floaty-min-btn{background:#5a4a34;border-color:#3a2f20;color:#e8dcc0;}
+  #notebookCard .lock-indicator{background:#efe4c8;color:#3a3122;border:1px solid #8a765a;}
+  #notebookCard .lock-indicator.locked{background:#5f7a4a;color:#f0f5e6;}
+  #notebookCard .btn.primary{background:#8a7350;color:#faf6ec;border-color:#5a4a34;}
+  #notebookCard .btn.primary:hover{background:#9c8560;}
+  #notebookCard .floaty-dock-btn{background:#5a4a34;border-color:#3a2f20;color:#e8dcc0;}
+  .nb-cover{
+    text-align:center;padding:10px 0 14px 0;border-bottom:2px dashed #8a765a;margin-bottom:10px;
+  }
+  .nb-cover h4{
+    font-family:'UnifrakturMaguntia','Old English Text MT',serif;font-weight:400;margin:0;
+    font-size:30px;color:#2c2417;text-shadow:0 1px 0 rgba(255,255,255,.25);letter-spacing:1px;
+  }
+  .nb-owner{font-size:10.5px;line-height:1.9;margin-bottom:10px;}
+  .nb-owner div{display:flex;align-items:baseline;gap:5px;}
+  .nb-owner span{flex:0 0 auto;font-weight:600;}
+  .nb-owner input{
+    flex:1;min-width:0;background:transparent;border:none;border-bottom:1px dotted #6a5a40;
+    font-family:inherit;font-size:10.5px;color:#2c2417;padding:1px 2px;
+  }
+  .nb-owner input:focus{outline:none;border-bottom-color:#2c2417;}
+  .nb-page{
+    background:#faf6ec;border-radius:2px;box-shadow:inset 0 0 0 1px #d8cba8;
+    background-image:repeating-linear-gradient(to bottom, transparent, transparent 25px, #c9d3d8 26px);
+    padding:10px 12px 4px 12px;position:relative;overflow:hidden;
+    transform-style:preserve-3d;transform-origin:right center;backface-visibility:hidden;
+  }
+  .nb-page.flipping{animation:nbPageFlip 0.7s ease-in-out;}
+  @keyframes nbPageFlip{
+    0%{transform:rotateY(0deg);filter:brightness(1);}
+    45%{transform:rotateY(85deg);filter:brightness(.7);}
+    55%{transform:rotateY(-85deg);filter:brightness(.7);}
+    100%{transform:rotateY(0deg);filter:brightness(1);}
+  }
+  .nb-page textarea{
+    width:100%;min-height:260px;border:none;background:transparent;resize:vertical;
+    font-family:'Caveat',cursive;font-size:20px;line-height:26px;color:#25324a;
+    box-sizing:border-box;padding:0;
+  }
+  .nb-page textarea:focus{outline:none;}
+  /* the folded-corner "dog ear" — click it to turn to a fresh page */
+  .nb-dogear{
+    position:absolute;right:0;bottom:0;width:0;height:0;cursor:pointer;z-index:6;
+    border-style:solid;border-width:0 0 30px 30px;
+    border-color:transparent transparent #e4d9b8 transparent;
+    filter:drop-shadow(-1px -1px 2px rgba(0,0,0,.25));
+    transition:border-width .12s ease;
+  }
+  .nb-dogear:hover{border-width:0 0 38px 38px;}
+  .nb-footer{
+    text-align:center;font-size:8.5px;color:#7a6a4e;margin-top:8px;padding-top:6px;
+    border-top:1px dashed #8a765a;
+  }
+
+  .morse-lock-overlay{
+    position:absolute;inset:0;background:rgba(40,41,35,.55);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;padding:16px;text-align:center;
+    font-size:11.5px;color:#fff;z-index:20;text-shadow:0 1px 3px rgba(0,0,0,.9);
+    pointer-events:none;
+  }
+  /* Morse stays visible (not display:none) while locked — just visibly greyed out,
+     same "muted/disabled" treatment style as other non-interactive states in this app */
+  #morseCard.locked-dim .floaty-body > *:not(.morse-lock-overlay){
+    filter:grayscale(1) brightness(.75);pointer-events:none;user-select:none;
+  }
+
+  /* ================= OUTER CASE ================= */
+  .case{
+    background: linear-gradient(160deg, var(--outer) 0%, var(--outer-dark) 100%);
+    border-radius:5px;padding:16px;position:relative;
+    box-shadow:0 12px 34px rgba(0,0,0,.55), inset 0 0 0 2px var(--outer-dark);
+  }
+  .carry-handle{
+    height:16px;margin:0 auto 12px auto;width:120px;
+    background:linear-gradient(180deg,#5c6a4a,#3a4530);
+    border-radius:6px;box-shadow:inset 0 2px 3px rgba(0,0,0,.4), 0 2px 2px rgba(0,0,0,.3);
+  }
+
+  /* ================= CONTROL PLATE ================= */
+  .plate{
+    border-radius:3px;padding:0;position:relative;background:#2b3326;
+    box-shadow: inset 0 0 0 2px #1c2218, 0 0 0 1px #00000040;
+  }
+  .screw{
+    position:absolute;width:15px;height:15px;border-radius:50%;transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 35% 30%, #e3e5df, #a9adaa 50%, #5f6463);
+    box-shadow:0 1px 2px rgba(0,0,0,.55), inset 0 0 0 1px rgba(0,0,0,.35);
+  }
+  .screw::after{
+    content:"";position:absolute;left:50%;top:50%;width:76%;height:13%;min-height:1.5px;
+    background:#2a2c2a;transform:translate(-50%,-50%) rotate(var(--slot,35deg));border-radius:1px;
+    box-shadow:0 1px 0 rgba(255,255,255,.35);
+  }
+  .screw.s{width:12px;height:12px;}
+  .screw.m{width:18px;height:18px;}
+  /* large countersunk screw sitting in its own recessed ring, as seen all over the photo */
+  .screw.l{width:34px;height:34px;
+    background:radial-gradient(circle at 38% 32%, #d9dcd7, #9ea3a1 45%, #6a706f 70%, #3d4241 74%, #8a9191 80%, #6d7473);
+    box-shadow:0 0 0 2px rgba(0,0,0,.28), inset 0 1px 2px rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.4);}
+  .screw.l::after{width:64%;height:9%;}
+  .screw.xl{width:30px;height:30px;}
+  .screw.xl::after{width:72%;height:10%;}
+  /* the red sealing-lacquer ring on the four corner screws */
+  .screw.red{background:
+    radial-gradient(circle at 50% 50%, #9aa09d 0 34%, #b8332b 36% 62%, #6e1c17 66%, #4a4f4e 72%);
+    box-shadow:0 1px 3px rgba(0,0,0,.6), inset 0 0 0 1px rgba(0,0,0,.4);}
+
+  .nameplate2{
+    display:flex;align-items:center;gap:7px;background:linear-gradient(170deg,#d3d5ce,#b8bbb4);border-radius:2px;
+    width:137px;height:48px;padding:5px 8px;box-shadow:inset 0 0 0 1px #8a8c84, inset 0 -1px 0 rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.35);
+  }
+  .nameplate2 .np-screws{display:flex;flex-direction:column;gap:16px;}
+  .nameplate2 .np-screw{
+    width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e8e9e4,#9a9c93);
+    box-shadow:inset 0 0 0 1px #6a6c64;position:relative;
+  }
+  .nameplate2 .np-screw::after{
+    content:"";position:absolute;left:50%;top:50%;width:5px;height:1px;background:#4a4c44;
+    transform:translate(-50%,-50%) rotate(-40deg);
+  }
+  .nameplate2 .np-text{display:flex;flex-direction:column;gap:4px;}
+  .nameplate2 .np-title{
+    font-family:'Georgia',serif;font-weight:700;font-size:12.5px;letter-spacing:.1px;color:#1c1d18;white-space:nowrap;
+  }
+  .nameplate2 .np-row{display:flex;align-items:center;gap:4px;}
+  .nameplate2 .np-nrlabel{font-family:'Georgia',serif;font-weight:700;font-size:10.5px;color:#1c1d18;}
+  .nameplate2 .np-box{
+    background:#f2f0e4;border:1px solid #8a8c84;border-radius:1px;
+    font-family:var(--mono);font-size:10.5px;font-weight:500;color:#1c1d18;letter-spacing:.8px;
+    padding:0 5px;box-shadow:inset 0 0 2px rgba(0,0,0,.2);
+  }
+
+  /* generic row bands */
+  .band{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap;}
+  .band.center{justify-content:center;gap:34px;}
+
+  /* ===== authentic control canvas: every control absolutely positioned to match
+     the measured (deliberately NOT symmetric) layout of the real front panel.
+     .control-canvas is the RESPONSIVE outer box (scales with the grid column).
+     .canvas-inner is a FIXED 820x700 "design resolution" — all the .ctrl percentage
+     positions and every knob/meter/lupe pixel size were tuned against this exact
+     reference size. It's scaled as a whole via CSS transform (set by JS to
+     canvas.width/820), so proportions never distort regardless of window size. ===== */
+  .control-canvas{ /* width/height are set by JS from the space available (see setupCanvasScaling) */
+    position:relative;width:820px;height:700px;overflow:hidden;border-radius:3px;
+  }
+  .plate-fit{width:100%;display:flex;justify-content:center;}
+
+  .canvas-inner{
+    position:absolute;top:0;left:0;width:820px;height:700px;
+    transform-origin:0 0;transform:scale(1);
+    /* painted sheet metal: base gradient + fine paint grain + soft light falloff + worn edges */
+    background:
+      radial-gradient(ellipse 60% 45% at 30% 22%, rgba(255,255,255,.10), transparent 70%),
+      radial-gradient(ellipse 70% 50% at 80% 95%, rgba(0,0,0,.16), transparent 70%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+      linear-gradient(160deg, var(--panel-hi), var(--panel) 48%, var(--panel-shadow));
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), inset 0 0 22px rgba(0,0,0,.28), inset 0 2px 0 rgba(255,255,255,.10);
+  }
+  /* paint worn through to bare metal along the edges and around the corner lugs */
+  .canvas-inner::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(circle at 3% 4%, rgba(210,210,200,.20) 0 18px, transparent 34px),
+      radial-gradient(circle at 97% 4%, rgba(210,210,200,.16) 0 16px, transparent 32px),
+      radial-gradient(circle at 3% 96%, rgba(210,210,200,.18) 0 16px, transparent 32px),
+      radial-gradient(circle at 97% 96%, rgba(210,210,200,.16) 0 16px, transparent 32px),
+      linear-gradient(90deg, rgba(0,0,0,.14), transparent 2.2%, transparent 97.8%, rgba(0,0,0,.14)),
+      linear-gradient(180deg, rgba(0,0,0,.10), transparent 2.5%, transparent 97%, rgba(0,0,0,.18));
+  }
+  .ctrl{
+    position:absolute;transform:translate(-50%,-50%);z-index:2;
+    display:flex;flex-direction:column;align-items:center;
+  }
+  /* cast corner lugs carrying the four red-sealed Befestigungsschrauben */
+  .lug{
+    position:absolute;width:52px;height:52px;transform:translate(-50%,-50%);z-index:1;border-radius:8px;
+    background:linear-gradient(150deg,#b3b9b7,#8d9595 55%,#6f7777);
+    box-shadow:0 2px 4px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 3px rgba(0,0,0,.25);
+  }
+  .lug .screw{left:50%;top:50%;}
+  .hex-stud{position:absolute;width:16px;height:16px;transform:translate(-50%,-50%);z-index:1;
+    clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);
+    background:radial-gradient(circle at 40% 35%,#e3e4df,#9a9f9c 60%,#5d6261);}
+
+  .field{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;position:relative;}
+  .lbl{
+    font-family:var(--stencil);font-weight:600;font-size:13px;letter-spacing:0;
+    color:#f0f0ea;text-align:center;line-height:1.12;min-width:72px;
+    background:linear-gradient(180deg,#4d5354,#363b3c 55%,#2c3132);
+    padding:3px 14px;border-radius:2px;position:relative;white-space:nowrap;
+    box-shadow:inset 0 0 0 1px #00000080, inset 0 1px 0 rgba(255,255,255,.08), 0 1px 2px rgba(0,0,0,.4);
+  }
+  .lbl::before,.lbl::after{
+    content:"";position:absolute;top:50%;width:5px;height:5px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#8d918f,#4a4e4d);transform:translateY(-50%);
+    box-shadow:inset 0 0 0 1px #00000070;
+  }
+  .lbl::before{left:4px;}
+  .lbl::after{right:4px;}
+  .lbl.tiny{font-size:10px;min-width:44px;padding:2px 10px;}
+  .numplate{
+    width:22px;height:54px;border-radius:2px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#3d4140,#1d201f);color:#eeeee6;font-family:Georgia,serif;
+    font-size:22px;font-weight:700;letter-spacing:-1px;position:relative;
+    box-shadow:inset 0 0 0 1px #00000070, 0 1px 2px rgba(0,0,0,.4);
+  }
+  .numplate::before,.numplate::after{content:"";position:absolute;left:50%;width:5px;height:5px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#8d918f,#4a4e4d);transform:translateX(-50%);}
+  .numplate::before{top:3px;} .numplate::after{bottom:3px;}
+
+  /* value tooltip: hidden by default, appears on hover or right after interacting */
+  .val{
+    position:absolute;left:50%;bottom:calc(100% + 6px);transform:translate(-50%,4px);
+    font-family:var(--mono);font-weight:500;font-size:10px;letter-spacing:.3px;
+    color:var(--plate-cream);background:var(--plate-black);
+    padding:3px 7px;border-radius:2px;white-space:nowrap;
+    box-shadow:0 3px 8px rgba(0,0,0,.5), inset 0 0 0 1px #00000060;
+    opacity:0;pointer-events:none;transition:opacity .14s ease, transform .14s ease;
+    z-index:20;
+  }
+  .val::after{
+    content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:5px solid transparent;border-top-color:var(--plate-black);
+  }
+  .ctrl:hover .val, .field:hover .val, .val.show{
+    opacity:1;transform:translate(-50%,0);
+  }
+
+  /* ===== round analog meter — square black bezel + inset cream dial (matches photo) ===== */
+  .meter-unit{position:relative;width:128px;aspect-ratio:1;}
+  .meter-unit svg{width:100%;height:100%;display:block;overflow:visible;}
+  .meter-svg-slot{width:100%;height:100%;}
+  .meter-unit .mbtn{
+    position:absolute;left:73.9%;top:72.4%;transform:translate(-50%,-50%);
+    width:10.5px;height:10.5px;border-radius:50%;padding:0;border:1.6px solid #c9cdcc;
+    background:radial-gradient(circle at 40% 35%, #3f6fb8, #1b2f6a 70%);
+    box-shadow:0 1px 2px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.15);cursor:pointer;
+  }
+  .meter-unit .mbtn:active{background:radial-gradient(circle at 35% 30%, #5c9dbf,#2c5a72 70%);}
+  .cal-cap{
+    width:52px;height:52px;border-radius:50%;
+    background:radial-gradient(circle at 38% 30%, #4d5453, #2c3131 60%, #1c2020);
+    box-shadow:0 2px 4px rgba(0,0,0,.5), inset 0 0 0 1px #00000060;position:relative;
+    cursor:ns-resize;touch-action:none;
+  }
+  .cal-cap::after{
+    content:"";position:absolute;left:58%;top:40%;width:17px;height:17px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #e9ebe8, #a9adab 60%, #6f7473);
+    transform:translate(-50%,-50%);box-shadow:inset 0 1px 1px rgba(0,0,0,.3);
+  }
+
+  /* ===== bakelite rotary knob (SVG-rendered, filled in by JS) ===== */
+  .knob{
+    position:relative;cursor:grab;user-select:none;touch-action:none;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,.55));
+  }
+  .knob:active{cursor:grabbing;}
+  .knob svg{width:100%;height:100%;display:block;overflow:visible;}
+  .knob.small{width:78px;height:78px;}
+  .knob.coarse{width:80px;height:80px;}
+  .knob.tiny{width:58px;height:58px;border-radius:50%;}
+
+  /* ===== circular lupe frequency scale ===== */
+  .lupe{
+    width:120px;height:120px;border-radius:50%;background:var(--cream);position:relative;
+    overflow:hidden;box-shadow:0 2px 5px rgba(0,0,0,.4);
+  }
+  .lupe .strip{position:absolute;inset:0;}
+  .lupe .needle{
+    position:absolute;left:50%;top:14px;bottom:7px;width:1.6px;background:#151412;
+    transform:translateX(-50%);z-index:3;
+  }
+  /* fixed red index flag poking above the number card, into the darker mechanism zone */
+  .lupe .idx-flag{
+    position:absolute;left:50%;top:0;width:8px;height:16px;
+    background:linear-gradient(180deg,#7a231c,#9c2e27);
+    clip-path:polygon(20% 0%, 80% 0%, 65% 100%, 35% 100%);
+    transform:translateX(-50%);z-index:2;
+  }
+  /* glass dome lighting: bright sheen near top, darkening toward the bottom rim,
+     plus two small specular glare dots — this is the actual "lens" look.
+     No inset box-shadow here — that used to bleed into (and fade) the ring below. */
+  .lupe .glass{
+    position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:6;
+    background:
+      radial-gradient(ellipse 70% 40% at 48% 22%, rgba(255,255,255,.65), rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 30%, rgba(0,0,0,.10) 68%, rgba(0,0,0,.30) 92%);
+  }
+  .lupe .glass::before, .lupe .glass::after{
+    content:"";position:absolute;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,255,255,.95), rgba(255,255,255,0) 70%);
+  }
+  .lupe .glass::before{width:9px;height:9px;left:46%;top:30%;}
+  .lupe .glass::after{width:5px;height:5px;left:27%;top:55%;}
+  /* the black bezel ring: always its own crisp, undimmed top layer */
+  .lupe .ring{
+    position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:10;
+    box-shadow: inset 0 0 0 5px #121211, inset 0 0 0 6px #3a3d3c;
+  }
+  /* bright turned-metal escutcheon around each lupe window */
+  .lupe{outline:2px solid #aeb4b3;outline-offset:0;
+    box-shadow:0 0 0 3px #6d7474, 0 3px 7px rgba(0,0,0,.45);}
+
+  /* ===== warning plate ===== */
+  .warnplate{
+    width:182px;height:40px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#1d1b1a,#0d0c0c);color:#b8352c;
+    font-family:var(--stencil);font-weight:500;font-size:21px;letter-spacing:1.4px;
+    border:4px solid #b3302a;border-radius:2px;
+    box-shadow:0 2px 4px rgba(0,0,0,.4), inset 0 0 6px rgba(0,0,0,.8);
+    text-shadow:0 0 1px rgba(184,53,44,.6);
+  }
+
+  /* ===== mode horseshoe dial (SVG bracket) ===== */
+  .horseshoe{width:262px;height:262px;position:relative;}
+  .horseshoe svg{width:100%;height:100%;display:block;overflow:visible;}
+  .horseshoe .dial{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:44px;height:44px;border-radius:50%;cursor:pointer;
+    background: radial-gradient(circle at 35% 28%, #35342d, #0e0e0c 70%);
+    box-shadow:0 4px 9px rgba(0,0,0,.55), inset 0 0 0 3px #000, inset 0 1px 0 rgba(255,255,255,.06);
+    border:3px solid #060605;z-index:5;
+  }
+  .horseshoe .dial::before{
+    content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;border-radius:50%;
+    background:#050504;transform:translate(-50%,-50%);box-shadow:inset 0 0 2px #000;
+  }
+  .horseshoe .dial .ptr{
+    position:absolute;left:50%;top:50%;width:12px;height:84px;
+    background:linear-gradient(180deg,#3a3830,#100f0c);
+    transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);border-radius:3px;
+    box-shadow:0 0 0 1.5px #000;
+  }
+  .horseshoe .dial .ptr::after{
+    content:"";position:absolute;left:50%;top:-5px;width:16px;height:16px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#5a584c,#161510);
+    transform:translateX(-50%);box-shadow:0 1px 3px rgba(0,0,0,.5);
+  }
+  .horseshoe .lab{
+    position:absolute;font-family:var(--stencil);font-size:15px;letter-spacing:.2px;
+    color:#e8e8e0;cursor:pointer;background:rgba(0,0,0,0);
+    padding:2px 6px;border-radius:2px;font-weight:600;
+    transition:background .12s,color .12s;transform:translate(-50%,-50%);z-index:6;
+  }
+  .horseshoe .lab.active{color:#fff;text-shadow:0 0 6px rgba(255,240,190,.9);}
+  /* round boss carrying the antenna socket, with its three fixing screws */
+  .ant-boss{
+    width:100px;height:100px;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 40% 32%, #a9b1b0, #858e8e 55%, #6a7272);
+    box-shadow:0 2px 4px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.3), inset 0 -2px 4px rgba(0,0,0,.25);
+  }
+  .ant-boss .boss-txt{position:absolute;left:50%;top:9%;transform:translateX(-50%);
+    font-family:var(--stencil);font-weight:600;font-size:14px;color:#f1f1ea;}
+  .ant-boss .jack{position:absolute;left:50%;top:57%;transform:translate(-50%,-50%);width:50px;height:50px;
+    border:none;background:radial-gradient(circle at 42% 36%, #34383a, #0b0c0c 70%);box-shadow:inset 0 2px 4px #000, 0 0 0 2px #5d6464;}
+
+  /* ===== lamp ===== */
+  .lamp{width:12px;height:12px;border-radius:50%;background:var(--lamp-off);
+    box-shadow:inset 0 0 3px #000, 0 0 0 2px #0d0c0a;transition:box-shadow .15s, background .15s;}
+  .lamp.on{background:var(--lamp-on);box-shadow:0 0 10px 3px rgba(232,193,90,.85), inset 0 0 3px #fff8;}
+
+  /* ===== jack ===== */
+  .jack{width:38px;height:38px;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 40% 35%, #2f302d, #0b0c0b);border:3px solid #1b1c1b;}
+  /* G: a plated ring around a dark hole */
+  .jack.ring-jack{width:32px;height:32px;border:none;
+    background:radial-gradient(circle, #0b0b0a 0 30%, #8f938f 33%, #e3e4de 46%, #a3a7a3 60%, #6f7471 74%, transparent 76%);}
+  .jack.ring-jack::after{display:none;}
+  .fspr-klinke{width:56px;height:56px;border-radius:50%;position:relative;
+    background:radial-gradient(circle at 38% 32%, #c6cbca, #959d9d 55%, #747c7c);
+    box-shadow:0 2px 4px rgba(0,0,0,.45), inset 0 -2px 3px rgba(0,0,0,.25);}
+  .fspr-klinke::after{content:"";position:absolute;left:40%;top:52%;width:14px;height:14px;border-radius:50%;
+    transform:translate(-50%,-50%);background:radial-gradient(circle at 40% 35%,#2a2b29,#050505);
+    box-shadow:inset 0 0 0 2px #5c6261;}
+  .acceptance-stamp{width:30px;height:32px;opacity:.8;background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 32'><g fill='%23b0302a'><path d='M15 3 c1.6 0 2.4 1.3 2 2.6 l-.8 2.2 c3-1.8 7.6-2.6 11.6-1.8 c-2.4 .6-4.6 1.6-6.4 3 c1.8-.2 3.6 0 5 .6 c-2.8 .2-5.4 1-7.4 2.4 l.8 3.2 l-2.2 -1.4 l-2.6 2.4 l-2.6-2.4 l-2.2 1.4 l.8-3.2 c-2-1.4-4.6-2.2-7.4-2.4 c1.4-.6 3.2-.8 5-.6 c-1.8-1.4-4-2.4-6.4-3 c4-.8 8.6 0 11.6 1.8 l-.8-2.2 c-.4-1.3 .4-2.6 2-2.6z'/><text x='15' y='29' font-size='8' font-family='Arial' font-weight='700' text-anchor='middle'>WaA</text></g></svg>") center/contain no-repeat;}
+  .jack::after{
+    content:"";position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;
+    background:#050403;transform:translate(-50%,-50%);box-shadow:inset 0 1px 1px rgba(0,0,0,.8);
+  }
+
+  /* ===== connector strip: one continuous recessed plate holding all 4 accessory jacks,
+     labels printed directly on it — matches the reference photo exactly ===== */
+  .connector-strip{
+    width:505px;height:76px;position:relative;
+    background:linear-gradient(180deg,#232221,#141312 40%,#0e0d0d);border-radius:9px;
+    box-shadow:0 0 0 4px #a9b0af, 0 0 0 5px rgba(0,0,0,.35), inset 0 2px 6px rgba(0,0,0,.8), 0 3px 6px rgba(0,0,0,.35);
+  }
+  .connector-strip .screw{background:radial-gradient(circle at 35% 30%,#6a6d6a,#2b2d2c);}
+  .cs-item{
+    position:absolute;top:0;bottom:0;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:9px;gap:8px;
+  }
+  .cs-label{
+    font-family:var(--stencil);font-size:12.5px;font-weight:600;color:#ecebe4;letter-spacing:0;
+    white-space:nowrap;
+  }
+  .cs-holes{display:flex;gap:41px;cursor:default;align-items:center;justify-content:center;min-width:64px;min-height:30px;}
+  .cs-holes span{
+    width:13px;height:13px;border-radius:50%;background:#050403;
+    box-shadow:inset 0 2px 2px rgba(0,0,0,.9), 0 0 0 2px #6f6656, 0 0 0 3px #2c2a26;
+  }
+  .cs-holes.plugged span{background:#1c1810;}
+  #socketMikrofon{gap:24px;}
+  /* ---- a plugged socket shows the actual plug body sitting in it, as in photo 1 ---- */
+  .cs-holes{position:relative;}
+  .connector-strip{overflow:visible;}
+  .cs-holes.plugged::after{
+    content:"";position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:3;
+    width:calc(100% + 18px);height:52px;top:78%;border-radius:10px 10px 14px 14px;
+    background:linear-gradient(180deg,#3a3836,#141312 45%,#070707);
+    box-shadow:0 3px 5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.18), inset 0 -3px 4px rgba(0,0,0,.6);
+  }
+  #socketAnt.plugged::before, #socketG.plugged::before{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;
+    width:24px;height:24px;border-radius:50%;
+    background:radial-gradient(circle at 38% 32%,#4a4846,#0d0d0c 70%);box-shadow:0 2px 3px rgba(0,0,0,.6);
+  }
+  #socketG.plugged::after{display:block;}
+  /* battery plug: big grey cast-alloy body with knurled nut, filling the coupling */
+  #socketBatt.plugged::before{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;
+    width:96px;height:96px;border-radius:50%;
+    background:
+      radial-gradient(circle at 50% 54%, #26292a 0 12px, transparent 13px),
+      radial-gradient(circle at 50% 54%, transparent 0 22px, #5c6973 22px 23px, #9aa8b2 24px 27px, #6f7d87 28px 29px, transparent 30px),
+      radial-gradient(circle at 42% 30%, #c3cdd4, #93a2ad 50%, #6c7a85 80%, #56626b);
+    box-shadow:0 5px 9px rgba(0,0,0,.5), inset 0 -5px 8px rgba(0,0,0,.3), inset 0 3px 4px rgba(255,255,255,.35);
+  }
+  #socketBatt.plugged .jbig-pin, #socketBatt.plugged .jbig-key{opacity:0;}
+  .jack.big{
+    width:124px;height:124px;border-radius:50%;border:none;position:relative;
+    background:radial-gradient(circle at 40% 32%, #d0d5d4, #a3aaaa 40%, #7a8282 62%, #5c6363 70%, #8e9696 74%, #b5bbba 80%, #7b8383);
+    box-shadow:0 5px 10px rgba(0,0,0,.45), inset 0 -4px 8px rgba(0,0,0,.3);
+  }
+  .jack.big::after{
+    content:"";position:absolute;left:50%;top:50%;width:80px;height:80px;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #262524, #090908 70%);
+    transform:translate(-50%,-50%);box-shadow:inset 0 3px 6px #000, 0 0 0 3px #4b5050;
+  }
+  /* "5-polige unverwechselbare Kupplung" — brass pins in an asymmetric pattern + a keyway tab */
+  .jack.big .jbig-pin{
+    position:absolute;width:9px;height:9px;border-radius:50%;z-index:1;transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 35% 30%, #f1d28a, #b38a3a 60%, #6f5420);
+    box-shadow:0 1px 2px rgba(0,0,0,.8);
+  }
+  .jack.big .jbig-pin:nth-child(2){left:42%;top:37%;}
+  .jack.big .jbig-pin:nth-child(3){left:62%;top:37%;}
+  .jack.big .jbig-pin:nth-child(4){left:52%;top:51%;}
+  .jack.big .jbig-pin:nth-child(5){left:37%;top:61%;}
+  .jack.big .jbig-pin:nth-child(6){left:62%;top:62%;}
+  .jack.big .jbig-key{position:absolute;left:50%;top:4%;width:26px;height:9px;transform:translateX(-50%);z-index:1;
+    border-radius:3px 3px 1px 1px;background:repeating-linear-gradient(90deg,#c4c9c8 0 2px,#7d8484 2px 4px);}
+
+  /* buttons */
+  .btn{font-family:var(--stencil);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+    background:#23241b;color:var(--cream);border:1px solid #00000060;border-radius:3px;
+    padding:6px 9px;cursor:pointer;box-shadow:0 2px 0 #000000a0, inset 0 1px 0 rgba(255,255,255,.06);}
+  .btn:hover{background:#33362b;}
+  .btn:active{transform:translateY(1px);box-shadow:0 1px 0 #000000a0;}
+  .btn.primary{background:#a68a4a;color:#1a1a12;font-weight:bold;border-color:#6a582f;}
+  .btn.primary:hover{background:#c0a260;}
+  .key-assembly{cursor:grab;touch-action:none;user-select:none;position:relative;z-index:50;}
+  .key-assembly.dragging{cursor:grabbing;position:fixed;z-index:900;pointer-events:none;}
+  .key-press-btn{transform-origin:50px 128px;transition:transform .05s;cursor:pointer;}
+  .key-press-btn.pressed,.key-assembly:active .key-press-btn{transform:translateY(3px) scale(.97);}
+
+  .EOrS{font-size:68px;line-height:1;font-weight:500;color:#f2f2ec;letter-spacing:0;font-family:var(--stencil);
+    text-shadow:0 1px 0 rgba(0,0,0,.25);}
+
+  .bar{
+    width:187px;height:41px;position:relative;border-radius:20px;
+    background:linear-gradient(180deg,#2e3130,#1a1c1b 55%,#121413);
+    box-shadow:0 2px 4px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.1);
+  }
+  .bar::before,.bar::after{ /* the two adjusting holes at either end */
+    content:"";position:absolute;top:50%;width:28px;height:28px;border-radius:50%;transform:translateY(-50%);
+    background:radial-gradient(circle at 45% 40%,#1b1c1b,#050505);box-shadow:inset 0 2px 3px #000, 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .bar::before{left:16px;} .bar::after{right:16px;}
+  .bar i{position:absolute;top:50%;width:11px;height:11px;border-radius:50%;transform:translate(-50%,-50%);
+    background:radial-gradient(circle at 35% 30%,#f0d58e,#a98235 65%,#5c4518);box-shadow:0 1px 2px rgba(0,0,0,.7);}
+  .bar i:nth-child(1){left:31%;} .bar i:nth-child(2){left:69%;}
+
+  /* ===== centre column: the set itself + the accessories lying on the table in front of it ===== */
+  .center-col{display:flex;flex-direction:column;gap:14px;min-width:0;}
+  .table-top{
+    display:flex;justify-content:space-around;align-items:flex-end;gap:18px;flex-wrap:wrap;
+    padding:16px 14px 12px;border-radius:5px;
+    background:
+      repeating-linear-gradient(92deg, rgba(0,0,0,.05) 0 2px, transparent 2px 9px),
+      linear-gradient(180deg,#4a3a29,#3a2c1f);
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.5), 0 6px 14px rgba(0,0,0,.35);
+  }
+  .acc{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;min-width:110px;}
+  .acc-lbl{font-family:var(--stencil);font-size:11px;letter-spacing:.6px;color:var(--cream);text-align:center;line-height:1.3;}
+  .acc-lbl span{font-size:9.5px;color:var(--cream-dim);letter-spacing:.2px;}
+  /* Frequenzprüfer c: a separate small test instrument, not part of the radio's panel */
+  .fpruefer{
+    width:118px;height:84px;border-radius:5px;position:relative;
+    background:linear-gradient(160deg,#5c6553,#3e4638);
+    box-shadow:0 4px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px #00000060;
+  }
+  .fpruefer .fp-name{position:absolute;left:8px;top:7px;font-size:9px;letter-spacing:.5px;color:#e6e3d4;
+    background:#1d1f1b;padding:1px 6px;border-radius:2px;}
+  .fpruefer .lamp{position:absolute;left:26px;top:46px;width:16px;height:16px;}
+  .fpruefer .fp-btn{position:absolute;right:20px;top:36px;width:34px;height:34px;border-radius:50%;cursor:pointer;
+    border:3px solid #111;background:radial-gradient(circle at 35% 30%,#4b4a44,#141412 70%);
+    box-shadow:0 3px 0 #0b0b0a, inset 0 1px 0 rgba(255,255,255,.12);}
+  .fpruefer .fp-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0b0b0a;}
+  .sim-vol{position:relative;}
+  .sim-vol .knob.small{width:64px;height:64px;}
+  #keyField{position:relative;}
+
+  /* ===== side panel ===== */
+  .side{display:flex;flex-direction:column;gap:14px;}
+  .card{background:#3d4531;border-radius:6px;padding:14px;box-shadow:0 6px 18px rgba(0,0,0,.4), inset 0 0 0 1px #262c1c;}
+  .card h3{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c7c197;margin:0 0 10px 0;border-bottom:1px solid #00000030;padding-bottom:6px;}
+  .card p{font-size:11.5px;line-height:1.5;color:var(--cream-dim);margin:0 0 8px 0;}
+  .status-line{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;padding:4px 0;border-bottom:1px dotted #00000030;color:var(--cream);}
+  .status-line b{color:#c7c197;font-weight:normal;}
+  .radios{display:flex;gap:10px;margin-bottom:10px;}
+  .radios label{font-size:11px;display:flex;gap:5px;align-items:center;cursor:pointer;color:var(--cream-dim);}
+  .lock-indicator{margin-top:8px;padding:8px;border-radius:4px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:1px;background:#262c1c;color:var(--cream-dim);transition:background .2s,color .2s;}
+  .lock-indicator.locked{background:var(--ok-green);color:#0e1a0c;font-weight:bold;}
+  .instructions{font-size:11px;line-height:1.55;color:var(--cream-dim);}
+  .instructions ol{padding-left:18px;margin:6px 0;}
+  .instructions li{margin-bottom:4px;}
+
+  /* ===== Morse reference column ===== */
+  .morse-ref{
+    font-family:var(--mono);font-size:10px;line-height:1.55;
+    color:var(--cream-dim);background:#232019;border-radius:4px;padding:6px 8px;
+    max-height:230px;overflow-y:auto;
+  }
+  .morse-ref .mr-row{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;white-space:nowrap;}
+  .morse-ref .mr-row b{color:var(--cream);font-weight:600;}
+  .morse-ref .mr-row i{color:#9a9782;font-style:normal;overflow:hidden;text-overflow:ellipsis;}
+  .morse-ref .mr-row span{color:#a3372b;letter-spacing:1px;text-align:right;}
+  .morse-ref .mr-row.unlocked b{color:#e8c15a;}
+  .morse-ref .mr-row.locked{opacity:.35;}
+
+  /* ===== drag-and-drop plug exercise: a small realistic plug with a stub of cable ===== */
+  .plug-tray{display:flex;flex-wrap:wrap;gap:14px 18px;padding-top:6px;}
+  .plug{
+    display:flex;flex-direction:column;align-items:center;
+    cursor:grab;user-select:none;touch-action:none;position:relative;
+    transition:opacity .2s;
+  }
+  .plug:active{cursor:grabbing;}
+  .plug .plug-body{
+    height:26px;min-width:34px;border-radius:9px;
+    background:linear-gradient(180deg,#3a3830,#100f0c);
+    border:2px solid #1a1a13;position:relative;
+    box-shadow:0 3px 6px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;gap:4px;padding:0 8px;
+  }
+  .plug .plug-body .pin{
+    width:5px;height:5px;border-radius:50%;flex:0 0 auto;
+    background:#050403;box-shadow:inset 0 1px 1px rgba(0,0,0,.8);
+  }
+  /* the 5-pin battery coupling: confirmed in the manual text (§48) as "5-polige
+     unverwechselbare Kupplung" — laid out as 4 pins around 1 centre pin, like the
+     real socket-face, instead of a plain row */
+  .plug .plug-body.pins-5{
+    width:44px;height:34px;display:block;padding:0;
+  }
+  .plug .plug-body.pins-5 .pin{position:absolute;}
+  .plug .plug-body.pins-5 .pin:nth-child(1){left:50%;top:6px;transform:translateX(-50%);}
+  .plug .plug-body.pins-5 .pin:nth-child(2){left:8px;top:50%;transform:translateY(-50%);}
+  .plug .plug-body.pins-5 .pin:nth-child(3){right:8px;top:50%;transform:translateY(-50%);}
+  .plug .plug-body.pins-5 .pin:nth-child(4){left:50%;bottom:6px;transform:translateX(-50%);}
+  .plug .plug-body.pins-5 .pin:nth-child(5){left:50%;top:50%;transform:translate(-50%,-50%);}
+  .plug .plug-cord{
+    width:3px;height:16px;
+    background:linear-gradient(180deg,#4a4438,#2a271f);
+    border-radius:0 0 2px 2px;margin-top:-2px;
+  }
+  /* the 2-pin accessories (Fernhörer/Mikrofon/Taste) use a thicker, braided fabric cord,
+     matching the reference photo — not the same thin cord as the 1-pin Ant/G leads */
+  .plug .plug-cord.braided{
+    width:7px;height:18px;
+    background:repeating-linear-gradient(50deg, #8a4a3a 0 3px, #5e2f25 3px 6px);
+    border-radius:0 0 3px 3px;margin-top:-2px;
+    box-shadow:inset 0 0 0 1px #3e1f19;
+  }
+  .plug .plug-label{
+    margin-top:3px;font-family:var(--stencil);font-size:9.5px;font-weight:600;letter-spacing:.2px;
+    color:var(--cream);background:var(--plate-black);padding:2px 6px;border-radius:2px;
+    white-space:nowrap;box-shadow:inset 0 0 0 1px #00000060;
+  }
+  .plug .plug-body .pin-count-tag{
+    position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:7.5px;color:#8a8770;white-space:nowrap;
+  }
+  .plug.dragging{position:fixed;z-index:999;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));}
+  .plug.connected{opacity:.4;cursor:default;}
+  .plug.connected .plug-body{border-color:var(--ok-green);}
+  .plug.wrong .plug-body{animation:plugShake .3s;}
+  @keyframes plugShake{
+    0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);}
+  }
+  .socket-highlight{box-shadow:0 0 0 4px rgba(232,193,90,.7) !important;}
+
+  /* ===== a socket that now has something plugged into it: darkened/filled look.
+     The actual hanging cable is drawn dynamically as an SVG path (see drawPlugCable in the
+     plug-game script) — same live, scroll-safe, sagging style as the Taste key's cable,
+     not a static CSS stub. ===== */
+  .jack.plugged:not(.big):not(.ring-jack){background:radial-gradient(circle at 40% 35%, #1c1b16, #050504);}
+
+
+  .checklist{display:flex;flex-direction:column;gap:2px;}
+  .chk-row{
+    display:flex;gap:9px;align-items:flex-start;padding:6px 4px;border-radius:4px;
+    font-size:11.5px;line-height:1.4;color:var(--cream-dim);transition:background .15s;
+  }
+  .chk-row.manual{cursor:pointer;}
+  .chk-row.manual:hover{background:rgba(255,255,255,.05);}
+  .chk-row.done{color:var(--cream);}
+  .chk-dot{
+    flex:0 0 auto;width:16px;height:16px;border-radius:50%;margin-top:1px;
+    border:2px solid #6a6a58;box-shadow:inset 0 0 0 2px #3d4531;
+    display:flex;align-items:center;justify-content:center;transition:all .15s;
+  }
+  .chk-row.done .chk-dot{
+    background:var(--ok-green);border-color:var(--ok-green);border-style:solid;box-shadow:none;
+  }
+  .chk-row.done .chk-dot::after{content:"✓";font-size:10px;color:#0e1a0c;font-weight:bold;line-height:1;}
+  .chk-row.auto .chk-dot{border-style:dashed;}
+  .chk-tag{
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;color:#8a8770;
+    text-transform:uppercase;margin-left:6px;
+  }
+
+  footer{margin-top:20px;font-size:10px;color:#7d7a68;text-align:center;line-height:1.6;}
+</style>
+<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+<style>.vg-home{display:inline-block;font-family:var(--mono),monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-dim);text-decoration:none;margin-bottom:4px}.vg-home:hover,.vg-home:focus-visible{color:#efe6cc}</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="title">
+    <div>
+      <a class="vg-home" href="../">← VG726</a>
+      <h1>Torn.Fu.d2 — Bediensimulator <span id="buildVersion" style="font-size:11px;color:var(--cream-dim);font-weight:400;vertical-align:middle;">v6.5</span></h1>
+      <div class="sub">Tornisterfunkgerät d2 · 33,8–38,0 MHz · naar D 964/4, Berlin 1939</div>
+    </div>
+    <div class="tag">OEFENOMGEVING — GEEN ECHT APPARAAT</div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ================= LEFT: Morse training ================= -->
+    <div class="morse-col">
+      <div class="card floaty" id="morseCard">
+        <div class="floaty-titlebar" data-drag="morseCard">
+          <h3>Morse-training (Tg.)</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="morseCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="morseCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+        <p style="font-size:10.5px;color:var(--cream-dim);margin:0 0 6px 0;">
+          Duits Morse-alfabet + spelnamen (internationale code + Duitse uitbreidingen Ä/Ö/Ü/CH).
+        </p>
+        <div class="morse-ref" id="morseRefTable"></div>
+
+        <div class="status-line" style="margin-top:8px;"><span>Koch-niveau</span><b id="morseKochLevel">2 tekens</b></div>
+        <div class="status-line"><span>Tekens tot nu toe</span><b id="morseKochChars">K M</b></div>
+        <div style="display:flex;gap:6px;margin:4px 0 8px 0;">
+          <button class="btn" id="morseLevelDown" style="flex:1;">− niveau</button>
+          <button class="btn" id="morseLevelUp" style="flex:1;">+ niveau</button>
+        </div>
+        <p style="font-size:9.5px;color:var(--cream-dim);margin:0 0 8px 0;">
+          Koch-methode: je oefent vanaf het begin op volle snelheid, met steeds een paar
+          nieuwe tekens tegelijk. Pas als je die goed beheerst (hoge score), voeg je er eentje bij —
+          zo leer je het geluidsbeeld herkennen i.p.v. stippen/streepjes tellen.
+        </p>
+
+        <div class="radios">
+          <label><input type="radio" name="morsemode" value="send" checked> Zenden</label>
+          <label><input type="radio" name="morsemode" value="recv"> Ontvangen</label>
+          <label><input type="radio" name="morsemode" value="free"> Vrij</label>
+        </div>
+        <div class="status-line"><span>Schakelaar staat op</span><b id="morseSwitchState">Aus</b></div>
+
+        <div id="morseSendPanel">
+          <div class="status-line"><span>Verstuur deze reeks</span><b id="morseTarget">KM</b></div>
+          <div class="status-line"><span>Jouw sein</span><b id="morsePattern">—</b></div>
+          <div class="status-line"><span>Gedecodeerd</span><b id="morseAttempt">—</b></div>
+          <div class="lock-indicator" id="morseSendResult">Zet de schakelaar op "Tg." om te kunnen zenden</div>
+        </div>
+
+        <div id="morseRecvPanel" style="display:none;">
+          <button class="btn primary" id="morsePlayBtn" style="width:100%;">▶ Afspelen (Farnsworth-tempo)</button>
+          <input type="text" id="morseAnswerInput" placeholder="Typ hier wat je hoort…"
+            style="width:100%;margin-top:8px;padding:7px;border-radius:3px;border:1px solid #55594a;background:#232019;color:#efe6cc;font-family:'Courier New',monospace;box-sizing:border-box;">
+          <button class="btn" id="morseCheckBtn" style="width:100%;margin-top:6px;">Controleren</button>
+          <div class="lock-indicator" id="morseRecvResult">Zet de schakelaar op "Empf." om te kunnen ontvangen</div>
+        </div>
+
+        <div id="morseFreePanel" style="display:none;">
+          <p style="font-size:10.5px;color:var(--cream-dim);margin:0 0 6px 0;">
+            Tik er vrij op los (Taste of spatiebalk) — hier verschijnt live wat je seint.
+          </p>
+          <div style="min-height:50px;padding:8px;border-radius:4px;background:#232019;border:1px solid #55594a;
+            font-family:'Courier New',monospace;font-size:15px;letter-spacing:1px;color:var(--cream);word-break:break-all;" id="morseFreeText">&nbsp;</div>
+          <div class="status-line" style="margin-top:6px;"><span>Nu aan het seinen</span><b id="morseFreePattern">—</b></div>
+          <button class="btn" id="morseFreeClearBtn" style="width:100%;margin-top:6px;">Wis</button>
+          <div class="lock-indicator" id="morseFreeResult">Zet de schakelaar op "Tg." om te kunnen zenden</div>
+        </div>
+
+        <button class="btn" id="morseNewBtn" style="width:100%;margin-top:8px;">Nieuwe reeks</button>
+
+        <div class="morse-lock-overlay" id="morseLockOverlay">
+          <div>
+            <div style="font-size:22px;margin-bottom:8px;">🔒</div>
+            <div id="morseLockMsg">Voltooi eerst de opstartprocedure (alle 12 stappen) om te kunnen morsen.</div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="card floaty" id="plugCard">
+        <div class="floaty-titlebar" data-drag="plugCard">
+          <h3>Stekkers aansluiten (§64, punt 2–8)</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="plugCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="plugCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+        <p style="font-size:10.5px;color:var(--cream-dim);margin:0 0 8px 0;">
+          Sleep elke stekker naar de bus waar hij volgens het handboek hoort.
+        </p>
+        <div class="plug-tray" id="plugTray">
+          <div class="plug" data-target="socketAnt"><div class="plug-body"><span class="pin"></span><span class="pin-count-tag">1p</span></div><div class="plug-cord"></div><div class="plug-label">Antenne</div></div>
+          <div class="plug" data-target="socketG"><div class="plug-body"><span class="pin"></span><span class="pin-count-tag">1p</span></div><div class="plug-cord"></div><div class="plug-label">Tegengewicht</div></div>
+          <div class="plug" data-target="socketFernhorer1,socketFernhorer2"><div class="plug-body"><span class="pin"></span><span class="pin"></span><span class="pin-count-tag">2p</span></div><div class="plug-cord braided"></div><div class="plug-label">Fernhörer</div></div>
+          <div class="plug" data-target="socketMikrofon"><div class="plug-body"><span class="pin"></span><span class="pin"></span><span class="pin"></span><span class="pin-count-tag">3p</span></div><div class="plug-cord braided"></div><div class="plug-label">Mikrofon</div></div>
+          <div class="plug" data-target="socketBatt"><div class="plug-body pins-5"><span class="pin"></span><span class="pin"></span><span class="pin"></span><span class="pin"></span><span class="pin"></span><span class="pin-count-tag">5p</span></div><div class="plug-cord braided"></div><div class="plug-label">Batterie</div></div>
+        </div>
+        <div class="status-line" style="margin-top:8px;"><span>Voortgang</span><b id="plugProgress">0 / 5</b></div>
+        <div class="lock-indicator" id="plugResult">Sleep een stekker naar zijn bus.</div>
+        <button class="btn" id="plugResetBtn" style="width:100%;margin-top:8px;">Opnieuw</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MAIN CASE ================= -->
+    <div class="center-col">
+    <div class="plate-fit">
+    <div class="case">
+      <div class="carry-handle"></div>
+
+      <div class="plate">
+        <div class="control-canvas">
+        <!-- Every position below is MEASURED, not estimated: both reference photos were
+             perspective-corrected onto this exact 820x700 canvas using the four red corner
+             screws as anchors, then each part's centre was read off a percent grid.
+             .ctrl is centre-anchored (translate -50%,-50%), so left/top = the part's centre. -->
+        <div class="canvas-inner" id="canvasInner">
+          <div id="scatterScrews"></div>
+
+          <!-- 4 Befestigungsschrauben (§6 t) on their cast corner lugs -->
+          <div class="lug" style="left:2.9%;top:3.1%;"><div class="screw xl red"></div></div>
+          <div class="lug" style="left:97.1%;top:3.1%;"><div class="screw xl red"></div></div>
+          <div class="lug" style="left:2.9%;top:96.9%;"><div class="screw xl red"></div></div>
+          <div class="lug" style="left:97.1%;top:96.9%;"><div class="screw xl red"></div></div>
+
+          <!-- a) Spannungsmesser -->
+          <div class="ctrl" style="left:16.7%;top:10.2%;">
+            <div class="meter-unit">
+              <div class="meter-svg-slot" id="voltMeterSlot"></div>
+              <button class="mbtn" id="blueBtn" title="Anodenspanning tonen"></button>
+            </div>
+            <div class="val" id="voltReadout">— V</div>
+          </div>
+
+          <!-- f) Einstellschraube mit Deckelhülse für Empfängereichung -->
+          <div class="ctrl" style="left:28.5%;top:15.9%;" title="Ontvanger-ijkschroef (draaien of scrollen)">
+            <div class="cal-cap" id="calRxScrew"></div>
+            <div class="val" id="calRxVal">0,0</div>
+          </div>
+
+          <!-- n) Antennenanschlußbuchse on its round boss -->
+          <div class="ctrl" style="left:40.8%;top:10%;">
+            <div class="ant-boss">
+              <span class="boss-txt">Ant</span>
+              <div class="screw s" style="left:14%;top:30%;"></div>
+              <div class="screw s" style="left:86%;top:30%;"></div>
+              <div class="screw s" style="left:50%;top:91%;"></div>
+              <div class="jack" id="socketAnt"></div>
+            </div>
+          </div>
+
+          <!-- o) Betriebsartenschalter: hub + lever over the cast horseshoe scale -->
+          <div class="ctrl" style="left:54.3%;top:9%;">
+            <div class="horseshoe">
+              <svg id="hsSvg" viewBox="0 0 140 140"></svg>
+              <div class="lab" data-m="Tg">Tg.</div>
+              <div class="lab" data-m="Aus">Aus</div>
+              <div class="lab" data-m="Empf">Empf.</div>
+              <div class="lab" data-m="Tn">Tn.</div>
+              <div class="dial" id="modeDial"><div class="ptr" id="modePtr"></div></div>
+            </div>
+          </div>
+
+          <!-- m) Einstellschraube mit Deckelhülse für Sendereichung -->
+          <div class="ctrl" style="left:72.1%;top:12.5%;" title="Zender-ijkschroef (draaien of scrollen)">
+            <div class="cal-cap" id="calTxScrew"></div>
+            <div class="val" id="calTxVal">0,0</div>
+          </div>
+
+          <!-- g) Antennenstrommesser -->
+          <div class="ctrl" style="left:84.1%;top:10%;">
+            <div class="meter-unit">
+              <div class="meter-svg-slot" id="antMeterSlot"></div>
+            </div>
+            <div class="val" id="antReadout">0 mA</div>
+          </div>
+
+          <!-- d) Fein -->
+          <div class="ctrl" style="left:15.2%;top:26.1%;">
+            <div class="knob small pointer" id="rxFineKnob"></div>
+            <div class="val" id="rxFineVal">0</div>
+          </div>
+          <div class="ctrl" style="left:15.7%;top:34.1%;"><div class="lbl">Fein</div></div>
+
+          <!-- b) Skala mit Lupenfenster (Empfänger) -->
+          <div class="ctrl" style="left:27.7%;top:29.3%;">
+            <div class="lupe" id="rxScale" style="width:114px;height:114px;"><div class="strip" id="rxStrip"></div><div class="needle"></div><div class="idx-flag"></div><div class="glass"></div><div class="ring"></div></div>
+            <div class="val" id="rxMhz">35,90 MHz</div>
+          </div>
+
+          <div class="ctrl" style="left:52%;top:30.6%;">
+            <div class="warnplate">Feind hört mit</div>
+          </div>
+
+          <!-- h) Skala mit Lupenfenster (Sender) -->
+          <div class="ctrl" style="left:74.4%;top:26.4%;">
+            <div class="lupe" id="txScale" style="width:112px;height:112px;"><div class="strip" id="txStrip"></div><div class="needle"></div><div class="idx-flag"></div><div class="glass"></div><div class="ring"></div></div>
+            <div class="val" id="txMhz">35,90 MHz</div>
+          </div>
+
+          <!-- k) Antennenabstimmung -->
+          <div class="ctrl" style="left:87.9%;top:25.4%;">
+            <div class="knob small pointer" id="antKnob"></div>
+            <div class="val" id="antVal">50</div>
+          </div>
+          <div class="ctrl" style="left:87.9%;top:35.4%;"><div class="lbl">Ant.Abst</div></div>
+
+          <!-- c) / i) Frequenzeinstellung -->
+          <div class="ctrl" style="left:15.7%;top:41.8%;"><div class="lbl">Frequenz<br>Einstellg</div></div>
+          <div class="ctrl" style="left:27.7%;top:42.9%;">
+            <div class="knob coarse" id="rxKnob" style="width:76px;height:76px;"></div>
+            <div class="val" id="rxFreqVal">Freq.-Nr. 50,0</div>
+          </div>
+          <div class="ctrl" style="left:63.1%;top:39.6%;"><div class="lbl">Frequenz<br>Einstellg</div></div>
+          <div class="ctrl" style="left:75.5%;top:40.3%;">
+            <div class="knob coarse" id="txKnob" style="width:75px;height:75px;"></div>
+            <div class="val" id="txFreqVal">Freq.-Nr. 50,0</div>
+          </div>
+
+          <div class="ctrl" style="left:9.1%;top:55.7%;"><div class="EOrS">E</div></div>
+          <div class="ctrl" style="left:91.5%;top:55.7%;"><div class="EOrS">S</div></div>
+
+          <!-- l) 2 Rasten zur Frequenzeinstellung des Senders -->
+          <div class="ctrl" style="left:49.2%;top:54%;"><div class="numplate">I</div></div>
+          <div class="ctrl" style="left:55.5%;top:53.9%;" title="Rast I: voorkeurkanaal 1. Klik eenmaal om de huidige zenderfrequentie hier vast te leggen; klik nogmaals om er altijd meteen naar terug te schakelen.">
+            <div class="knob tiny" id="rastI"></div>
+          </div>
+          <div class="ctrl" style="left:75%;top:53.9%;" title="Rast II: voorkeurkanaal 2, werkt hetzelfde als Rast I.">
+            <div class="knob tiny" id="rastII"></div>
+          </div>
+          <div class="ctrl" style="left:80.2%;top:55%;"><div class="numplate">II</div></div>
+          <div class="ctrl" style="left:65.4%;top:63%;">
+            <div class="bar"><i></i><i></i></div>
+          </div>
+
+          <!-- e) Rückkopplung -->
+          <div class="ctrl" style="left:20.4%;top:76.1%;"><div class="lbl">Rückk</div></div>
+          <div class="ctrl" style="left:30.8%;top:76.7%;">
+            <div class="knob small pointer arcback" id="regenKnob"></div>
+            <div class="val" id="regenVal">0</div>
+          </div>
+
+          <!-- u) Typschild mit Apparatenummer -->
+          <div class="ctrl" style="left:49.9%;top:72.7%;">
+            <div class="nameplate2">
+              <div class="np-screws"><div class="np-screw"></div><div class="np-screw"></div></div>
+              <div class="np-text">
+                <div class="np-title">Torn.Fu.d 2/24b-212</div>
+                <div class="np-row">
+                  <span class="np-nrlabel">Nr.</span>
+                  <span class="np-box">06529</span>
+                  <span class="np-box">36</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ctrl" style="left:52.1%;top:79.6%;"><div class="acceptance-stamp"></div></div>
+
+          <!-- p) Steckerfassung für Batterieanschluß (5-polig) -->
+          <div class="ctrl" style="left:87.2%;top:76.8%;">
+            <div class="jack big" id="socketBatt">
+              <span class="jbig-key"></span>
+              <span class="jbig-pin"></span><span class="jbig-pin"></span><span class="jbig-pin"></span>
+              <span class="jbig-pin"></span><span class="jbig-pin"></span>
+            </div>
+          </div>
+
+          <!-- s) Anschlußklinke mit Deckelhülse für Feldfernsprecher 33 -->
+          <div class="ctrl" style="left:93.4%;top:86.6%;"><div class="lbl tiny">Fspr.</div></div>
+          <div class="ctrl" style="left:86.3%;top:91.8%;" title="Anschlußklinke für Feldfernsprecher 33 (niet nodig voor de opstartprocedure)">
+            <div class="fspr-klinke"></div>
+          </div>
+
+          <!-- r) Anschlußbuchse für Gegengewicht -->
+          <div class="ctrl" style="left:12.8%;top:85.3%;"><div class="lbl">G</div></div>
+          <div class="ctrl" style="left:12.6%;top:90.9%;">
+            <div class="jack ring-jack" id="socketG"></div>
+          </div>
+
+          <!-- q) Anschlußbuchsen für 2 Doppelfernhörer, Taste und Mikrofon -->
+          <div class="ctrl" style="left:50.2%;top:91.8%;">
+            <div class="connector-strip">
+              <div class="screw s" style="left:1.6%;top:22%;"></div><div class="screw s" style="left:1.6%;top:78%;"></div>
+              <div class="screw s" style="left:98.4%;top:22%;"></div><div class="screw s" style="left:98.4%;top:78%;"></div>
+              <div class="cs-item" style="left:12.6%;"><div class="cs-label">Fernhörer</div><div class="cs-holes" id="socketFernhorer1"><span></span><span></span></div></div>
+              <div class="cs-item" style="left:37.7%;"><div class="cs-label">Fernhörer</div><div class="cs-holes" id="socketFernhorer2"><span></span><span></span></div></div>
+              <div class="cs-item" style="left:64.5%;"><div class="cs-label">Mikrofon</div><div class="cs-holes" id="socketMikrofon"><span></span><span></span><span></span></div></div>
+              <div class="cs-item" style="left:87.2%;"><div class="cs-label">Taste</div><div class="cs-holes" id="socketTaste"><span></span><span></span></div></div>
+            </div>
+          </div>
+
+        </div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+    <!-- ===== accessories on the table in front of the set: these are NOT on the real
+         front panel (the manual lists every panel part in §6 a–u), so they live here ===== -->
+    <div class="table-top">
+      <div class="acc" id="keyField">
+        <div class="key-assembly" id="keyAssembly">
+          <svg viewBox="0 0 100 170" style="width:64px;height:auto;overflow:visible;">
+            <rect x="10" y="6" width="80" height="158" rx="5" fill="#5a2e28" stroke="#2c1210" stroke-width="1.5"/>
+            <rect x="10" y="6" width="80" height="158" rx="5" fill="url(#keyPlateShade)"/>
+            <circle cx="20" cy="140" r="2" fill="#1c1210"/>
+            <circle cx="80" cy="140" r="2" fill="#1c1210"/>
+            <rect x="20" y="16" width="60" height="66" rx="5" fill="#141210" stroke="#020202" stroke-width="1.4"/>
+            <path d="M 52 26 L 42 46 L 50 46 L 46 62 L 62 40 L 53 40 Z" fill="#3a3630" opacity=".85"/>
+            <circle cx="50" cy="66" r="9" fill="#0c0b09" stroke="#242019" stroke-width="1"/>
+            <rect x="44" y="82" width="12" height="26" rx="2" fill="#100f0d"/>
+            <g id="keyBtn" class="key-press-btn">
+              <ellipse cx="50" cy="128" rx="21" ry="17" fill="#0c0b09" stroke="#000" stroke-width="1.6"/>
+              <ellipse cx="43" cy="122" rx="8" ry="5" fill="rgba(255,255,255,.10)"/>
+            </g>
+            <g class="key-cordstub">
+              <rect x="30" y="-6" width="16" height="10" rx="2" fill="#141210" stroke="#000" stroke-width="1"/>
+              <circle cx="35" cy="-1" r="1.6" fill="#b08d3a"/>
+              <circle cx="41" cy="-1" r="1.6" fill="#b08d3a"/>
+            </g>
+            <defs>
+              <linearGradient id="keyPlateShade" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity=".08"/>
+                <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+                <stop offset="100%" stop-color="#000000" stop-opacity=".25"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="acc-lbl">Taste TKP<br><span>(of spatiebalk — sleepbaar)</span></div>
+      </div>
+
+      <div class="acc">
+        <div class="fpruefer">
+          <div class="fp-name">Frequenzprüfer c</div>
+          <div class="lamp" id="starLamp"></div>
+          <button class="fp-btn" id="fpruefBtn" title="Ingedrukt houden: ijkcontrole op Freq.-Nr. 28,2 (4e harmonische van het 7-MHz-kwarts)"></button>
+        </div>
+        <div class="acc-lbl">Frequenzprüfer c<br><span>(knop ingedrukt houden)</span></div>
+      </div>
+
+      <div class="acc">
+        <div class="sim-vol">
+          <div class="knob small pointer arcback" id="volKnob"></div>
+          <div class="val" id="volVal">40%</div>
+        </div>
+        <div class="acc-lbl">Volume<br><span>(simulator, niet op het toestel)</span></div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ================= SIDE: training ================= -->
+    <div class="side">
+
+      <div class="card floaty" id="onlineCard">
+        <div class="floaty-titlebar" data-drag="onlineCard">
+          <h3>Online — samen morsen</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="onlineCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="onlineCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+          <p style="font-size:10.5px;color:var(--cream-dim);margin:0 0 8px 0;">
+            Vul een Ably-sleutel in en klik op <b>Verbinden</b>; de sleutel wordt nergens opgeslagen.
+            (Alleen op een Netlify-versie met tokenfunctie mag het veld leeg blijven.) Net als bij een echte radio:
+            <b>jouw Sender-frequentie</b> (rechts) is waar je vriend zijn <b>Empf.</b> op zet, en
+            andersom. Meestal zet je gewoon allebei beide knoppen op hetzelfde getal.
+          </p>
+          <label style="font-size:10px;color:var(--cream-dim);">Ably-sleutel — nodig op de VG726-site en als je het bestand lokaal opent</label>
+          <input type="password" id="ablyKeyInput" placeholder="Ably-sleutel (beperkte sleutel)"
+            style="width:100%;margin:3px 0 8px 0;padding:6px;border-radius:3px;border:1px solid #55594a;background:#232019;color:#efe6cc;font-family:var(--mono);font-size:10px;box-sizing:border-box;">
+          <label style="font-size:10px;color:var(--cream-dim);">Eigen kamercode (optioneel, i.p.v. frequentie)</label>
+          <input type="text" id="roomCodeInput" placeholder="leeg = frequentie gebruiken"
+            style="width:100%;margin:3px 0 8px 0;padding:6px;border-radius:3px;border:1px solid #55594a;background:#232019;color:#efe6cc;font-family:var(--mono);font-size:10px;box-sizing:border-box;">
+          <button class="btn primary" id="ablyConnectBtn" style="width:100%;">Verbinden</button>
+          <button class="btn" id="ablyDiagBtn" style="width:100%;margin-top:6px;">🔍 Test verbinding (diagnose)</button>
+          <div id="ablyDiagResult" style="font-size:9px;color:var(--cream-dim);margin-top:4px;white-space:pre-wrap;"></div>
+          <div class="status-line" style="margin-top:8px;"><span>Status</span><b id="ablyStatus">Niet verbonden</b></div>
+          <div class="status-line"><span>Luisterkanaal (jouw Empf.)</span><b id="ablyListenChannel">—</b></div>
+          <div class="status-line"><span>Zendkanaal (jouw Sender)</span><b id="ablyTalkChannel">—</b></div>
+          <div class="status-line"><span>Andere stations</span><b id="ablyPeers">0</b></div>
+          <div class="lock-indicator" id="ablyResult">Klik op Verbinden.</div>
+          <details style="margin-top:8px;font-size:9.5px;color:var(--cream-dim);">
+            <summary style="cursor:pointer;">"Unable to connect" / "no fallback hosts"? Klik hier.</summary>
+            <ul style="margin:6px 0 0 0;padding-left:16px;">
+              <li>Meestal een netwerk/firewall-probleem, niet een verkeerde sleutel.</li>
+              <li>Probeer een ander netwerk (bijv. mobiele data i.p.v. wifi) — sommige
+                bedrijfs-, school- of publieke wifi's blokkeren dit soort verbindingen.</li>
+              <li>Check of een adblocker/privacy-extensie de verbinding blokkeert
+                (probeer eventueel eerst met extensies uitgeschakeld).</li>
+              <li>Controleer of je de hele sleutel hebt gekopieerd, inclusief het stuk
+                vóór én na de dubbele punt, zonder spaties ervoor/erachter.</li>
+              <li>Check <a href="https://status.ably.com" target="_blank" style="color:inherit;">status.ably.com</a>
+                voor een eventuele storing bij Ably zelf.</li>
+              <li>Dit bestand lokaal openen (file://) werkt normaal gesproken gewoon —
+                maar mocht dat toch een verschil maken, probeer het dan even via een
+                echte website/server te openen.</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+
+      <div class="card floaty" id="notebookCard">
+        <div class="floaty-titlebar" data-drag="notebookCard">
+          <h3 style="font-family:var(--stencil);">Notizbuch</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="notebookCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="notebookCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+          <div class="nb-cover"><h4>Notizbuch</h4></div>
+          <div class="nb-owner">
+            <p style="margin:0 0 6px 0;font-size:10.5px;font-style:italic;color:#000;">Dieses Buch gehört:</p>
+            <div><span>Name:</span><input type="text" id="nbName" placeholder="……………………"></div>
+            <div><span>Dienstgrad:</span><input type="text" id="nbRank" placeholder="……………………"></div>
+            <div><span>Standort:</span><input type="text" id="nbLoc" placeholder="……………………"></div>
+          </div>
+          <div class="nb-page" id="nbPageWrap">
+            <textarea id="nbText" placeholder="Schrijf hier je aantekeningen…"></textarea>
+            <div class="nb-dogear" id="nbDogEar" title="Nieuwe bladzijde"></div>
+          </div>
+          <div class="status-line" style="margin-top:4px;"><span>Bladzijde</span><b id="nbPageNum">1</b></div>
+          <button class="btn primary" id="nbSendMorseBtn" style="width:100%;margin-top:8px;">📡 Verstuur als Morse</button>
+          <div class="lock-indicator" id="nbSendResult" style="margin-top:6px;">Schrijf iets, zet de schakelaar op "Tg." of "Tn.", en verstuur.</div>
+          <div class="nb-footer">Torn.Fu.d2 — persoonlijk notitieboekje</div>
+        </div>
+      </div>
+
+      <div class="card floaty" id="checklistCard">
+        <div class="floaty-titlebar" data-drag="checklistCard">
+          <h3>Opstartprocedure (§64 "Fertigmachen des Gerätes")</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="checklistCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="checklistCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+        <p style="font-size:11px;color:var(--cream-dim);margin:0 0 8px 0;">
+          Fysieke stappen vink je zelf af. Stappen met een bediening op dit paneel worden
+          automatisch afgevinkt zodra je ze goed uitvoert.
+        </p>
+        <div class="checklist" id="startupChecklist"></div>
+        <div class="status-line"><span>Voortgang</span><b id="checklistProgress">0 / 12</b></div>
+        <button class="btn" id="resetChecklistBtn" style="width:100%;margin-top:8px;">Checklist resetten</button>
+        <button class="btn primary" id="quickSetupBtn" style="width:100%;margin-top:6px;">⚡ Snel opstarten (skip procedure)</button>
+        <p style="font-size:9px;color:var(--cream-dim);margin:6px 0 0 0;">
+          Sluit alles aan en stemt écht correct af — handig om snel te testen, maar dan sla je
+          natuurlijk wel de hele leerervaring over.
+        </p>
+        </div>
+      </div>
+
+      <div class="card floaty" id="gegenfunkCard">
+        <div class="floaty-titlebar" data-drag="gegenfunkCard">
+          <h3>Gegenfunkstelle</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="gegenfunkCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="gegenfunkCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+        <div class="radios">
+          <label><input type="radio" name="sigtype" value="Tn" checked> Telefonie</label>
+          <label><input type="radio" name="sigtype" value="Tg"> Telegrafie</label>
+        </div>
+        <button class="btn primary" id="newStationBtn" style="width:100%;">Neue gegenstation</button>
+        <div class="status-line"><span>Uitzendt op</span><b id="targetShown">verborgen</b></div>
+        <button class="btn" id="revealBtn" style="width:100%;margin-top:6px;">Toon frequentie (hint)</button>
+        <div class="lock-indicator" id="lockIndicator">Geen contact</div>
+        </div>
+      </div>
+
+      <div class="card floaty" id="statusCard">
+        <div class="floaty-titlebar" data-drag="statusCard">
+          <h3>Status</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="statusCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="statusCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+        <div class="status-line"><span>Bedrijfsart</span><b id="stModeShown">Aus</b></div>
+        <div class="status-line"><span>Heizspannung</span><b id="stHeiz">—</b></div>
+        <div class="status-line"><span>Anodensp.</span><b id="stAnode">—</b></div>
+        <div class="status-line"><span>Empf. Freq.-Nr.</span><b id="stRx">50,0</b></div>
+        <div class="status-line"><span>Send. Freq.-Nr.</span><b id="stTx">50,0</b></div>
+        <div class="status-line"><span>Ant.-strom</span><b id="stAnt">0 mA</b></div>
+        </div>
+      </div>
+
+      <div class="card floaty" id="instructionsCard">
+        <div class="floaty-titlebar" data-drag="instructionsCard">
+          <h3>Bedieningsvoorschrift (§65–67)</h3>
+          <div class="floaty-btns"><div class="floaty-dock-btn" data-dock="instructionsCard" title="Terugzetten op vaste plek">⌂</div><div class="floaty-min-btn" data-min="instructionsCard">−</div></div>
+        </div>
+        <div class="floaty-body">
+        <div class="instructions">
+          <p><b style="color:#c7c197">Ontvangen (Empf.):</b></p>
+          <ol>
+            <li>Schakelaar op <i>Empf.</i></li>
+            <li>Knop "Rückk." rechtsom draaien tot je de zachte "plop" van het aanslaan hoort en de ruis aanzwelt.</li>
+            <li>Knop "Fein" langzaam draaien — de gegenstation is herkenbaar aan een overlagingsfluittoon.</li>
+            <li>Bij <i>telefonie</i>: fluittoon steeds dieper laten worden tot hij verdwijnt (Schwebungslücke).</li>
+            <li>Bij <i>telegrafie</i>: een prettige, stabiele zwevingstoon instellen.</li>
+          </ol>
+          <p><b style="color:#c7c197">Zenden (Tg./Tn.):</b></p>
+          <ol>
+            <li>Schakelaar op <i>Tg.</i> of <i>Tn.</i></li>
+            <li>Toets/mikrofoon indrukken.</li>
+            <li>Met "Ant.Abst." de naald van de antennestroommeter op maximale uitslag afstemmen.</li>
+          </ol>
+          <p><b style="color:#c7c197">Wat doet "Rast I / II"?</b></p>
+          <p style="margin:0;">
+            Het zijn twee <i>voorkeurkanalen</i> voor de zender — vergelijkbaar met een preset-knop
+            op een autoradio. Je stemt de zender één keer nauwkeurig af op een frequentie en "klikt"
+            die vast in Rast I of II. Daarna kun je tijdens het echte gebruik altijd direct naar die
+            frequentie terugschakelen, zonder telkens opnieuw te moeten afstemmen — handig in het veld,
+            in het donker of onder tijdsdruk.
+          </p>
+          <p style="margin-top:8px;"><b style="color:#c7c197">De twee zwarte kapjes naast de meters?</b></p>
+          <p style="margin:0;">
+            Dit zijn de "Einstellschraube mit Deckelhülse für Empfänger-/Senderreichung" (§6, punt f/m) —
+            de ijkschroeven van de schaal. Door mechanische slijtage kan de schaal een beetje gaan afwijken
+            van de echte 7-MHz-kwarts (Freq.-Nr. 28,2). Houd de knop van de Frequenzprüfer c (op tafel) ingedrukt om dat te controleren:
+            klopt de schaal, dan hoor je bij 28,2 de zuivere zwevingsstilte. Zo niet, draai dan aan het
+            bijpassende kapje (scrollen of slepen) tot het weer klopt. Links is de ontvanger, rechts de zender.
+          </p>
+        </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    Digitale oefensimulator op basis van D 964/4 "Das Tornisterfunkgerät d2" (Berlin, 22.6.39).<br>
+    Bedoeld als technisch-historische bedieningsoefening — geen werkend zend-/ontvangapparaat.
+  </footer>
+
+</div>
+
+<svg id="cableOverlay" style="position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:998;overflow:visible;"></svg>
+
+<script>
+/* =====================================================================================
+   Torn.Fu.d2 simulator — script layout (search for the "// ----------" markers)
+     1. Panel rendering ........ canvas scaling, horseshoe, meters, knobs, screws
+     2. Audio .................. ensureAudio, mechanical clicks, tone, receiver noise bed
+     3. State + controls ....... state object, knobs, mode switch, Rast, meters, Taste
+     4. Receiver logic ......... Fprüf.c, Gegenstation, beat tone, lock detection
+     5. Startup checklist ...... §64 steps, Morse lock, quick setup
+     6. Morse training ......... Koch, Farnsworth, send/receive/free modes
+     7. Plug game + cables ..... drag-to-socket, hanging cords, Taste key cable
+     8. Windows + Notizbuch .... floating/minimize/dock, notebook, page flip
+     9. Online ................. Ably (token endpoint or key), listen/talk channels
+   ===================================================================================== */
+(function(){
+  "use strict";
+
+  // ---------- keep the fixed 820x700 "design resolution" panel perfectly proportional
+  // at any window/fullscreen size, by scaling it as one rigid block ----------
+  (function setupCanvasScaling(){
+    const fit = document.querySelector('.plate-fit');
+    const kase = document.querySelector('.case');
+    const outer = document.querySelector('.control-canvas');
+    const inner = document.getElementById('canvasInner');
+    const tray = document.querySelector('.table-top');
+    if(!fit || !outer || !inner) return;
+    let last = 0;
+    function applyScale(){
+      const fr = fit.getBoundingClientRect();
+      if(fr.width <= 0) return;
+      // the case's own frame (padding + carry handle) doesn't scale, so take it off first
+      const kc = getComputedStyle(kase), hd = document.querySelector('.carry-handle'), hc = getComputedStyle(hd);
+      const px = v => parseFloat(v) || 0;
+      const frameW = px(kc.paddingLeft) + px(kc.paddingRight) + 4;
+      const frameH = px(kc.paddingTop) + px(kc.paddingBottom) + hd.offsetHeight + px(hc.marginTop) + px(hc.marginBottom) + 4;
+      const fitMode = getComputedStyle(fit).getPropertyValue('--fit').trim() === '1';
+      let sc = (fr.width - frameW) / 820;
+      // fit mode: the free box decides; stacked (phone/tablet) mode: still never taller than the screen
+      sc = Math.min(sc, ((fitMode ? fr.height : window.innerHeight - 16) - frameH) / 700);
+      sc = Math.max(0.2, sc);
+      if(Math.abs(sc - last) < 0.0005) return;
+      last = sc;
+      outer.style.width = (820*sc) + 'px';
+      outer.style.height = (700*sc) + 'px';
+      inner.style.transform = 'scale(' + sc + ')';
+      selfResize = true; window.dispatchEvent(new Event('resize')); selfResize = false; // re-route cables
+    }
+    let selfResize = false;
+    if(window.ResizeObserver) new ResizeObserver(applyScale).observe(fit);
+    window.addEventListener('resize', ()=>{ if(selfResize) return; last = 0; requestAnimationFrame(applyScale); });
+    window.addEventListener('orientationchange', applyScale);
+    document.addEventListener('fullscreenchange', applyScale);
+    applyScale();
+    // a couple of delayed re-checks cover late webfont/layout shifts right after load
+    setTimeout(applyScale, 100);
+    setTimeout(applyScale, 500);
+  })();
+
+  // ---------- horseshoe switch geometry ----------
+  const HS_ANGLES = {Tg:74, Aus:110, Empf:153, Tn:197}; // measured off the photo // deg clockwise from 12 o'clock
+  function polar(cx,cy,r,deg){
+    const rad = deg*Math.PI/180;
+    return { x: cx + r*Math.sin(rad), y: cy - r*Math.cos(rad) };
+  }
+
+  // ---------- the white painted crescent above the Rückkopplung knob ----------
+  // Traced point by point off the perspective-corrected photo 1 (top and bottom edge measured in
+  // 15-unit columns, relative to the knob centre, knob Ø 78): a sharp tip at 11 o'clock, the
+  // highest and thickest part just right of centre, and a blunt rounded end dipping at 2 o'clock.
+  function crescentSVG(scale){
+    const S = 120*scale;
+    return `<svg class="regen-crescent" viewBox="-60 -60 120 120" width="${S.toFixed(1)}" height="${S.toFixed(1)}" `
+      + `style="position:absolute;pointer-events:none;z-index:0;overflow:visible;">`
+      + `<path d="M -27.1 -44.9 C -26.7 -45.2, -26.3 -45.6, -24.6 -46.8 C -22.8 -48.0, -19.3 -50.7, -16.6 -52.2 C -13.9 -53.7, -11.3 -55.1, -8.6 -56.0 C -5.9 -56.9, -3.3 -57.3, -0.6 -57.7 C 2.1 -58.1, 4.7 -58.2, 7.4 -58.2 C 10.1 -58.2, 12.7 -58.0, 15.4 -57.7 C 18.1 -57.4, 20.7 -57.3, 23.4 -56.6 C 26.1 -55.9, 28.7 -54.5, 31.4 -53.3 C 34.1 -52.1, 37.5 -50.8, 39.4 -49.5 C 41.3 -48.2, 42.6 -47.1, 42.6 -45.4 C 42.6 -43.7, 40.6 -40.2, 39.4 -39.1 C 38.2 -38.0, 36.7 -38.1, 35.4 -38.6 C 34.1 -39.0, 33.4 -40.4, 31.4 -41.8 C 29.4 -43.2, 26.1 -45.5, 23.4 -46.8 C 20.7 -48.1, 18.1 -48.8, 15.4 -49.5 C 12.7 -50.2, 10.1 -50.7, 7.4 -51.1 C 4.7 -51.5, 2.1 -51.8, -0.6 -51.7 C -3.3 -51.6, -5.9 -51.3, -8.6 -50.6 C -11.3 -49.9, -13.9 -48.5, -16.6 -47.3 C -19.3 -46.1, -22.8 -43.9, -24.6 -43.5 C -26.3 -43.1, -26.7 -44.7, -27.1 -44.9 Z" `
+      + `fill="#f1f0ea" stroke="rgba(0,0,0,.08)" stroke-width=".4"/></svg>`;
+  }
+  document.querySelectorAll('.knob.arcback').forEach(k=>{
+    const wrap = k.parentElement;
+    if(getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+    k.style.position = 'relative'; k.style.zIndex = '1';
+    const w = k.offsetWidth || 78, scale = w/78;
+    k.insertAdjacentHTML('beforebegin', crescentSVG(scale));
+    const svg = k.previousElementSibling, S = 120*scale;
+    svg.style.left = (k.offsetLeft + w/2 - S/2).toFixed(1) + 'px';
+    svg.style.top = (k.offsetTop + k.offsetHeight/2 - S/2).toFixed(1) + 'px';
+  });
+
+  // ---------- analog meter face (square bezel + round dial + numbered arc scale) ----------
+  let meterGradId = 0;
+  // Real meters (both photos, close-up): a square bezel with 4 corner screws carrying a ROUND meter
+  // body; the dial shows through a window whose top edge follows the round body and whose bottom
+  // edge rises in a hump over the hidden pivot. One thin arc runs across the dial: ticks/numbers of
+  // the upper scale stand ABOVE it, those of the lower scale BELOW it. On the Spannungsmesser the
+  // lower scale is Heizspannung (red OK-mark at 1.8–2.2 V), the upper Anodenspannung (blue OK-mark);
+  // a slotted zero-adjust screw sits centred under the window. Shared geometry with setNeedle():
+  const METER = { px:50, py:73.5, sweep:36, arcR:43, needleLen:46 };
+  // Geometry measured off a straight-on photo of a loose meter (meter-local 0–100, the four
+  // mounting holes at 11/89, plate edge-to-edge 0–100): round body r 47 with a sloped bevel down
+  // to a flat face at r 41.5; window top + sides are ONE circle (centre 50,50.7 · r 36.4, top
+  // at y 14.3); the bottom is a smooth hump (apex y 49.5, corners y 56.5) hiding the pivot (y 73.5).
+  const METER_WIN = (function(){
+    // bottom edge: straight at y 56.5 near the corners, rising in a smooth (cos²) bump to y 49.5
+    // over the middle ±30 — the black hump of the body that hides the pivot
+    const cx=50, cy=50.7, R=36.4, base=56.5, apex=49.5, hw=30;
+    const yb = dx => Math.abs(dx)>=hw ? base : base-(base-apex)*0.5*(1+Math.cos(Math.PI*dx/hw));
+    const dxc = Math.sqrt(R*R-(base-cy)*(base-cy));
+    const a0=Math.atan2(base-cy,-dxc), a1=Math.atan2(base-cy,dxc)+2*Math.PI;
+    let pts=[];
+    const n1=48; for(let i=0;i<=n1;i++){ const t=a0+(a1-a0)*i/n1; pts.push([cx+R*Math.cos(t), cy+R*Math.sin(t)]); }
+    const n2=24; for(let i=1;i<n2;i++){ const x=dxc-2*dxc*i/n2; pts.push([50+x, yb(x)]); }
+    for(let k=0;k<3;k++){ const q=[]; for(let i=0;i<pts.length;i++){ const p=pts[i], r=pts[(i+1)%pts.length];
+      q.push([.75*p[0]+.25*r[0], .75*p[1]+.25*r[1]],[.25*p[0]+.75*r[0], .25*p[1]+.75*r[1]]); } pts=q; }
+    return 'M '+pts.map(p=>p[0].toFixed(2)+' '+p[1].toFixed(2)).join(' L ')+' Z';
+  })();
+  function buildMeterSVG(letter, opts){
+    opts = opts || {};
+    const up = opts.upper || null, lo = opts.lower || null;   // {nums:[], fracs:[], band:[f0,f1], col}
+    const {px, py, sweep, arcR} = METER;
+    const angAt = f => -sweep + f*2*sweep;
+    const gid = 'mg'+(meterGradId++);
+    const P = (r,a)=>polar(px,py,r,a), f2 = v=>v.toFixed(2);
+    const line = (r1,r2,a,w,c)=>{ const p1=P(r1,a), p2=P(r2,a);
+      return `<line x1="${f2(p1.x)}" y1="${f2(p1.y)}" x2="${f2(p2.x)}" y2="${f2(p2.y)}" stroke="${c||'#1d1c18'}" stroke-width="${w}"/>`; };
+    const arcPath = r => { const a=P(r,-sweep), b=P(r,sweep); return `M ${f2(a.x)} ${f2(a.y)} A ${r} ${r} 0 0 1 ${f2(b.x)} ${f2(b.y)}`; };
+    const band = (r1,r2,fr,col) => { const a1=angAt(fr[0]), a2=angAt(fr[1]);
+      const o1=P(r2,a1), o2=P(r2,a2), i1=P(r1,a1), i2=P(r1,a2);
+      return `<path d="M ${f2(o1.x)} ${f2(o1.y)} A ${r2} ${r2} 0 0 1 ${f2(o2.x)} ${f2(o2.y)} L ${f2(i2.x)} ${f2(i2.y)} A ${r1} ${r1} 0 0 0 ${f2(i1.x)} ${f2(i1.y)} Z" fill="${col}"/>`; };
+    let dial = `<path d="${arcPath(arcR)}" fill="none" stroke="#1d1c18" stroke-width=".5"/>`;
+    const scale = (sc, outward) => { if(!sc) return '';
+      let g = sc.band ? band(outward?arcR+0.3:arcR-3.0, outward?arcR+3.0:arcR-0.3, sc.band, sc.col) : '';
+      for(let i=0;i<=sc.minor;i++){ const f=i/sc.minor, a=angAt(f);
+        const major = sc.fracs.some(m=>Math.abs(m-f)<1e-6), half = (i%(sc.minor/ (sc.fracs.length-1)/2))===0;
+        const len = major?3.8:(half?2.6:1.6);
+        g += outward ? line(arcR, arcR+len, a, major?.6:.38) : line(arcR, arcR-len, a, major?.6:.38); }
+      sc.fracs.forEach((f,k)=>{ const la=Math.max(-sweep+5,Math.min(sweep-5,angAt(f)));   // end labels pulled inside the window
+        const p=P(outward?arcR+6.0:arcR-6.2, la);
+        g += `<text x="${f2(p.x)}" y="${f2(p.y+1.4)}" text-anchor="middle" font-size="3.8" fill="#1d1c18" font-family="Oswald, Arial, sans-serif">${sc.nums[k]}</text>`; });
+      return g; };
+    dial += scale(up, true) + scale(lo, false);
+    const win = METER_WIN;
+    const screw = (x,y,r,ang)=>`<circle cx="${x}" cy="${y}" r="${r+1}" fill="#0b0c0c" opacity=".7"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#chrome${gid})" stroke="rgba(0,0,0,.55)" stroke-width=".4"/><line x1="${x-r*0.75}" y1="${y}" x2="${x+r*0.75}" y2="${y}" stroke="#1c1c1a" stroke-width="${r*0.26}" transform="rotate(${ang} ${x} ${y})"/>`;
+    const bez = opts.bezel || ['#3a3f41','#141617'];
+    // needle: thin pointer with a darker lance near the pivot (as on the photo), drawn vertical and rotated
+    const needle = `<g id="__NEEDLE__" transform="rotate(${-sweep} ${px} ${py})">`
+      + `<path d="M ${px-0.35} ${py} L ${px-0.35} ${py-METER.needleLen+3} L ${px} ${py-METER.needleLen} L ${px+0.35} ${py-METER.needleLen+3} L ${px+0.35} ${py} Z" fill="#0e0d0b"/>`
+      + `<path d="M ${px} ${py-20} L ${px-1.3} ${py-27} L ${px} ${py-35} L ${px+1.3} ${py-27} Z" fill="#0e0d0b"/></g>`;
+    return `<svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block;overflow:visible;">`
+      + `<defs><radialGradient id="face${gid}" cx="45%" cy="30%" r="75%"><stop offset="0%" stop-color="#f4f2ea"/><stop offset="100%" stop-color="#d9d6ca"/></radialGradient>`
+      + `<radialGradient id="bez${gid}" cx="35%" cy="25%" r="90%"><stop offset="0%" stop-color="${bez[0]}"/><stop offset="100%" stop-color="${bez[1]}"/></radialGradient>`
+      + `<radialGradient id="body${gid}" cx="42%" cy="28%" r="80%"><stop offset="0%" stop-color="#1f2324"/><stop offset="100%" stop-color="#08090a"/></radialGradient>`
+      + `<linearGradient id="bevel${gid}" x1="0" y1="0" x2=".35" y2="1"><stop offset="0%" stop-color="#5a6062"/><stop offset="35%" stop-color="#2a2e30"/><stop offset="70%" stop-color="#121415"/><stop offset="100%" stop-color="#2e3335"/></linearGradient>`
+      + `<radialGradient id="chrome${gid}" cx="35%" cy="30%" r="80%"><stop offset="0%" stop-color="#f2f2ee"/><stop offset="60%" stop-color="#9da2a0"/><stop offset="100%" stop-color="#4c5150"/></radialGradient>`
+      + `<linearGradient id="gl${gid}" x1="0" y1="0" x2=".3" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,.40)"/><stop offset="45%" stop-color="rgba(255,255,255,0)"/></linearGradient>`
+      + `<clipPath id="win${gid}"><path d="${win}"/></clipPath></defs>`
+      // square bakelite plate (edge to edge), slightly rounded corners, 4 slotted screws in the holes
+      + `<rect x="0.5" y="0.5" width="99" height="99" rx="5" fill="url(#bez${gid})"/>`
+      + `<rect x="1.2" y="1.2" width="97.6" height="97.6" rx="4.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".8"/>`
+      + screw(11,11,4.6,40)+screw(89,11,4.6,-30)+screw(11,89,4.6,-20)+screw(89,89,4.6,50)
+      // the round raised body: sloped bevel ring (r 47 → 41.5) catching the light, flat face inside
+      + `<circle cx="50" cy="52.2" r="47.2" fill="rgba(0,0,0,.5)"/>`
+      + `<circle cx="50" cy="51.5" r="47" fill="url(#bevel${gid})"/>`
+      + `<circle cx="50" cy="51.5" r="46.4" fill="none" stroke="rgba(255,255,255,.10)" stroke-width=".7"/>`
+      + `<circle cx="50" cy="51.5" r="41.5" fill="url(#body${gid})" stroke="rgba(0,0,0,.6)" stroke-width=".7"/>`
+      // dial behind the window
+      + `<path d="${win}" fill="url(#face${gid})"/>`
+      + `<g clip-path="url(#win${gid})">${dial}`
+      + `<text x="50" y="${opts.letterY||49.6}" text-anchor="middle" font-size="${opts.letterSize||11}" font-weight="400" fill="#141310" font-family="Oswald, Arial, sans-serif">${letter}</text>`
+      + (opts.maker ? `<text x="66" y="${(opts.letterY||48.6)-0.5}" text-anchor="middle" font-size="2" fill="#4a4840" font-family="Arial">${opts.maker}</text>` : '')
+      + `<circle cx="48.5" cy="19" r="1.9" fill="none" stroke="#3a3833" stroke-width=".5"/><path d="M 47.4 19 h 2.2 M 48.5 17.9 v 2.2" stroke="#3a3833" stroke-width=".4"/>`
+      + needle
+      // recessed face: shadow along the inside of the window edge, then glass sheen
+      + `<path d="${win}" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="4"/>`
+      + `<path d="${win}" fill="url(#gl${gid})"/></g>`
+      + `<path d="${win}" fill="none" stroke="#050505" stroke-width="1.3" stroke-linejoin="round"/>`
+      + `<circle cx="21.5" cy="54.4" r="1.7" fill="#3b2f24" stroke="#0a0908" stroke-width=".4"/><circle cx="78.5" cy="54.4" r="1.7" fill="#3b2f24" stroke="#0a0908" stroke-width=".4"/>`
+      // zero-adjust screw under the window
+      + `<circle cx="50" cy="80.5" r="4.6" fill="#25292a" stroke="#050505" stroke-width=".7"/><line x1="46.8" y1="80.5" x2="53.2" y2="80.5" stroke="#000" stroke-width="1.2" transform="rotate(-80 50 80.5)"/>`
+      + (opts.markText ? `<text x="${opts.markText[1]}" y="${opts.markText[2]}" text-anchor="middle" font-size="5.6" fill="#ecece6" font-family="Arial, sans-serif">${opts.markText[0]}</text>` : '')
+      + `</svg>`;
+  }
+  (function paintMeters(){
+    const vSlot = document.getElementById('voltMeterSlot');
+    vSlot.innerHTML = buildMeterSVG('V', {
+        lower:{nums:['0','1','2','3'], fracs:[0,1/3,2/3,1], minor:30, band:[1.8/3, 2.2/3], col:'#c0362a'},
+        upper:{nums:['0','50','100'], fracs:[0,.4,.8], minor:25, band:[85/125, 98/125], col:'#2e5ea8'},
+        maker:'', markText:['180V',74.4,65.4]})
+      .replace('__NEEDLE__','voltNeedle');
+    const aSlot = document.getElementById('antMeterSlot');
+    aSlot.innerHTML = buildMeterSVG('mA', {
+        upper:{nums:['0','40','80','120'], fracs:[0,1/3,2/3,1], minor:24}, letterSize:9.5, letterY:48.8})
+      .replace('__NEEDLE__','antNeedle');
+  })();
+
+  // ---------- fluted / milled knob (SVG: ONE unified scalloped path — a single gear/flower
+  // silhouette with one gradient and one highlight, not separate overlapping "ball" petals.
+  // Radius is modulated by a smooth cosine, sampled densely, so bumps are genuinely rounded
+  // (not pointed cusps) and the valleys land exactly at the measured depth. ----------
+  let knobGradId = 0;
+  function flowerPoints(outerR, valleyR, teeth, steps){
+    const pts = [];
+    for(let s=0; s<steps; s++){
+      const theta = s/steps*360;
+      const mod = 0.5 + 0.5*Math.cos(teeth*theta*Math.PI/180);
+      const r = valleyR + (outerR-valleyR)*mod;
+      const p = polar(50,50,r,theta);
+      pts.push(p.x.toFixed(2)+','+p.y.toFixed(2));
+    }
+    return pts.join(' ');
+  }
+  function buildKnobSVG(teeth, outerR, valleyR, pointer, capOffset){
+    const gid = 'kg'+(knobGradId++);
+    const shape = teeth<2
+      ? `<circle cx="50" cy="50" r="${outerR}" fill="url(#${gid})" stroke="rgba(0,0,0,.45)" stroke-width="0.7"/>`
+      : `<polygon points="${flowerPoints(outerR, valleyR, teeth, 120)}" fill="url(#${gid})" stroke="rgba(0,0,0,.45)" stroke-width="0.7" stroke-linejoin="round"/>`;
+    // bakelite gloss: a soft top-left sheen plus a crisp specular streak, like the real knobs
+    const hi = `<ellipse cx="41" cy="35" rx="${(outerR*0.42).toFixed(1)}" ry="${(outerR*0.26).toFixed(1)}" fill="url(#${gid}s)"/>`
+      + `<ellipse cx="36" cy="30" rx="${(outerR*0.13).toFixed(1)}" ry="${(outerR*0.06).toFixed(1)}" fill="rgba(255,255,255,.55)" transform="rotate(-28 36 30)"/>`;
+    const cx = capOffset ? capOffset[0] : 50, cy = capOffset ? capOffset[1] : 50;
+    const cap = capOffset
+      ? `<circle cx="${cx}" cy="${cy}" r="9" fill="#b9bcb8"/><circle cx="${cx}" cy="${cy}" r="9" fill="none" stroke="#000" stroke-width="1.2"/><circle cx="${(cx-2.5).toFixed(1)}" cy="${(cy-2.5).toFixed(1)}" r="2.5" fill="rgba(255,255,255,.35)"/>`
+      : `<circle cx="50" cy="50" r="4.2" fill="#050403"/><circle cx="50" cy="50" r="4.2" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="0.6"/>`;
+    const line = pointer ? `<rect x="46" y="${(50-outerR*0.86).toFixed(1)}" width="8" height="${(outerR*0.66).toFixed(1)}" rx="3.6" fill="#f3f1ea" stroke="rgba(0,0,0,.25)" stroke-width=".6"/>` : '';
+    return `<svg viewBox="0 0 100 100"><defs><radialGradient id="${gid}" cx="38%" cy="32%" r="80%">`
+      + `<stop offset="0%" stop-color="#474747"/><stop offset="45%" stop-color="#181818"/><stop offset="100%" stop-color="#030303"/>`
+      + `</radialGradient><radialGradient id="${gid}s" cx="50%" cy="50%" r="50%">`
+      + `<stop offset="0%" stop-color="rgba(255,255,255,.26)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/>`
+      + `</radialGradient></defs>${shape}${hi}${line}${cap}</svg>`;
+  }
+  (function paintKnobs(){
+    document.querySelectorAll('.knob.small').forEach(k=>{
+      k.innerHTML = buildKnobSVG(9, 48, 37, k.classList.contains('pointer'));
+    });
+    document.querySelectorAll('.knob.coarse').forEach(k=>{
+      k.innerHTML = buildKnobSVG(9, 48, 37, false);
+    });
+    document.querySelectorAll('.knob.tiny').forEach(k=>{
+      const g = 'rk'+(knobGradId++);
+      let knurl=''; for(let a=0;a<360;a+=7.5){ const p1=polar(50,50,46,a), p2=polar(50,50,41,a);
+        knurl += `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="rgba(0,0,0,.45)" stroke-width="1.6"/>`; }
+      k.innerHTML = `<svg viewBox="0 0 100 100"><defs><radialGradient id="${g}" cx="38%" cy="30%" r="80%">`
+        + `<stop offset="0%" stop-color="#5a6060"/><stop offset="60%" stop-color="#2d3232"/><stop offset="100%" stop-color="#161919"/></radialGradient>`
+        + `<radialGradient id="${g}h" cx="45%" cy="40%" r="60%"><stop offset="0%" stop-color="#0c0d0d"/><stop offset="80%" stop-color="#222626"/><stop offset="100%" stop-color="#9aa0a0"/></radialGradient></defs>`
+        + `<circle cx="50" cy="50" r="46" fill="url(#${g})"/>${knurl}<circle cx="50" cy="50" r="40" fill="url(#${g})"/>`
+        + `<circle cx="51" cy="56" r="17" fill="url(#${g}h)"/><circle cx="49" cy="53" r="6" fill="#b8bdbb" opacity=".85"/>`
+        + `<ellipse cx="38" cy="32" rx="12" ry="6" fill="rgba(255,255,255,.14)" transform="rotate(-25 38 32)"/></svg>`;
+    });
+  })();
+  (function buildHorseshoe(){
+    const svg = document.getElementById('hsSvg');
+    const cx=70, cy=70, ringR=53.4; // 100 design units at the 262px horseshoe size
+    const NS = 'http://www.w3.org/2000/svg';
+    const defs = document.createElementNS(NS,'defs');
+    defs.innerHTML = '<linearGradient id="hsMetal" x1="0" y1="0" x2="1" y2="1">'
+      + '<stop offset="0%" stop-color="#7d8382"/>'
+      + '<stop offset="50%" stop-color="#4d5352"/>'
+      + '<stop offset="100%" stop-color="#2f3433"/>'
+      + '</linearGradient>';
+    svg.appendChild(defs);
+
+    // cast scale bracket: runs from top-right (≈50°) clockwise to bottom-left (≈216°)
+    const p1 = polar(cx,cy,ringR,50);
+    const p2 = polar(cx,cy,ringR,216);
+    const ring = document.createElementNS(NS,'path');
+    ring.setAttribute('d', `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A ${ringR} ${ringR} 0 0 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`);
+    ring.setAttribute('fill','none');
+    ring.setAttribute('stroke','url(#hsMetal)');
+    ring.setAttribute('stroke-width','10.5');
+    ring.setAttribute('filter','drop-shadow(0 1.2px 1px rgba(0,0,0,.45))');
+    ring.setAttribute('stroke-linecap','round');
+    svg.appendChild(ring);
+
+    // subtle highlight rim along inner edge
+    const ringHi = document.createElementNS(NS,'path');
+    ringHi.setAttribute('d', ring.getAttribute('d'));
+    ringHi.setAttribute('fill','none');
+    ringHi.setAttribute('stroke','rgba(255,255,255,.08)');
+    ringHi.setAttribute('stroke-width','1.5');
+    svg.appendChild(ringHi);
+
+    // the bracket's own fixing studs, between the engraved positions
+    [62, 132, 176, 210].forEach(a=>{
+      const pos = polar(cx,cy,ringR,a);
+      const stud = document.createElementNS(NS,'circle');
+      stud.setAttribute('cx',pos.x.toFixed(2)); stud.setAttribute('cy',pos.y.toFixed(2));
+      stud.setAttribute('r','1.9'); stud.setAttribute('fill','#262a29');
+      stud.setAttribute('stroke','rgba(255,255,255,.18)'); stud.setAttribute('stroke-width','.5');
+      svg.appendChild(stud);
+    });
+
+    // position the 4 text labels precisely along the inner radius
+    const labelR = ringR; // engraved ON the bracket, as on the real set
+    document.querySelectorAll('.horseshoe .lab').forEach(lab=>{
+      const a = HS_ANGLES[lab.dataset.m];
+      const pos = polar(cx,cy,labelR,a);
+      lab.style.left = (pos.x/140*100)+'%';
+      lab.style.top = (pos.y/140*100)+'%';
+    });
+  })();
+
+  // ---------- scattered mounting screws (matching photo rhythm) ----------
+  (function scatterScrews(){
+    const host = document.getElementById('scatterScrews');
+    // Every entry is a screw actually visible in the reference photos, read off the
+    // perspective-corrected percent grid: [x%, y%, size, slot angle]
+    //   l = large countersunk screw in its own ring (≈34 units), m = medium (≈18), s = small (≈12)
+    const pts = [
+      // large ringed screws
+      [31.1,5.4,'l',-70],[71.3,5.0,'l',80],[6.9,34.1,'l',-35],[54.1,37.5,'l',-30],[94.1,40.7,'l',-30],
+      [10.2,77.7,'l',75],[61.3,77.7,'l',-20],[49.6,63.8,'l',-55],
+      // switch mounting screws around the Betriebsartenschalter hub
+      [50.4,6.8,'m',-80],[56.2,6.8,'m',70],[50.4,13.6,'m',10],
+      // small screws
+      [36.7,18.2,'s',20],[45.5,18.7,'s',-10],[36,24,'s',0],[61,2.5,'s',40],[63.8,17.9,'s',-30],
+      [66,22.3,'s',75],[83.4,22.5,'s',60],[79.9,49.3,'s',10],[12.5,46.3,'s',-5],
+      [12.4,64.3,'s',5],[17.1,62.7,'s',-15],[17.2,67.7,'s',20],
+      [37.5,57,'s',30],[36,62.5,'s',0],[36.3,67.5,'s',-25],[46.6,57.5,'s',35],
+      [47.7,80.9,'s',-10],[70.6,72.4,'s',85],[73.7,81.4,'s',-20],
+    ];
+    pts.forEach(([x,y,size,ang])=>{
+      const d = document.createElement('div');
+      d.className = 'screw ' + size;
+      d.style.left = x+'%'; d.style.top = y+'%';
+      d.style.setProperty('--slot', ang+'deg');
+      host.appendChild(d);
+    });
+    // the hex-headed stud below the switch hub (it holds the scale bracket)
+    const stud = document.createElement('div');
+    stud.className = 'hex-stud'; stud.style.left = '49%'; stud.style.top = '19.1%';
+    host.appendChild(stud);
+  })();
+
+  // ---------- shared cable geometry: one quadratic curve that sags under its own weight,
+  // used by every cable on the page (drag preview, hanging plug cords, the Taste key cord) ----------
+  function sagCurve(x1,y1,x2,y2, k, maxSag, base){
+    const midX=(x1+x2)/2, dist=Math.hypot(x2-x1,y2-y1);
+    const midY=Math.max(y1,y2) + Math.min(dist*k, maxSag) + base;
+    return `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`;
+  }
+
+  // ---------- audio ----------
+  let audioCtx = null;
+  let osc = null, gainNode = null, fadeGain = null;
+  // receiver ambience nodes (built in initAmbience, which ensureAudio calls on first use)
+  let noiseGain = null, qrmOsc = null, qrmGain = null, lastRegenOscillating = false;
+  const qrm = { freq: null, timeline: [], period: 0 };
+  function ensureAudio(){
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = 0;
+      // signal path goes through a slowly breathing "fading" stage, like a real HF path
+      fadeGain = audioCtx.createGain();
+      fadeGain.gain.value = 0.8;
+      gainNode.connect(fadeGain);
+      fadeGain.connect(audioCtx.destination);
+      osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 440;
+      osc.connect(gainNode);
+      osc.start();
+      initAmbience();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  // ---------- mechanical click: a filtered noise transient (the actual "contact" sound)
+  // plus a short low-frequency thump (the body/spring of the mechanism) — much closer to a
+  // real switch/key than a pure tone sweep ----------
+  function playMechClick(duration, volume, filterFreq, thumpFreq, atTime){
+    if(!audioCtx) return;
+    const now = (atTime!==undefined) ? atTime : audioCtx.currentTime;
+
+    // noise burst
+    const n = Math.max(1, Math.floor(audioCtx.sampleRate * duration));
+    const buffer = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for(let i=0;i<n;i++){
+      const decay = Math.pow(1 - i/n, 2.2);
+      data[i] = (Math.random()*2-1) * decay;
+    }
+    const noiseSrc = audioCtx.createBufferSource();
+    noiseSrc.buffer = buffer;
+    const noiseFilter = audioCtx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.value = filterFreq;
+    noiseFilter.Q.value = 1.1;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(volume, now);
+    noiseSrc.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+    noiseSrc.start(now);
+
+    // low mechanical thump
+    const tOsc = audioCtx.createOscillator();
+    const tGain = audioCtx.createGain();
+    tOsc.type = 'sine';
+    tOsc.frequency.setValueAtTime(thumpFreq, now);
+    tOsc.frequency.exponentialRampToValueAtTime(thumpFreq*0.5, now+duration*0.9);
+    tGain.gain.setValueAtTime(volume*0.9, now);
+    tGain.gain.exponentialRampToValueAtTime(0.001, now+duration);
+    tOsc.connect(tGain); tGain.connect(audioCtx.destination);
+    tOsc.start(now); tOsc.stop(now+duration+0.02);
+  }
+  function playSwitchClick(){ playMechClick(0.045, 0.30, 1400, 150); }
+  function playKeyTock(atTime){ playMechClick(0.022, 0.26, 2600, 220, atTime); }
+  function setTone(freqHz, gain){
+    if(!audioCtx) return;
+    const now = audioCtx.currentTime;
+    osc.frequency.setTargetAtTime(Math.max(20,freqHz), now, 0.03);
+    gainNode.gain.setTargetAtTime(Math.max(0,Math.min(0.18,gain)), now, 0.05);
+  }
+
+  // ---------- state ----------
+  const state = {
+    mode: 'Aus', rxFreq: 50.0, rxFine: 0, txFreq: 50.0,
+    regen: 0, volume: 40, antTune: 50, antPeakTarget: 50,
+    rastI: null, rastII: null,
+    keyPressed: false, fpruefOn: false,
+    target: null, sigType: 'Tn',
+    heiz: 2.0, anode: 92, showAnode: false,
+    anodeCheckedOnce: false, antennaPeakedOnce: false, manualChecks: new Set(),
+    modeEmpfOnce: false, receiverLockedOnce: false,
+    checklistOrder: [],
+    kochLevel: 2, kochResults: [],
+    plugsConnected: new Set(),
+    // small mechanical calibration drift — corrected via the "Einstellschraube mit
+    // Deckelhülse für Empfänger-/Senderreichung" (§6, items f/m of the manual's parts list)
+    calRxOffset: (Math.random()<0.5? -1:1) * (0.6+Math.random()*0.9),
+    calTxOffset: (Math.random()<0.5? -1:1) * (0.6+Math.random()*0.9)
+  };
+
+  // declared early: referenced by updateReceiveAudio(), which setMode() below can call
+  // immediately during initial setup — must exist before setMode('Aus') runs.
+  const targetShown = document.getElementById('targetShown');
+  const lockIndicator = document.getElementById('lockIndicator');
+
+  // checklistSteps declared early: refreshChecklist() (called from updateAntennaMeter, which
+  // runs during the very first setMode('Aus') at init) needs it to already exist.
+  const checklistSteps = [
+    {id:1, type:'manual', text:'Zubehörtornister naast apparatetornister zetten, beide deksels verwijderen.'},
+    {id:2, type:'auto', text:'6 antennestaven in elkaar zetten, op tornister bevestigen, stekker in bus "Ant" (zie "Stekkers aansluiten" hieronder).',
+      check: ()=> state.plugsConnected.has('socketAnt')},
+    {id:3, type:'auto', text:'Tegengewicht richting tegenfunkstelle uitspreiden, stekker in bus "G" (zie "Stekkers aansluiten" hieronder).',
+      check: ()=> state.plugsConnected.has('socketG')},
+    {id:4, type:'auto', text:'Fernhörer, Taste en Mikrofon in de juiste bussen steken (zie "Stekkers aansluiten" hieronder).',
+      check: ()=> (state.plugsConnected.has('socketFernhorer1') || state.plugsConnected.has('socketFernhorer2')) && state.plugsConnected.has('socketMikrofon') && state.plugsConnected.has('socketTaste')},
+    {id:5, type:'manual', text:'Sammler en Anodenbatterien aansluiten — eerst batterij II, dan pas batterij I.'},
+    {id:6, type:'auto', text:'Batterieanschlußkabel door de klep, deksel sluiten, kabel in de 5-polige stekkerbus van het apparaat (zie "Stekkers aansluiten").',
+      check: ()=> state.plugsConnected.has('socketBatt')},
+    {id:7, type:'auto', text:'Betriebsartenschalter op "Empf." zetten.',
+      check: ()=> state.modeEmpfOnce},
+    {id:8, type:'manual', text:'Heizspannung zelf aflezen op de voltmeter — controleer dat de wijzer in de rode sector staat, en vink af.'},
+    {id:9, type:'auto', text:'Blauwe knop indrukken en Anodenspannung controleren (blauwe sector).',
+      check: ()=> state.anodeCheckedOnce},
+    {id:10, type:'auto', text:'Zender: Freq.-Nr. instellen en met Rast I of II vastleggen — dit zijn twee "voorkeurkanalen": eenmaal vastgelegd kun je er tijdens gebruik altijd meteen naar terug, zonder opnieuw nauwkeurig te hoeven afstellen.',
+      check: ()=> state.rastI!==null || state.rastII!==null},
+    {id:11, type:'auto', text:'Zender: op "Tg." schakelen, Taste indrukken, met Ant.Abst. hoogste uitslag zoeken.',
+      check: ()=> state.antennaPeakedOnce},
+    {id:12, type:'auto', text:'Zet de schakelaar terug op "Empf.", trek "Rückk." op tot aanslaan, en stem "Fein" af tot contact met de gegenstation.',
+      check: ()=> state.receiverLockedOnce},
+  ];
+  const IDEAL_ORDER = checklistSteps.map(s=>s.id);
+
+  function freqNumberToMHz(n){ return 33.8 + (n/100)*(38.0-33.8); }
+  function fmt1(n){ return n.toFixed(1).replace('.',','); }
+
+  // ---------- generic rotary knob ----------
+  // ---------- tooltip helper: briefly reveal a knob's .val (for touch, no hover) ----------
+  function flashVal(el){
+    const wrap = el.closest('.ctrl, .field');
+    if(!wrap) return;
+    const val = wrap.querySelector('.val');
+    if(!val) return;
+    val.classList.add('show');
+    clearTimeout(val._hideT);
+    val._hideT = setTimeout(()=>val.classList.remove('show'), 1100);
+  }
+
+  function makeKnob(el, {min=0,max=100,step=0.5,initial=50,onChange, wrap=false}={}){
+    let value = initial;
+    let dragging=false, startY=0, startVal=0;
+    const grip = el; // whole knob (fluted body + pointer) rotates together
+    function render(){
+      let frac = (value-min)/(max-min);
+      let deg = frac*270 - 135;
+      grip.style.transform = 'rotate('+deg+'deg)';
+    }
+    function setValue(v, silent){
+      if(wrap){
+        const range = max-min;
+        v = ((v-min)%range+range)%range + min;
+      } else {
+        v = Math.max(min, Math.min(max, v));
+      }
+      value = v;
+      render();
+      if(!silent && onChange) onChange(value);
+    }
+    el.addEventListener('pointerdown', e=>{
+      dragging=true; startY=e.clientY; startVal=value;
+      el.setPointerCapture(e.pointerId); ensureAudio(); flashVal(el);
+    });
+    el.addEventListener('pointermove', e=>{
+      if(!dragging) return;
+      const dy = startY - e.clientY;
+      const range = max-min;
+      setValue(startVal + dy*(range/140));
+      flashVal(el);
+    });
+    el.addEventListener('pointerup', ()=>{dragging=false; flashVal(el);});
+    el.addEventListener('pointercancel', ()=>{dragging=false;});
+    el.addEventListener('wheel', e=>{
+      e.preventDefault();
+      setValue(value + (e.deltaY<0? step: -step));
+      flashVal(el);
+    }, {passive:false});
+    render();
+    return { get:()=>value, set:(v,s)=>setValue(v,s) };
+  }
+
+  // ---------- lupe scale rendering: numbers sit on a large disc whose centre is the
+  // tuning knob BELOW the window, so ticks fan out / curve — not a flat sliding strip ----------
+  const DISC_R = 85;                 // virtual disc radius (local lens units) — tuned to match photo's fan angle
+  const DEG_PER_UNIT = 6.4;           // degrees of disc-rotation per frequency unit
+  function renderLupe(container, freq){
+    container.innerHTML = '';
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS,'svg');
+    svg.setAttribute('viewBox','0 0 80 80');
+    svg.setAttribute('style','position:absolute;inset:0;width:100%;height:100%;');
+    const discCx = 40, discCy = 40 + DISC_R; // disc centre sits far below the window, at the knob
+    const lo = Math.ceil(freq-6), hi = Math.floor(freq+6);
+    // NOTE: angle = -(i-freq)*DEG_PER_UNIT — the disc is rigidly fixed to the knob shaft,
+    // so turning the knob clockwise (increasing frequency) must rotate the disc clockwise
+    // too, which carries a fixed point on the disc's rim to the RIGHT of the window, not left.
+    const edgeAngLo = -(hi-freq)*DEG_PER_UNIT - DEG_PER_UNIT*0.6;
+    const edgeAngHi = -(lo-freq)*DEG_PER_UNIT + DEG_PER_UNIT*0.6;
+
+    // ----- the disc's own outer rim, visible as a curved edge inside the window -----
+    // (everything beyond the rim, further out than the number ring, is the darker
+    // mechanism body behind the rotating disc)
+    const rimOuterR = DISC_R + 9;
+    const pRimLo = polar(discCx,discCy,rimOuterR,edgeAngLo);
+    const pRimHi = polar(discCx,discCy,rimOuterR,edgeAngHi);
+    const mech = document.createElementNS(NS,'path');
+    mech.setAttribute('d', `M -2 -2 L 82 -2 L ${pRimHi.x.toFixed(2)} ${pRimHi.y.toFixed(2)} `
+      + `A ${rimOuterR} ${rimOuterR} 0 0 0 ${pRimLo.x.toFixed(2)} ${pRimLo.y.toFixed(2)} Z`);
+    mech.setAttribute('fill', '#8c918c'); // bright metal of the drive mechanism behind the disc
+    svg.appendChild(mech);
+    const rim = document.createElementNS(NS,'path');
+    rim.setAttribute('d', `M ${pRimLo.x.toFixed(2)} ${pRimLo.y.toFixed(2)} `
+      + `A ${rimOuterR} ${rimOuterR} 0 0 1 ${pRimHi.x.toFixed(2)} ${pRimHi.y.toFixed(2)}`);
+    rim.setAttribute('fill','none'); rim.setAttribute('stroke','#5c583f');
+    rim.setAttribute('stroke-width','1');
+    svg.appendChild(rim);
+
+    // half-unit minor ticks between the numbered ones: the real scale is finely divided
+    for(let h=lo-0.5;h<=hi+0.5;h+=1){
+      if(h<-4||h>104) continue;
+      const ang = -(h-freq)*DEG_PER_UNIT;
+      const a1 = polar(discCx,discCy,DISC_R,ang), a2 = polar(discCx,discCy,DISC_R-5,ang);
+      const ml = document.createElementNS(NS,'line');
+      ml.setAttribute('x1',a1.x.toFixed(2)); ml.setAttribute('y1',a1.y.toFixed(2));
+      ml.setAttribute('x2',a2.x.toFixed(2)); ml.setAttribute('y2',a2.y.toFixed(2));
+      ml.setAttribute('stroke','#3a3729'); ml.setAttribute('stroke-width','0.6');
+      svg.appendChild(ml);
+    }
+    for(let i=lo;i<=hi;i++){
+      if(i<-4||i>104) continue;
+      const rel = i - freq;
+      const ang = -rel*DEG_PER_UNIT; // deg, 0 = straight up = current value; sign matches disc/knob coupling above
+      const major = (i%10===0);
+      const eich = Math.abs(i-28.2)<0.6;
+      const pOuter = polar(discCx,discCy,DISC_R,ang);
+      const pInner = polar(discCx,discCy,DISC_R-(major?14:(i%5===0?11:8)),ang);
+      const line = document.createElementNS(NS,'line');
+      line.setAttribute('x1',pOuter.x.toFixed(2)); line.setAttribute('y1',pOuter.y.toFixed(2));
+      line.setAttribute('x2',pInner.x.toFixed(2)); line.setAttribute('y2',pInner.y.toFixed(2));
+      line.setAttribute('stroke', eich? '#a3372b' : '#3a3729');
+      line.setAttribute('stroke-width', major? '1.4':'0.9');
+      svg.appendChild(line);
+      if(major){
+        const pLabel = polar(discCx,discCy,DISC_R-23,ang);
+        const text = document.createElementNS(NS,'text');
+        text.setAttribute('x',pLabel.x.toFixed(2)); text.setAttribute('y',(pLabel.y+3).toFixed(2));
+        text.setAttribute('text-anchor','middle');
+        text.setAttribute('font-size','13');
+        text.setAttribute('font-weight','bold');
+        text.setAttribute('font-family','var(--mono)');
+        text.setAttribute('fill', eich? '#a3372b':'#232019');
+        text.setAttribute('transform', `rotate(${ang.toFixed(2)} ${pLabel.x.toFixed(2)} ${pLabel.y.toFixed(2)})`);
+        text.textContent = i;
+        svg.appendChild(text);
+      }
+    }
+    container.appendChild(svg);
+  }
+  const rxStrip = document.getElementById('rxStrip');
+  const txStrip = document.getElementById('txStrip');
+
+  function positionScale(strip, freq){
+    renderLupe(strip, freq);
+  }
+
+  // ---------- meters ----------
+  const voltNeedle = document.getElementById('voltNeedle');
+  const antNeedle = document.getElementById('antNeedle');
+  function setNeedle(el, frac){
+    // same pivot/sweep as buildMeterSVG (METER), pivot hidden below the arched window
+    const a = -METER.sweep + Math.max(0,Math.min(1,frac))*2*METER.sweep;
+    el.setAttribute('transform', `rotate(${a.toFixed(2)} ${METER.px} ${METER.py})`);
+  }
+
+  // ---------- mode switch ----------
+  const modeOrder = ['Aus','Empf','Tn','Tg'];
+  const modePtr = document.getElementById('modePtr');
+  function setMode(m){
+    const changed = state.mode !== m;
+    state.mode = m;
+    if(m==='Empf') state.modeEmpfOnce = true;
+    modePtr.style.transform = 'translate(-50%,-100%) rotate('+HS_ANGLES[m]+'deg)';
+    document.querySelectorAll('.horseshoe .lab').forEach(s=> s.classList.toggle('active', s.dataset.m===m));
+    document.getElementById('stModeShown').textContent = ({Aus:'Aus',Empf:'Empf.',Tn:'Tn.',Tg:'Tg.'})[m];
+    ensureAudio();
+    if(changed) playSwitchClick();
+    updateReceiveAudio(); updateAntennaMeter(); refreshMeters();
+  }
+  document.getElementById('modeDial').addEventListener('click', ()=>{
+    const idx = modeOrder.indexOf(state.mode);
+    setMode(modeOrder[(idx+1)%modeOrder.length]);
+  });
+  document.querySelectorAll('.horseshoe .lab').forEach(s=>{
+    s.addEventListener('click', ()=> setMode(s.dataset.m));
+  });
+  setMode('Aus');
+
+  // ---------- knobs ----------
+  makeKnob(document.getElementById('rxKnob'), {min:0,max:100,step:0.5,initial:50, wrap:true, onChange:v=>{ state.rxFreq=v; refreshRx(); }});
+  makeKnob(document.getElementById('txKnob'), {min:0,max:100,step:0.5,initial:50, wrap:true, onChange:v=>{ state.txFreq=v; refreshTx(); }});
+  makeKnob(document.getElementById('rxFineKnob'), {min:-10,max:10,step:0.2,initial:0, onChange:v=>{
+    state.rxFine=v; refreshRx();
+    document.getElementById('rxFineVal').textContent = fmt1(state.rxFreq + state.rxFine*FINE_FACTOR);
+  }});
+  makeKnob(document.getElementById('regenKnob'), {min:0,max:100,step:2,initial:0, onChange:v=>{
+    state.regen=v; document.getElementById('regenVal').textContent=Math.round(v); refreshRx();
+  }});
+  makeKnob(document.getElementById('volKnob'), {min:0,max:100,step:2,initial:40, onChange:v=>{
+    state.volume=v; document.getElementById('volVal').textContent=Math.round(v)+'%'; refreshRx();
+  }});
+  makeKnob(document.getElementById('antKnob'), {min:0,max:100,step:1,initial:50, onChange:v=>{
+    state.antTune=v; document.getElementById('antVal').textContent=Math.round(v); refreshTx();
+  }});
+
+  const FINE_FACTOR = 0.3; // Fein sits on the same shaft/disc as the coarse knob — this is how
+                            // much one full Fein turn nudges that shared disc, in frequency units
+  function refreshRx(){
+    const f = state.rxFreq + state.rxFine*FINE_FACTOR; // Fein turns the SAME disc, not its own value
+    positionScale(rxStrip, f);
+    document.getElementById('rxFreqVal').textContent = 'Freq.-Nr. ' + fmt1(f);
+    document.getElementById('rxMhz').textContent = freqNumberToMHz(f).toFixed(2).replace('.',',') + ' MHz';
+    document.getElementById('stRx').textContent = fmt1(f);
+    updateReceiveAudio();
+  }
+  function refreshTx(){
+    const f = state.txFreq;
+    positionScale(txStrip, f);
+    document.getElementById('txFreqVal').textContent = 'Freq.-Nr. ' + fmt1(f);
+    document.getElementById('txMhz').textContent = freqNumberToMHz(f).toFixed(2).replace('.',',') + ' MHz';
+    document.getElementById('stTx').textContent = fmt1(f);
+    updateAntennaMeter();
+    updateReceiveAudio();
+  }
+
+  // ---------- Raste presets ----------
+  document.getElementById('rastI').addEventListener('click', ()=>{
+    if(state.rastI===null){ state.rastI=state.txFreq; document.getElementById('rastI').style.boxShadow='0 0 0 2px #a68a4a, 0 3px 6px rgba(0,0,0,.55)'; }
+    else { state.txFreq=state.rastI; refreshTx(); }
+    refreshChecklist();
+  });
+  document.getElementById('rastII').addEventListener('click', ()=>{
+    if(state.rastII===null){ state.rastII=state.txFreq; document.getElementById('rastII').style.boxShadow='0 0 0 2px #a68a4a, 0 3px 6px rgba(0,0,0,.55)'; }
+    else { state.txFreq=state.rastII; refreshTx(); }
+    refreshChecklist();
+  });
+
+  // ---------- voltmeter / blue button ----------
+  const blueBtn = document.getElementById('blueBtn');
+  blueBtn.addEventListener('pointerdown', ()=>{
+    state.showAnode=true; refreshMeters();
+    if(state.mode!=='Aus') state.anodeCheckedOnce = true;
+    refreshChecklist();
+  });
+  blueBtn.addEventListener('pointerup', ()=>{ state.showAnode=false; refreshMeters(); });
+  blueBtn.addEventListener('pointerleave', ()=>{ state.showAnode=false; refreshMeters(); });
+
+  function refreshMeters(){
+    const on = state.mode !== 'Aus';
+    if(!on){
+      setNeedle(voltNeedle, 0);
+      document.getElementById('voltReadout').textContent = '— V';
+      document.getElementById('stHeiz').textContent = '—';
+      document.getElementById('stAnode').textContent = '—';
+      return;
+    }
+    // (Heizspannung-check is nu stap 8: een handmatige zelf-verificatie, zie checklist)
+    const heizFrac = state.heiz/3.0;
+    const anodeFrac = state.anode/125.0; // upper scale of the Spannungsmesser runs to 125 V
+    if(state.showAnode){
+      setNeedle(voltNeedle, Math.min(1,anodeFrac));
+      document.getElementById('voltReadout').textContent = state.anode.toFixed(0)+' V (Anode)';
+    } else {
+      setNeedle(voltNeedle, Math.min(1,heizFrac));
+      document.getElementById('voltReadout').textContent = state.heiz.toFixed(1)+' V (Heiz)';
+    }
+    document.getElementById('stHeiz').textContent = state.heiz.toFixed(1)+' V';
+    document.getElementById('stAnode').textContent = state.anode.toFixed(0)+' V';
+  }
+
+  // ---------- Taste ----------
+  const keyBtn = document.getElementById('keyBtn');
+  // filled in later by setupOnline() — declared here (not there) so press() can safely
+  // reference it regardless of script execution order
+  let publishKeyEvent = null;
+  let publishTextEvent = null;
+  let quickConnectAllPlugs = null; // filled in by setupPlugGame() — reuses its real logic
+
+  function press(v){
+    state.keyPressed=v; keyBtn.classList.toggle('pressed', v);
+    updateAntennaMeter(); updateReceiveAudio();
+    if(v) playKeyTock(); // one single tick per tap — not one on press AND one on release
+    if(publishKeyEvent) publishKeyEvent(v);
+  }
+  keyBtn.addEventListener('pointerdown', ()=>{ ensureAudio(); press(true); });
+  keyBtn.addEventListener('pointerup', ()=>press(false));
+  keyBtn.addEventListener('pointerleave', ()=>press(false));
+
+  // ---------- spacebar acts as the Taste/morse key too ----------
+  // Always block the browser's default spacebar behaviour (page scroll, or activating
+  // whatever button happens to still have focus) — except inside real text fields, where
+  // the user must still be able to type an actual space character.
+  let spaceHeld = false;
+  function isTextEntry(){
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    return tag==='INPUT' || tag==='TEXTAREA';
+  }
+  document.addEventListener('keydown', (e)=>{
+    if(e.code !== 'Space' && e.key !== ' ') return;
+    if(isTextEntry()) return; // let the user type a literal space normally
+    e.preventDefault();
+    if(spaceHeld) return; // ignore browser key-repeat while held
+    spaceHeld = true;
+    keyBtn.dispatchEvent(new PointerEvent('pointerdown', {bubbles:true, cancelable:true}));
+  }, {capture:true});
+  document.addEventListener('keyup', (e)=>{
+    if(e.code !== 'Space' && e.key !== ' ') return;
+    if(!spaceHeld) return;
+    spaceHeld = false;
+    e.preventDefault();
+    keyBtn.dispatchEvent(new PointerEvent('pointerup', {bubbles:true, cancelable:true}));
+  }, {capture:true});
+
+  function updateAntennaMeter(){
+    const transmitting = state.keyPressed && (state.mode==='Tg' || state.mode==='Tn');
+    let mA = 0;
+    if(transmitting){
+      const err = Math.abs(state.antTune - state.antPeakTarget);
+      const peak = Math.max(0, 1-err/50);
+      mA = peak*120;
+      if(mA >= 110 && state.mode==='Tg') state.antennaPeakedOnce = true;
+    }
+    setNeedle(antNeedle, Math.min(1, mA/120));
+    document.getElementById('antReadout').textContent = mA.toFixed(0)+' mA';
+    document.getElementById('stAnt').textContent = mA.toFixed(0)+' mA';
+    refreshChecklist();
+  }
+
+  // ---------- Frequenzprüfer c ----------
+  const fpruefBtn = document.getElementById('fpruefBtn');
+  const starLamp = document.getElementById('starLamp');
+  fpruefBtn.addEventListener('pointerdown', ()=>{
+    ensureAudio(); state.fpruefOn=true; starLamp.classList.add('on'); updateReceiveAudio();
+  });
+  ['pointerup','pointerleave'].forEach(ev=> fpruefBtn.addEventListener(ev, ()=>{
+    state.fpruefOn=false; starLamp.classList.remove('on'); updateReceiveAudio();
+  }));
+
+  // ---------- Gegenstation ----------
+  let hintVisible = false;
+  function newStation(){
+    state.target = 5 + Math.random()*90;
+    state.sigType = document.querySelector('input[name=sigtype]:checked').value;
+    // antenna-match peak point: deliberately far from the knob's default resting position (50),
+    // so "Ant.Abst" actually has to be turned to find it — it must not just pass by default.
+    state.antPeakTarget = Math.random()<0.5 ? (15+Math.random()*20) : (65+Math.random()*20);
+    hintVisible = false;
+    targetShown.textContent = 'verborgen';
+    lockIndicator.textContent = 'Geen contact';
+    lockIndicator.classList.remove('locked');
+    // keep the interfering station clear of the new Gegenstation (deferred: newStation also
+    // runs during start-up, before the Morse table further down the script exists)
+    if(qrmOsc) setTimeout(buildQrm, 0);
+    updateReceiveAudio();
+    updateAntennaMeter();
+  }
+  document.getElementById('newStationBtn').addEventListener('click', ()=>{ ensureAudio(); newStation(); });
+  document.getElementById('revealBtn').addEventListener('click', ()=>{
+    hintVisible = !hintVisible;
+    targetShown.textContent = hintVisible && state.target!==null ? fmt1(state.target)+' ('+(state.sigType==='Tn'?'Telefonie':'Telegrafie')+')' : 'verborgen';
+  });
+  document.querySelectorAll('input[name=sigtype]').forEach(r=>{
+    r.addEventListener('change', ()=>{ if(state.target!==null){ state.sigType=r.value; updateReceiveAudio(); }});
+  });
+  newStation();
+
+  // ---------- receiver ambience: band-limited noise bed, the Rückkopplung "aanslag", fading,
+  // atmospheric crackle and a faint interfering station (QRM) somewhere on the dial ----------
+  function makeNoiseBuffer(seconds){
+    const n = Math.floor(audioCtx.sampleRate*seconds);
+    const buf = audioCtx.createBuffer(1, n, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    let b0=0, b1=0;
+    for(let i=0;i<n;i++){ // slightly "pinked" white noise: softer, more like a valve receiver
+      const w = Math.random()*2-1; b0 = 0.97*b0 + 0.03*w; b1 = 0.6*b1 + 0.4*w;
+      d[i] = (b0*2.2 + b1*0.6);
+    }
+    return buf;
+  }
+  function initAmbience(){
+    const src = audioCtx.createBufferSource();
+    src.buffer = makeNoiseBuffer(3); src.loop = true;
+    const bp = audioCtx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = 1100; bp.Q.value = 0.55;
+    noiseGain = audioCtx.createGain(); noiseGain.gain.value = 0;
+    src.connect(bp); bp.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+    src.start();
+    // fading: two slow, unrelated LFOs so the swell never sounds periodic
+    [[0.11,0.16],[0.037,0.12]].forEach(([hz,depth])=>{
+      const lfo = audioCtx.createOscillator(); lfo.frequency.value = hz;
+      const lg = audioCtx.createGain(); lg.gain.value = depth;
+      lfo.connect(lg); lg.connect(fadeGain.gain); lfo.start();
+    });
+    // the interfering station
+    qrmOsc = audioCtx.createOscillator(); qrmOsc.type='sine'; qrmOsc.frequency.value = 700;
+    qrmGain = audioCtx.createGain(); qrmGain.gain.value = 0;
+    qrmOsc.connect(qrmGain); qrmGain.connect(audioCtx.destination); qrmOsc.start();
+    setTimeout(buildQrm, 0); // MORSE_MAP is declared further down the script
+    setInterval(ambienceTick, 40);
+  }
+  // a distant operator endlessly calling "CQ CQ DE ..." at a brisk 20 wpm
+  function buildQrm(){
+    do { qrm.freq = 6 + Math.random()*88; }
+    while(state.target!==null && Math.abs(qrm.freq - state.target) < 14);
+    const unit = 0.06, t = [];
+    let now = 0;
+    for(const ch of 'CQ CQ DE DLR K   '){
+      if(ch===' '){ now += unit*4; continue; }
+      for(const sym of (MORSE_MAP[ch]||'')){ const d = sym==='.'?unit:unit*3; t.push([now, now+d]); now += d+unit; }
+      now += unit*2;
+    }
+    qrm.timeline = t; qrm.period = now + 1.2;
+  }
+  function receiverListening(){ return audioCtx && state.mode==='Empf' && !state.fpruefOn; }
+  function updateNoiseBed(){
+    if(!noiseGain) return;
+    const now = audioCtx.currentTime, vol = state.volume/100;
+    let lvl = 0;
+    if(receiverListening()){
+      const osc_ = Math.max(0, Math.min(1, (state.regen-30)/40));
+      lvl = (0.010 + 0.034*osc_) * vol;
+      // the characteristic soft "plop" when the Rückkopplung starts to oscillate
+      const oscillating = state.regen >= 30;
+      if(oscillating && !lastRegenOscillating) playMechClick(0.05, 0.10*vol+0.02, 500, 90);
+      lastRegenOscillating = oscillating;
+    } else lastRegenOscillating = false;
+    noiseGain.gain.setTargetAtTime(lvl, now, 0.08);
+  }
+  function ambienceTick(){
+    if(!audioCtx) return;
+    const now = audioCtx.currentTime, vol = state.volume/100;
+    if(!receiverListening()){ if(qrmGain) qrmGain.gain.setTargetAtTime(0, now, 0.01); return; }
+    // atmospheric crackle (static from distant thunderstorms)
+    if(Math.random() < 0.035) playMechClick(0.004+Math.random()*0.01, (0.03+Math.random()*0.09)*vol, 900+Math.random()*2500, 60);
+    // QRM: only audible when tuned near it, with a beat pitch that follows the tuning
+    const effRx = state.rxFreq + state.rxFine*FINE_FACTOR;
+    const d = Math.abs(effRx - qrm.freq);
+    if(state.regen < 30 || d > 5){ qrmGain.gain.setTargetAtTime(0, now, 0.01); return; }
+    qrmOsc.frequency.setTargetAtTime(380 + d*120, now, 0.02);
+    const tt = now % qrm.period;
+    const on = qrm.timeline.some(([a,b]) => tt>=a && tt<b);
+    qrmGain.gain.setTargetAtTime(on ? 0.035*(1-d/5)*vol : 0, now, 0.006);
+  }
+
+  function updateReceiveAudio(){
+    updateReceiveAudioInner();
+    updateNoiseBed();
+    if(lockIndicator.classList.contains('locked') && !state.fpruefOn) state.receiverLockedOnce = true;
+    refreshChecklist();
+  }
+  function updateReceiveAudioInner(){
+    ensureAudio();
+    if(state.fpruefOn){
+      // §54: check against the 4th harmonic of the 7 MHz quartz (freq-nr 28,2) — but the
+      // scale can drift from that true point until corrected via the calibration screw
+      const checkingTx = (state.mode==='Tg' || state.mode==='Tn');
+      const dial = checkingTx ? state.txFreq : state.rxFreq;
+      const offset = checkingTx ? state.calTxOffset : state.calRxOffset;
+      const delta = dial - (28.2 + offset);
+      const beat = Math.min(900, Math.abs(delta)*60+40);
+      setTone(200+beat, 0.06*(state.volume/100));
+      const side = checkingTx ? 'Sender' : 'Empfänger';
+      lockIndicator.textContent = Math.abs(delta)<0.3 ? ('Fprüf.c: '+side+' geëicht ✓') : ('Fprüf.c ('+side+') actief …');
+      lockIndicator.classList.toggle('locked', Math.abs(delta)<0.3);
+      return;
+    }
+    if(state.mode!=='Empf' || state.regen<30 || state.target===null){
+      setTone(220,0);
+      if(state.mode!=='Empf'){ lockIndicator.textContent='Schakelaar niet op Empf.'; lockIndicator.classList.remove('locked'); }
+      else if(state.regen<30){ lockIndicator.textContent='Rückkopplung te laag — geen aanslag'; lockIndicator.classList.remove('locked'); }
+      return;
+    }
+    const effRx = state.rxFreq + state.rxFine*FINE_FACTOR;
+    const delta = effRx - state.target;
+    const absDelta = Math.abs(delta);
+    const regenGain = Math.min(1, (state.regen-30)/50);
+
+    if(state.sigType==='Tn'){
+      if(absDelta<0.15){
+        setTone(300,0);
+        lockIndicator.textContent='Schwebungslücke — juist afgestemd ✓';
+        lockIndicator.classList.add('locked');
+      } else {
+        const beat = Math.min(1200, absDelta*55+60);
+        setTone(beat, 0.09*regenGain*(state.volume/100));
+        lockIndicator.textContent='Overlagingsfluittoon — verder afstemmen';
+        lockIndicator.classList.remove('locked');
+      }
+    } else {
+      if(absDelta<0.35){
+        setTone(650, 0.08*regenGain*(state.volume/100));
+        lockIndicator.textContent='Goede zwevingstoon — contact ✓';
+        lockIndicator.classList.add('locked');
+      } else {
+        const beat = Math.min(1400, absDelta*70+120);
+        setTone(beat, 0.08*regenGain*(state.volume/100));
+        lockIndicator.textContent='Zoeken … onrustige fluittoon';
+        lockIndicator.classList.remove('locked');
+      }
+    }
+  }
+
+  // ---------- startup checklist (§64 "Fertigmachen des Gerätes") ----------
+  function refreshChecklist(){
+    const host = document.getElementById('startupChecklist');
+    if(!host) return;
+    let done = 0;
+    checklistSteps.forEach(step=>{
+      const isDone = step.type==='auto' ? !!(step.check && step.check()) : state.manualChecks.has(step.id);
+      if(isDone && !state.checklistOrder.includes(step.id)){
+        state.checklistOrder.push(step.id);
+      }
+    });
+    host.innerHTML = checklistSteps.map(step=>{
+      const isDone = step.type==='auto' ? !!(step.check && step.check()) : state.manualChecks.has(step.id);
+      if(isDone) done++;
+      return `<div class="chk-row ${step.type} ${isDone?'done':''}" data-id="${step.id}" data-type="${step.type}">`
+        + `<div class="chk-dot"></div>`
+        + `<div>${step.id}. ${step.text}<span class="chk-tag">${step.type==='auto'?'auto':'handmatig'}</span></div>`
+        + `</div>`;
+    }).join('');
+    document.getElementById('checklistProgress').textContent = done + ' / ' + checklistSteps.length;
+    host.querySelectorAll('.chk-row.manual').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        const id = parseInt(row.dataset.id);
+        if(state.manualChecks.has(id)) state.manualChecks.delete(id);
+        else state.manualChecks.add(id);
+        refreshChecklist();
+      });
+    });
+    refreshMorseLock(done);
+  }
+  // NOTE: this used to also require the exact order 1→12, but that turned out to be too
+  // fragile in practice (one accidental out-of-order click permanently locked things until a
+  // full reset) — now it simply requires every step to be complete, regardless of order.
+  function checklistDoneInOrder(){
+    return state.checklistOrder.length >= checklistSteps.length;
+  }
+  function refreshMorseLock(done){
+    const overlay = document.getElementById('morseLockOverlay');
+    const unlocked = done>=checklistSteps.length;
+    if(overlay){
+      overlay.style.display = unlocked ? 'none' : 'flex';
+      if(!unlocked){
+        const msg = document.getElementById('morseLockMsg');
+        msg.textContent = 'Voltooi eerst de opstartprocedure (alle 12 stappen) om te kunnen morsen. Voortgang: ' + done + ' / ' + checklistSteps.length;
+      }
+    }
+    refreshCardVisibility();
+  }
+  // Keeps the screen uncluttered once setup is done:
+  // - the plug-window and checklist are only useful while you're still wiring the radio up,
+  //   so they disappear as soon as every plug is correctly connected;
+  // - Morse only appears once the radio is genuinely operational (the full checklist, done).
+  function refreshCardVisibility(){
+    // Checklist and plug-window visibility are now under the user's own control via the
+    // minimize button on each window (see makeFloaty below) — no more auto-hiding.
+    // Morse stays visible either way — it's just greyed out/non-interactive until the
+    // radio is fully operational, rather than disappearing from view entirely.
+    const morseCard = document.getElementById('morseCard');
+    if(morseCard) morseCard.classList.toggle('locked-dim', !checklistDoneInOrder());
+  }
+  document.getElementById('resetChecklistBtn').addEventListener('click', ()=>{
+    state.manualChecks.clear();
+    state.anodeCheckedOnce = false;
+    state.antennaPeakedOnce = false;
+    state.modeEmpfOnce = false;
+    state.receiverLockedOnce = false;
+    state.checklistOrder = [];
+    state.plugsConnected.clear();
+    document.querySelectorAll('.plug').forEach(p=>p.classList.remove('connected'));
+    document.querySelectorAll('[id^="socket"]').forEach(s=>{ s.style.boxShadow=''; });
+    const plugResetBtn = document.getElementById('plugResetBtn');
+    if(plugResetBtn) plugResetBtn.click(); // reuses the plug-game's own cable/state cleanup
+    const plugResult = document.getElementById('plugResult');
+    if(plugResult){ plugResult.textContent='Sleep een stekker naar zijn bus.'; plugResult.classList.remove('locked'); }
+    const plugProgress = document.getElementById('plugProgress');
+    if(plugProgress) plugProgress.textContent = '0 / 5';
+    refreshChecklist();
+  });
+
+  document.getElementById('quickSetupBtn').addEventListener('click', ()=>{
+    ensureAudio();
+    // 1. plug in everything, exactly as a successful drag would
+    if(quickConnectAllPlugs) quickConnectAllPlugs();
+    // 2. manual steps with no on-panel control to automate
+    [1,3,5,8].forEach(id=>state.manualChecks.add(id));
+    // 3. switch on and to Empf. (flags modeEmpfOnce)
+    setMode('Empf');
+    // 4. anode check
+    state.anodeCheckedOnce = true;
+    // 5. lock in a Rast preset, the same way clicking Rast I for the first time would
+    if(state.rastI===null){
+      state.rastI = state.txFreq;
+      document.getElementById('rastI').style.boxShadow = '0 0 0 2px #a68a4a, 0 3px 6px rgba(0,0,0,.55)';
+    }
+    // 6. really peak the antenna: switch to Tg., dial Ant.Abst exactly onto the true peak,
+    // then key up so the real antenna-current check (not a faked flag) genuinely fires
+    setMode('Tg');
+    state.antTune = state.antPeakTarget;
+    document.getElementById('antVal').textContent = Math.round(state.antTune);
+    refreshTx();
+    press(true); press(false);
+    // 7. back to Empf., tune exactly onto the hidden station and crank up Rückkopplung, so
+    // the real lock-detection logic (not a faked flag) genuinely fires too
+    setMode('Empf');
+    state.rxFreq = state.target; state.rxFine = 0;
+    state.regen = 100; document.getElementById('regenVal').textContent = '100';
+    refreshRx();
+    refreshMeters();
+    refreshChecklist();
+  });
+
+  setInterval(()=>{
+    if(state.mode!=='Aus'){
+      state.heiz = 2.0 + (Math.random()-0.5)*0.06;
+      state.anode = 92 + (Math.random()-0.5)*3;
+    }
+    refreshMeters();
+    refreshChecklist();
+    if(typeof refreshMorseGate === 'function') refreshMorseGate();
+  }, 700);
+
+  // ---------- Morse training ----------
+  const MORSE_MAP = {
+    'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---',
+    'K':'-.-','L':'.-..','M':'--','N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-',
+    'U':'..-','V':'...-','W':'.--','X':'-..-','Y':'-.--','Z':'--..',
+    '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....',
+    '6':'-....','7':'--...','8':'---..','9':'----.',
+    // Duitse uitbreidingen (naast het internationale alfabet)
+    'Ä':'.-.-','Ö':'---.','Ü':'..--','CH':'----'
+  };
+  // korte ("Kurzform") cijfercodes die sommige snelle seiners gebruiken — puur ter info,
+  // niet gebruikt om te zenden/ontvangen (zou dubbelzinnig zijn samen met de standaardcodes)
+  const MORSE_SHORT_NUMBERS = {
+    '0':'-','1':'.-','2':'..-','3':'...-','7':'-...','8':'-..','9':'-.'
+  };
+  const SPELL_NAMES = {
+    'A':'Anton','Ä':'Ärger','B':'Berta','C':'Cäsar','CH':'Charlotte','D':'Dora','E':'Emil',
+    'F':'Friedrich','G':'Gustav','H':'Heinrich','I':'Ida','J':'Julius','K':'Konrad','L':'Ludwig',
+    'M':'Martha','N':'Nordpol','O':'Otto','Ö':'Ödipus','P':'Paula','Q':'Quelle','R':'Richard',
+    'S':'Siegfried','T':'Theodor','U':'Ulrich','Ü':'Übel','V':'Viktor','W':'Wilhelm',
+    'X':'Xanthippe','Y':'Ypsilon','Z':'Zeppelin'
+  };
+  const MORSE_REVERSE = {};
+  Object.entries(MORSE_MAP).forEach(([ch,p])=> MORSE_REVERSE[p]=ch);
+
+  // ----- Koch method: start with just 2 characters at full speed; add one more only once
+  // the current set is handled reliably. This is the standard, evidence-based order. -----
+  const KOCH_ORDER = ['K','M','R','S','U','A','P','T','L','O','W','I','N','J','E','F','0','Y','V','G',
+    '5','Q','9','Z','H','3','8','B','4','2','7','C','1','D','6','X','Ä','Ö','Ü','CH'];
+
+  function renderMorseRef(){
+    const host = document.getElementById('morseRefTable');
+    if(!host) return;
+    const displayOrder = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T',
+      'U','V','W','X','Y','Z','Ä','Ö','Ü','CH','0','1','2','3','4','5','6','7','8','9'];
+    const unlocked = new Set(KOCH_ORDER.slice(0, state.kochLevel));
+    host.innerHTML = displayOrder.map(ch=>{
+      const name = SPELL_NAMES[ch] || '';
+      const isNum = /^[0-9]$/.test(ch);
+      const cls = isNum ? '' : (unlocked.has(ch) ? 'unlocked' : 'locked');
+      return `<div class="mr-row ${cls}"><b>${ch}</b><i>${name}</i><span>${MORSE_MAP[ch]}</span></div>`;
+    }).join('')
+    + '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #3a3a30;font-size:8.5px;color:#8a8770;">'
+    + 'Kurzform-cijfers (soms gebruikt door snelle seiners, niet in oefeningen): '
+    + Object.entries(MORSE_SHORT_NUMBERS).map(([n,c])=>n+'='+c).join('  ')
+    + '</div>';
+  }
+  renderMorseRef();
+
+  const morseState = {
+    mode: 'send',
+    target: '',
+    pattern: '',       // dots/dashes typed so far for the CURRENT letter
+    attempt: '',       // decoded letters so far
+    pressStart: 0,
+    letterTimer: null,
+    freeText: '',
+    freePattern: ''
+  };
+
+  function morseSwitchLabel(m){
+    return ({Aus:'Aus',Empf:'Empf.',Tn:'Tn.',Tg:'Tg.'})[m] || m;
+  }
+  function refreshMorseGate(){
+    const el = document.getElementById('morseSwitchState');
+    if(el) el.textContent = morseSwitchLabel(state.mode);
+    const sendResult = document.getElementById('morseSendResult');
+    if(sendResult && !sendResult.classList.contains('locked')){
+      sendResult.textContent = state.mode==='Tg'
+        ? 'Druk op de seinsleutel (of spatiebalk) — kort = dit (·), lang = dah (–)'
+        : 'Zet de schakelaar op "Tg." om te kunnen zenden';
+    }
+    const recvResult = document.getElementById('morseRecvResult');
+    if(recvResult && !recvResult.classList.contains('locked') && recvResult.textContent.indexOf('Niet')!==0){
+      recvResult.textContent = state.mode==='Empf'
+        ? 'Klik op Afspelen'
+        : 'Zet de schakelaar op "Empf." om te kunnen ontvangen';
+    }
+    const freeResult = document.getElementById('morseFreeResult');
+    if(freeResult){
+      freeResult.textContent = state.mode==='Tg'
+        ? 'Tik er op los — elke letter verschijnt hierboven zodra je hem afmaakt.'
+        : 'Zet de schakelaar op "Tg." om te kunnen zenden';
+    }
+  }
+
+  // ----- Koch level controls -----
+  function refreshKochUI(){
+    document.getElementById('morseKochLevel').textContent = state.kochLevel + ' tekens';
+    document.getElementById('morseKochChars').textContent = KOCH_ORDER.slice(0, state.kochLevel).join(' ');
+    renderMorseRef();
+  }
+  document.getElementById('morseLevelUp').addEventListener('click', ()=>{
+    if(state.kochLevel < KOCH_ORDER.length){ state.kochLevel++; state.kochResults=[]; refreshKochUI(); morseNewGroup(); }
+  });
+  document.getElementById('morseLevelDown').addEventListener('click', ()=>{
+    if(state.kochLevel > 2){ state.kochLevel--; state.kochResults=[]; refreshKochUI(); morseNewGroup(); }
+  });
+  function recordKochResult(success){
+    state.kochResults.push(success);
+    if(state.kochResults.length > 5) state.kochResults.shift();
+    if(state.kochResults.length===5 && state.kochResults.filter(x=>x).length>=4 && state.kochLevel<KOCH_ORDER.length){
+      state.kochLevel++;
+      state.kochResults = [];
+      refreshKochUI();
+      return true; // signals "just levelled up"
+    }
+    return false;
+  }
+
+  function generateKochGroup(len){
+    const pool = KOCH_ORDER.slice(0, state.kochLevel);
+    let s = '';
+    for(let i=0;i<len;i++) s += pool[Math.floor(Math.random()*pool.length)];
+    return s;
+  }
+  function morseNewGroup(){
+    morseState.target = generateKochGroup(5);
+    morseState.pattern = '';
+    morseState.attempt = '';
+    document.getElementById('morseTarget').textContent = morseState.target;
+    document.getElementById('morsePattern').textContent = '—';
+    document.getElementById('morseAttempt').textContent = '—';
+    document.getElementById('morseSendResult').classList.remove('locked');
+    document.getElementById('morseAnswerInput').value = '';
+    document.getElementById('morseRecvResult').classList.remove('locked');
+    refreshMorseGate();
+  }
+  document.getElementById('morseNewBtn').addEventListener('click', morseNewGroup);
+
+  document.querySelectorAll('input[name=morsemode]').forEach(r=>{
+    r.addEventListener('change', ()=>{
+      morseState.mode = r.value;
+      document.getElementById('morseSendPanel').style.display = morseState.mode==='send' ? '' : 'none';
+      document.getElementById('morseRecvPanel').style.display = morseState.mode==='recv' ? '' : 'none';
+      document.getElementById('morseFreePanel').style.display = morseState.mode==='free' ? '' : 'none';
+    });
+  });
+
+  // ----- sending: time the Taste presses into dits/dahs (only while switched to "Tg.") -----
+  function morseFinalizeLetter(){
+    if(morseState.mode==='free'){
+      if(!morseState.freePattern) return;
+      const ch = MORSE_REVERSE[morseState.freePattern] || '?';
+      morseState.freeText += ch;
+      morseState.freePattern = '';
+      document.getElementById('morseFreePattern').textContent = '—';
+      document.getElementById('morseFreeText').textContent = morseState.freeText || '\u00A0';
+      return;
+    }
+    if(!morseState.pattern) return;
+    const ch = MORSE_REVERSE[morseState.pattern] || '?';
+    morseState.attempt += ch;
+    morseState.pattern = '';
+    document.getElementById('morsePattern').textContent = '—';
+    document.getElementById('morseAttempt').textContent = morseState.attempt;
+    if(morseState.attempt.length >= morseState.target.length){
+      const ok = morseState.attempt === morseState.target;
+      const el = document.getElementById('morseSendResult');
+      const leveled = recordKochResult(ok);
+      el.textContent = leveled ? ('Correct ✓ — niveau omhoog! Nu ' + state.kochLevel + ' tekens.')
+        : ok ? 'Correct verzonden ✓' : ('Niet helemaal juist — jij zond: '+morseState.attempt);
+      el.classList.toggle('locked', ok);
+    }
+  }
+  document.getElementById('morseFreeClearBtn').addEventListener('click', ()=>{
+    morseState.freeText = ''; morseState.freePattern = '';
+    document.getElementById('morseFreeText').textContent = '\u00A0';
+    document.getElementById('morseFreePattern').textContent = '—';
+  });
+  keyBtn.addEventListener('pointerdown', ()=>{
+    if((morseState.mode!=='send' && morseState.mode!=='free') || state.mode!=='Tg' || !checklistDoneInOrder()) return;
+    morseState.pressStart = performance.now();
+    clearTimeout(morseState.letterTimer);
+  });
+  keyBtn.addEventListener('pointerup', ()=>{
+    if((morseState.mode!=='send' && morseState.mode!=='free') || state.mode!=='Tg' || !checklistDoneInOrder()) return;
+    const dur = performance.now() - morseState.pressStart;
+    const symbol = dur < 220 ? '.' : '-';
+    if(morseState.mode==='free'){
+      morseState.freePattern += symbol;
+      document.getElementById('morseFreePattern').textContent = morseState.freePattern;
+    } else {
+      morseState.pattern += symbol;
+      document.getElementById('morsePattern').textContent = morseState.pattern;
+    }
+    clearTimeout(morseState.letterTimer);
+    morseState.letterTimer = setTimeout(morseFinalizeLetter, 700);
+  });
+
+  // ----- receiving: play a group in morse using Farnsworth-style spacing (crisp dit/dah
+  // timing, but extra silence between characters/words so there's real thinking time —
+  // the other classic, evidence-based CW training technique) -----
+  function scheduleMorseBeep(startTime, duration){
+    if(!audioCtx) return;
+    const bOsc = audioCtx.createOscillator();
+    const bGain = audioCtx.createGain();
+    bOsc.type = 'sine'; bOsc.frequency.value = 700;
+    bGain.gain.setValueAtTime(0, startTime);
+    bGain.gain.linearRampToValueAtTime(0.16, startTime+0.006);
+    bGain.gain.setValueAtTime(0.16, Math.max(startTime+0.006, startTime+duration-0.006));
+    bGain.gain.linearRampToValueAtTime(0, startTime+duration);
+    bOsc.connect(bGain); bGain.connect(audioCtx.destination);
+    bOsc.start(startTime); bOsc.stop(startTime+duration+0.02);
+  }
+  function playMorseWord(word){
+    ensureAudio();
+    const unit = 0.09;          // dit/dah spoken at a normal, crisp character speed
+    const farnsworthGap = unit*5; // EXTRA gap between characters (the Farnsworth trick)
+    let t = audioCtx.currentTime + 0.3;
+    for(const ch of word){
+      const pattern = MORSE_MAP[ch] || '';
+      for(const sym of pattern){
+        const dur = sym==='.' ? unit : unit*3;
+        scheduleMorseBeep(t, dur);
+        t += dur + unit;
+      }
+      t += farnsworthGap;
+    }
+  }
+  // like playMorseWord, but for a whole sentence: real word-spaces get an extra-long gap,
+  // and any character with no Morse equivalent (punctuation etc.) is simply skipped
+  // plays text as received Morse tones AND calls onChar(character) right as each character finishes
+  // sounding — so a received message can be "written out" at Morse tempo instead of dumped
+  // onto the page all at once. Characters Morse can't represent are simply skipped, same as
+  // the audio itself skips them (matches what would really have been sendable/decodable).
+  function playMorseTextProgressive(text, onChar){
+    ensureAudio();
+    const unit = 0.048; // ≈25 WPM, matching the sending side — this is a live transmission,
+                         // not a training exercise, so it runs at real operating speed
+    const letterGap = unit*2;  // standard timing (3 units between letters, 7 between words —
+    const wordGap = unit*4;    // not the wider Farnsworth gaps used for the Koch trainer)
+    const callTime = audioCtx.currentTime;
+    let t = callTime + 0.3;
+    const schedule = [];
+    for(const rawCh of text.toUpperCase()){
+      if(rawCh===' '){ t += wordGap; schedule.push({ch:' ', at:t}); continue; }
+      const pattern = MORSE_MAP[rawCh];
+      if(!pattern) continue;
+      for(const sym of pattern){
+        const dur = sym==='.' ? unit : unit*3;
+        scheduleMorseBeep(t, dur);
+        t += dur + unit;
+      }
+      t += letterGap;
+      schedule.push({ch:rawCh, at:t});
+    }
+    schedule.forEach(item=>{
+      const delayMs = Math.max(0, (item.at - callTime) * 1000);
+      setTimeout(()=> onChar(item.ch), delayMs);
+    });
+    return t - callTime;
+  }
+  // for when it's YOUR OWN key/hand seining a whole message automatically: you'd hear the
+  // mechanical key clicking away (down-tock + up-tock per symbol), never a synthesised tone —
+  // a tone is only what the other station's RECEIVER produces, not what your own key sounds like
+  function playMorseClicks(text){
+    ensureAudio();
+    const unit = 0.048; // ≈25 WPM — same experienced-operator speed as the receiving side
+    const letterGap = unit*2;  // standard Morse ratios (3/7 units total), not Farnsworth-widened
+    const wordGap = unit*4;
+    let t = audioCtx.currentTime + 0.3;
+    for(const rawCh of text.toUpperCase()){
+      if(rawCh===' '){ t += wordGap; continue; }
+      const pattern = MORSE_MAP[rawCh];
+      if(!pattern) continue;
+      for(const sym of pattern){
+        const dur = sym==='.' ? unit : unit*3;
+        playKeyTock(t);          // key goes down
+        playKeyTock(t+dur);      // key comes back up
+        t += dur + unit;
+      }
+      t += letterGap;
+    }
+    return t - audioCtx.currentTime;
+  }
+  document.getElementById('morsePlayBtn').addEventListener('click', ()=>{
+    if(!checklistDoneInOrder()){
+      const el = document.getElementById('morseRecvResult');
+      el.textContent = 'Voltooi eerst de opstartprocedure (alle 12 stappen).';
+      el.classList.remove('locked');
+      return;
+    }
+    if(state.mode!=='Empf'){
+      const el = document.getElementById('morseRecvResult');
+      el.textContent = 'Zet de schakelaar eerst op "Empf."';
+      el.classList.remove('locked');
+      return;
+    }
+    if(!morseState.target) morseNewGroup();
+    playMorseWord(morseState.target);
+    const el = document.getElementById('morseRecvResult');
+    el.textContent = 'Reeks wordt afgespeeld…';
+    el.classList.remove('locked');
+  });
+  document.getElementById('morseCheckBtn').addEventListener('click', ()=>{
+    if(!checklistDoneInOrder()){
+      const el = document.getElementById('morseRecvResult');
+      el.textContent = 'Voltooi eerst de opstartprocedure (alle 12 stappen).';
+      el.classList.remove('locked');
+      return;
+    }
+    if(state.mode!=='Empf'){
+      const el = document.getElementById('morseRecvResult');
+      el.textContent = 'Zet de schakelaar eerst op "Empf."';
+      el.classList.remove('locked');
+      return;
+    }
+    const val = document.getElementById('morseAnswerInput').value.trim().toUpperCase();
+    const el = document.getElementById('morseRecvResult');
+    const ok = val === morseState.target;
+    const leveled = recordKochResult(ok);
+    el.textContent = leveled ? ('Correct ✓ — niveau omhoog! Nu ' + state.kochLevel + ' tekens.')
+      : ok ? 'Correct ✓' : ('Niet juist — het was: '+morseState.target);
+    el.classList.toggle('locked', ok);
+  });
+  refreshKochUI();
+  morseNewGroup();
+
+  // ---------- drag-and-drop: connect each plug to its correct socket ----------
+  (function setupPlugGame(){
+    const tray = document.getElementById('plugTray');
+    const progressEl = document.getElementById('plugProgress');
+    const resultEl = document.getElementById('plugResult');
+    if(!tray) return;
+    const plugs = [...tray.querySelectorAll('.plug')];
+    const total = plugs.length;
+
+    const cableSvg = document.getElementById('cableOverlay');
+    const cablePaths = new Map();   // plug -> <path> element
+    const anchorEls = new Map();    // plug -> invisible marker element left behind in the tray
+    const liveEnd = new Map();      // plug -> {x,y} last pointer position while actively dragging
+    const socketFor = new Map();    // plug -> the socket element it's currently connected to
+
+    // a slack, hanging-cable curve — sags more the further apart the two ends are,
+    // like a real loose cord under gravity
+    const cablePathD = (x1,y1,x2,y2) => sagCurve(x1,y1,x2,y2, 0.35, 90, 12);
+    function getCablePath(plug){
+      let path = cablePaths.get(plug);
+      if(!path){
+        path = document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('fill','none');
+        // match the cable's real-world colour/thickness while dragging too, not just once
+        // placed — thin dark lead for the 1-pin Ant/G, tan braided cord for everything else
+        const cordEl = plug.querySelector('.plug-cord');
+        const isBraided = cordEl && cordEl.classList.contains('braided');
+        const isThick = plug.dataset.target==='socketBatt';
+        path.setAttribute('stroke', isThick ? '#2c2e2f' : (isBraided ? '#8a4a3a' : '#2a271f'));
+        path.setAttribute('stroke-width', isThick ? '9' : (isBraided ? '6' : '3'));
+        path.setAttribute('stroke-linecap','round');
+        cableSvg.appendChild(path);
+        cablePaths.set(plug, path);
+      }
+      return path;
+    }
+    // recomputes a cable's endpoints from LIVE element positions (not cached pixel values),
+    // so it stays correctly attached to the tray and the socket across scrolling/resizing
+    function redrawCable(plug){
+      const anchor = anchorEls.get(plug);
+      if(!anchor) return;
+      const ar = anchor.getBoundingClientRect();
+      const x1 = ar.left + ar.width/2, y1 = ar.top + ar.height/2;
+      let x2, y2;
+      if(liveEnd.has(plug)){
+        const p = liveEnd.get(plug); x2 = p.x; y2 = p.y;
+      } else if(socketFor.has(plug)){
+        const sr = socketFor.get(plug).getBoundingClientRect();
+        x2 = sr.left + sr.width/2; y2 = sr.top + sr.height/2;
+      } else return;
+      getCablePath(plug).setAttribute('d', cablePathD(x1,y1,x2,y2));
+    }
+    function redrawAllCables(){
+      cablePaths.forEach((_,plug)=>redrawCable(plug));
+    }
+    window.addEventListener('scroll', redrawAllCables, {passive:true, capture:true});
+    window.addEventListener('resize', redrawAllCables);
+    function removeCable(plug){
+      const path = cablePaths.get(plug);
+      if(path){ path.remove(); cablePaths.delete(plug); }
+      liveEnd.delete(plug); socketFor.delete(plug);
+    }
+
+    function connectedCount(){ return plugs.filter(p=>p.classList.contains('connected')).length; }
+    function updateProgress(){
+      const done = connectedCount();
+      progressEl.textContent = done + ' / ' + total;
+      if(done===total){
+        resultEl.textContent = 'Alle stekkers correct aangesloten ✓';
+        resultEl.classList.add('locked');
+      }
+      refreshCardVisibility();
+    }
+
+    function matchesTarget(plug, socketId){
+      // a plug's data-target may list more than one acceptable socket, comma-separated
+      // (e.g. the single Fernhörer plug accepts either of the two Fernhörer jacks)
+      return plug.dataset.target.split(',').includes(socketId);
+    }
+    // once a plug is correctly connected, it looks "plugged in" (the jack darkens/bulges
+    // slightly, as if filled) with a real hanging SVG cable — same look/behaviour as the
+    // Taste key's cable: a soft sag curve, always re-drawn on scroll/resize, not a static
+    // little CSS stub. Down by default, up for the antenna (which runs to the mast instead).
+    const plugCablePaths = new Map(); // socketId -> <path>
+    const plugCableD = (x1,y1,x2,y2) => sagCurve(x1,y1,x2,y2, 0.35, 60, 8);
+    function drawPlugCable(socket){
+      const r = socket.getBoundingClientRect();
+      const x1 = r.left + r.width/2, y1 = r.top + r.height/2;
+      const up = socket.id === 'socketAnt';
+      // match the SAME colour/thickness convention used while dragging: a thin dark lead
+      // for the 1-pin Ant/G, a tan braided cord for everything else, thicker still for Fspr.
+      const isThin = socket.id === 'socketAnt' || socket.id === 'socketG';
+      const thick = socket.id === 'socketBatt';
+      const strokeColor = thick ? '#2c2e2f' : (isThin ? '#2a271f' : '#8a4a3a');
+      const strokeWidth = thick ? '10' : (isThin ? '3' : '6');
+      const length = Math.max(30, r.height*1.3);
+      let path = plugCablePaths.get(socket.id);
+      if(!path){
+        const el = document.createElementNS('http://www.w3.org/2000/svg','path');
+        el.setAttribute('fill','none');
+        el.setAttribute('stroke', strokeColor);
+        el.setAttribute('stroke-width', strokeWidth);
+        el.setAttribute('stroke-linecap','round');
+        cableSvg.appendChild(el);
+        // remember the endpoint as an OFFSET from the socket, not an absolute screen position —
+        // so it keeps its natural droop direction/length even as the panel scales or scrolls
+        const dx = (Math.random()<0.5 ? -1:1) * length*0.25;
+        const dy = up ? -length : length;
+        path = {el, dx, dy};
+        plugCablePaths.set(socket.id, path);
+      }
+      path.el.setAttribute('d', plugCableD(x1, y1, x1+path.dx, y1+path.dy));
+    }
+    function removePlugCable(socketId){
+      const stored = plugCablePaths.get(socketId);
+      if(stored){ stored.el.remove(); plugCablePaths.delete(socketId); }
+    }
+    function redrawAllPlugCables(){
+      plugCablePaths.forEach((_, socketId)=>{
+        const socket = document.getElementById(socketId);
+        if(socket) drawPlugCable(socket);
+      });
+    }
+    window.addEventListener('scroll', redrawAllPlugCables, {passive:true, capture:true});
+    window.addEventListener('resize', redrawAllPlugCables);
+
+    function markSocketPlugged(socket){
+      socket.classList.add('plugged');
+      // socketTaste already has its own dedicated cable running to the actual key assembly
+      // (see setupKeyDrag) — don't ALSO give it a generic hanging cord on top of that
+      if(socket.id !== 'socketTaste') drawPlugCable(socket);
+    }
+    function unmarkSocketPlugged(socket){
+      socket.classList.remove('plugged');
+      removePlugCable(socket.id);
+    }
+
+    function nearestSocket(clientX, clientY){
+      let best = null, bestDist = Infinity;
+      document.querySelectorAll('[id^="socket"]').forEach(sock=>{
+        const r = sock.getBoundingClientRect();
+        const cx = r.left + r.width/2, cy = r.top + r.height/2;
+        const d = Math.hypot(clientX-cx, clientY-cy);
+        // tolerance scales a bit with the socket's own size, so bigger jacks are a bit easier to hit
+        const tolerance = Math.max(r.width, r.height) * 1.4 + 20;
+        if(d < tolerance && d < bestDist){ bestDist = d; best = sock; }
+      });
+      return best;
+    }
+
+    plugs.forEach(plug=>{
+      let dragging = false, offX=0, offY=0, homeParent=null, homeNext=null;
+
+      // a permanent, invisible marker left in the tray at this plug's original slot —
+      // gives the cable a stable, scroll-safe anchor point even after the plug itself moves
+      const anchor = document.createElement('span');
+      anchor.style.cssText = 'display:inline-block;width:1px;height:1px;';
+      plug.parentElement.insertBefore(anchor, plug);
+      anchorEls.set(plug, anchor);
+
+      plug.addEventListener('pointerdown', (e)=>{
+        if(plug.classList.contains('connected')) return;
+        ensureAudio();
+        const r = plug.getBoundingClientRect();
+        homeParent = plug.parentElement; homeNext = plug.nextSibling;
+        offX = e.clientX - r.left; offY = e.clientY - r.top;
+        plug.style.width = r.width+'px';
+        document.body.appendChild(plug); // lift out of the tray's flow while dragging
+        plug.style.left = r.left+'px'; plug.style.top = r.top+'px';
+        plug.classList.add('dragging');
+        plug.setPointerCapture(e.pointerId);
+        dragging = true;
+        liveEnd.set(plug, {x:e.clientX, y:e.clientY});
+        redrawCable(plug);
+      });
+      plug.addEventListener('pointermove', (e)=>{
+        if(!dragging) return;
+        plug.style.left = (e.clientX-offX)+'px';
+        plug.style.top = (e.clientY-offY)+'px';
+        liveEnd.set(plug, {x:e.clientX, y:e.clientY});
+        redrawCable(plug);
+        document.querySelectorAll('.socket-highlight').forEach(s=>s.classList.remove('socket-highlight'));
+        const target = nearestSocket(e.clientX, e.clientY);
+        if(target) target.classList.add('socket-highlight');
+      });
+      plug.addEventListener('pointerup', (e)=>{
+        if(!dragging) return;
+        dragging = false;
+        plug.classList.remove('dragging');
+        document.querySelectorAll('.socket-highlight').forEach(s=>s.classList.remove('socket-highlight'));
+        const target = nearestSocket(e.clientX, e.clientY);
+        plug.style.position=''; plug.style.left=''; plug.style.top=''; plug.style.width='';
+        if(homeNext) homeParent.insertBefore(plug, homeNext); else homeParent.appendChild(plug);
+        liveEnd.delete(plug);
+
+        if(target && matchesTarget(plug, target.id)){
+          plug.classList.add('connected');
+          /* the plug body itself now shows the connection — no artificial green ring */
+          resultEl.textContent = 'Goed! ' + plug.querySelector('.plug-label').textContent + ' hoort in deze bus.';
+          resultEl.classList.remove('locked');
+          state.plugsConnected.add(target.id);
+          removeCable(plug); // don't keep a long line back to the (often-hidden) tray —
+          markSocketPlugged(target);   // instead show a short, local hanging cord right at the jack
+          refreshChecklist();
+          updateProgress();
+        } else if(target){
+          plug.classList.add('wrong');
+          resultEl.textContent = 'Niet de juiste bus voor "' + plug.querySelector('.plug-label').textContent + '" — probeer opnieuw.';
+          resultEl.classList.remove('locked');
+          removeCable(plug); // cable retracts back into the tray on a failed attempt
+          setTimeout(()=>plug.classList.remove('wrong'), 350);
+        } else {
+          removeCable(plug); // dropped in empty space — cable retracts too
+        }
+      });
+    });
+
+    document.getElementById('plugResetBtn').addEventListener('click', ()=>{
+      plugs.forEach(p=>{ p.classList.remove('connected'); removeCable(p); });
+      document.querySelectorAll('[id^="socket"]').forEach(s=>{ s.style.boxShadow=''; unmarkSocketPlugged(s); });
+      state.plugsConnected.clear();
+      // the Taste jack has no draggable plug of its own — its cord is permanently part of
+      // the key assembly, so it stays "connected" even after a reset
+      state.plugsConnected.add('socketTaste');
+      markSocketPlugged(document.getElementById('socketTaste'));
+      refreshChecklist();
+      resultEl.textContent = 'Sleep een stekker naar zijn bus.';
+      resultEl.classList.remove('locked');
+      updateProgress();
+    });
+
+    // Taste is permanently wired via the key assembly's own cord, not a draggable plug
+    state.plugsConnected.add('socketTaste');
+    markSocketPlugged(document.getElementById('socketTaste'));
+    updateProgress();
+
+    // used by the "Snel opstarten" button — connects every plug exactly like a successful
+    // drag would, reusing the same visuals/state instead of a separate parallel code path
+    quickConnectAllPlugs = function(){
+      plugs.forEach(plug=>{
+        if(plug.classList.contains('connected')) return;
+        const targetId = plug.dataset.target.split(',')[0];
+        const target = document.getElementById(targetId);
+        if(!target) return;
+        plug.classList.add('connected');
+        /* the plug body itself now shows the connection — no artificial green ring */
+        state.plugsConnected.add(target.id);
+        markSocketPlugged(target);
+      });
+      resultEl.textContent = 'Alle stekkers correct aangesloten ✓';
+      resultEl.classList.add('locked');
+      updateProgress();
+    };
+  })();
+
+  // ---------- calibration screws (§6 items f/m): "Einstellschraube mit Deckelhülse für
+  // Empfänger-/Senderreichung" — turn to correct the mechanical drift found via Fprüf.c ----------
+  (function setupCalScrews(){
+    function wireScrew(elId, valId, stateKey){
+      const el = document.getElementById(elId);
+      const valEl = document.getElementById(valId);
+      if(!el) return;
+      function refresh(){
+        valEl.textContent = fmt1(state[stateKey]);
+        el.style.transform = 'rotate(' + (state[stateKey]*40) + 'deg)';
+      }
+      el.addEventListener('wheel', (e)=>{
+        e.preventDefault(); ensureAudio();
+        state[stateKey] += (e.deltaY<0 ? 0.1 : -0.1);
+        state[stateKey] = Math.max(-3, Math.min(3, state[stateKey]));
+        refresh(); flashVal(valEl); updateReceiveAudio();
+      }, {passive:false});
+      let dragging=false, startY=0, startVal=0;
+      el.addEventListener('pointerdown', (e)=>{
+        dragging=true; startY=e.clientY; startVal=state[stateKey];
+        el.setPointerCapture(e.pointerId); ensureAudio(); flashVal(valEl);
+      });
+      el.addEventListener('pointermove', (e)=>{
+        if(!dragging) return;
+        state[stateKey] = Math.max(-3, Math.min(3, startVal + (startY-e.clientY)*0.02));
+        refresh(); updateReceiveAudio();
+      });
+      el.addEventListener('pointerup', ()=>{ dragging=false; flashVal(valEl); });
+      refresh();
+    }
+    wireScrew('calRxScrew','calRxVal','calRxOffset');
+    wireScrew('calTxScrew','calTxVal','calTxOffset');
+  })();
+
+  refreshRx(); refreshTx(); refreshMeters(); updateAntennaMeter(); refreshChecklist();
+  document.body.addEventListener('pointerdown', ensureAudio, {once:true});
+
+  // ---------- the Taste/Morse key: draggable anywhere, at any time, with a permanent
+  // visible cord back to its "Taste" jack on the panel (matches the reference photo:
+  // a 2-pin plug + braided cord running off the key assembly) ----------
+  (function setupKeyDrag(){
+    const assembly = document.getElementById('keyAssembly');
+    const field = document.getElementById('keyField');
+    if(!assembly || !field) return;
+    const cableSvg = document.getElementById('cableOverlay');
+    const keyCablePath = document.createElementNS('http://www.w3.org/2000/svg','path');
+    keyCablePath.setAttribute('fill','none');
+    keyCablePath.setAttribute('stroke','#8a4a3a');
+    keyCablePath.setAttribute('stroke-width','7');
+    keyCablePath.setAttribute('stroke-linecap','round');
+    cableSvg.appendChild(keyCablePath);
+
+    const cablePathD = (x1,y1,x2,y2) => sagCurve(x1,y1,x2,y2, 0.3, 70, 10);
+    function redrawKeyCable(){
+      const socket = document.getElementById('socketTaste');
+      if(!socket) return;
+      const a = assembly.getBoundingClientRect();
+      const s = socket.getBoundingClientRect();
+      // cord leaves from the little plug stub near the top of the key assembly
+      const x1 = a.left + a.width*0.37, y1 = a.top + a.height*0.03;
+      const x2 = s.left + s.width/2, y2 = s.top + s.height/2;
+      keyCablePath.setAttribute('d', cablePathD(x1,y1,x2,y2));
+    }
+    window.addEventListener('scroll', redrawKeyCable, {passive:true, capture:true});
+    window.addEventListener('resize', redrawKeyCable);
+
+    let dragging=false, offX=0, offY=0;
+    assembly.addEventListener('pointerdown', (e)=>{
+      if(e.target.closest('#keyBtn')) return; // pressing the button itself must not start a drag
+      const r = assembly.getBoundingClientRect();
+      const fr = field.getBoundingClientRect();
+      // #keyField (class "field") is itself position:relative (a base rule shared by every
+      // .field on the panel, for its tooltip popups) — so THAT is the real containing block
+      // once this becomes absolute, not .plate and not the page. Coordinates must be relative
+      // to keyField's own box, or the assembly jumps to the wrong spot the instant you touch it.
+      const localLeft = r.left - fr.left, localTop = r.top - fr.top;
+      if(!assembly.classList.contains('undocked')){
+        assembly.classList.add('undocked');
+        assembly.style.position='absolute';
+        assembly.style.width=r.width+'px';
+        assembly.style.zIndex='400';
+      }
+      assembly.style.left = localLeft+'px'; assembly.style.top = localTop+'px';
+      offX = e.clientX-r.left; offY = e.clientY-r.top;
+      assembly.setPointerCapture(e.pointerId);
+      dragging = true;
+    });
+    assembly.addEventListener('pointermove', (e)=>{
+      if(!dragging) return;
+      const fr = field.getBoundingClientRect();
+      assembly.style.left = (e.clientX-offX-fr.left)+'px';
+      assembly.style.top = (e.clientY-offY-fr.top)+'px';
+      redrawKeyCable();
+    });
+    assembly.addEventListener('pointerup', ()=>{ dragging=false; });
+
+    redrawKeyCable();
+    setInterval(redrawKeyCable, 700); // cheap safety net in case anything else shifts the layout
+  })();
+
+  // ---------- floating windows: drag by the titlebar, minimize to just the titlebar ----------
+  (function setupFloaty(){
+    document.querySelectorAll('.floaty-min-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const card = document.getElementById(btn.dataset.min);
+        if(!card) return;
+        card.classList.toggle('minimized');
+        btn.textContent = card.classList.contains('minimized') ? '□' : '−';
+      });
+    });
+    document.querySelectorAll('.floaty-dock-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const card = document.getElementById(btn.dataset.dock);
+        if(!card) return;
+        // returns the window to its normal, original spot in the layout —
+        // undoes the free-floating position entirely, not just visually reset
+        card.classList.remove('undocked');
+        card.style.position = '';
+        card.style.left = '';
+        card.style.top = '';
+        card.style.width = '';
+      });
+    });
+    document.querySelectorAll('.floaty-titlebar').forEach(bar=>{
+      const card = document.getElementById(bar.dataset.drag);
+      if(!card) return;
+      let dragging=false, offX=0, offY=0;
+      bar.addEventListener('pointerdown', (e)=>{
+        if(e.target.closest('.floaty-min-btn') || e.target.closest('.floaty-dock-btn')) return;
+        const r = card.getBoundingClientRect();
+        // document-relative coordinates (not just viewport-relative) — the window is
+        // position:absolute now, so it scrolls along with the page like everything else,
+        // instead of some windows staying fixed on screen and others scrolling (inconsistent)
+        const docLeft = r.left + window.scrollX, docTop = r.top + window.scrollY;
+        if(!card.classList.contains('undocked')){
+          card.classList.add('undocked');
+          card.style.width = r.width+'px';
+        }
+        card.style.left = docLeft+'px'; card.style.top = docTop+'px';
+        offX = e.clientX - r.left; offY = e.clientY - r.top;
+        bar.setPointerCapture(e.pointerId);
+        dragging = true;
+      });
+      bar.addEventListener('pointermove', (e)=>{
+        if(!dragging) return;
+        card.style.left = (e.clientX - offX + window.scrollX)+'px';
+        card.style.top = (e.clientY - offY + window.scrollY)+'px';
+      });
+      bar.addEventListener('pointerup', ()=>{ dragging=false; });
+    });
+  })();
+
+  // ---------- Notizbuch: persists across reloads via localStorage (this is a real,
+  // standalone HTML file opened directly in the browser, so ordinary localStorage works fine) ----------
+  (function setupNotebook(){
+    const fields = ['nbName','nbRank','nbLoc','nbText'];
+    const STORE_KEY = 'tornfud2-notizbuch';
+    let archivedPages = [];
+    let pageNum = 1;
+    try{
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+      fields.forEach(id=>{
+        const el = document.getElementById(id);
+        if(el && saved[id]) el.value = saved[id];
+      });
+      if(Array.isArray(saved.archivedPages)) archivedPages = saved.archivedPages;
+      if(saved.pageNum) pageNum = saved.pageNum;
+    } catch(e){ /* ignore corrupt/blocked storage, just start blank */ }
+    document.getElementById('nbPageNum').textContent = pageNum;
+    function persist(){
+      try{
+        const data = {};
+        fields.forEach(id=>{
+          const el = document.getElementById(id);
+          if(el) data[id] = el.value;
+        });
+        data.archivedPages = archivedPages;
+        data.pageNum = pageNum;
+        localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      } catch(e){ /* storage might be unavailable (e.g. file:// in some browsers) — fail silently */ }
+    }
+    fields.forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.addEventListener('input', persist);
+    });
+
+    // ----- the folded corner: click it to turn the page, with a real flip animation —
+    // the old page's text is archived (not lost) and you're left with a clean blank sheet -----
+    const pageWrap = document.getElementById('nbPageWrap');
+    const dogEar = document.getElementById('nbDogEar');
+    const pageNumEl = document.getElementById('nbPageNum');
+    let flipping = false;
+    dogEar.addEventListener('click', ()=>{
+      if(flipping) return;
+      flipping = true;
+      playSwitchClick();
+      pageWrap.classList.add('flipping');
+      setTimeout(()=>{
+        // swap the content at the halfway point, while the "page" is edge-on and invisible
+        const ta = document.getElementById('nbText');
+        if(ta.value.trim()) archivedPages.push(ta.value);
+        ta.value = '';
+        pageNum += 1;
+        pageNumEl.textContent = pageNum;
+        persist();
+      }, 330);
+      setTimeout(()=>{
+        pageWrap.classList.remove('flipping');
+        flipping = false;
+      }, 720);
+    });
+
+    // ----- send the current notebook text as Morse: plays locally (so you hear your own
+    // transmission, just like a real operator would) and — if connected via Online — the
+    // other station both hears it beeping AND gets it written straight into their notebook -----
+    const sendBtn = document.getElementById('nbSendMorseBtn');
+    const sendResult = document.getElementById('nbSendResult');
+    if(sendBtn){
+      sendBtn.addEventListener('click', ()=>{
+        const text = document.getElementById('nbText').value.trim();
+        if(!text){ sendResult.textContent = 'Schrijf eerst iets op om te versturen.'; sendResult.classList.remove('locked'); return; }
+        // same gate as the rest of the radio: the whole opstartprocedure must be done first —
+        // sending Morse from the notebook is still "using the Taste", it doesn't get to skip it
+        if(!checklistDoneInOrder()){
+          sendResult.textContent = 'Voltooi eerst de opstartprocedure (alle 12 stappen) voordat je kunt zenden.';
+          sendResult.classList.remove('locked');
+          return;
+        }
+        // the "zender" has to actually be switched on to send anything at all — same rule
+        // as pressing the real Taste key
+        if(state.mode !== 'Tg' && state.mode !== 'Tn'){
+          sendResult.textContent = 'Zet de schakelaar eerst op "Tg." of "Tn." om te kunnen zenden.';
+          sendResult.classList.remove('locked');
+          return;
+        }
+        playMorseClicks(text); // you hear your OWN key clicking, never a synthesised tone
+        const sentOnline = publishTextEvent ? publishTextEvent(text) : false;
+        sendResult.textContent = sentOnline
+          ? 'Verstuurd — piept nu ook bij je tegenstation en wordt bij hem opgeschreven.'
+          : 'Lokaal geseind (niet online verbonden, dus alleen jij hoort de sleutel tikken).';
+        sendResult.classList.toggle('locked', sentOnline);
+      });
+    }
+    // an incoming message from the other station lands here — receiveMorseText is called
+    // by setupOnline() whenever a 'text' event arrives on the shared channel
+    window.receiveMorseText = function(text, fromInfo){
+      const ta = document.getElementById('nbText');
+      const stamp = fromInfo || 'tegenstation';
+      ta.value += (ta.value ? '\n' : '') + '--- ontvangen van ' + stamp + ' ---\n';
+      persist();
+      if(sendResult){
+        sendResult.textContent = 'Bericht komt binnen — wordt live uitgeschreven op Morse-tempo…';
+        sendResult.classList.remove('locked');
+      }
+      const totalDuration = playMorseTextProgressive(text, (ch)=>{
+        ta.value += ch;
+        ta.scrollTop = ta.scrollHeight; // keep the newest character in view
+        persist();
+      });
+      setTimeout(()=>{
+        ta.value += '\n';
+        persist();
+        if(sendResult){
+          sendResult.textContent = 'Bericht volledig ontvangen en in je notitieboek geschreven ✓';
+          sendResult.classList.add('locked');
+        }
+      }, totalDuration*1000 + 50);
+    };
+  })();
+
+  // ---------- Online: morse with a friend over the same "frequency" via Ably ----------
+  // Uses Ably's free-tier pub/sub. Requires the user's own free API key (can't be created
+  // from here) — once connected, the "channel" is simply the tuned Empf.-frequency, so two
+  // people who dial in the same number automatically end up able to hear each other,
+  // matching how a real two-way radio conversation works.
+  (function setupOnline(){
+    const statusEl = document.getElementById('ablyStatus');
+    const peersEl = document.getElementById('ablyPeers');
+    const resultEl = document.getElementById('ablyResult');
+    const keyInput = document.getElementById('ablyKeyInput');
+    const roomInput = document.getElementById('roomCodeInput');
+    const connectBtn = document.getElementById('ablyConnectBtn');
+    const diagBtn = document.getElementById('ablyDiagBtn');
+    const diagOut = document.getElementById('ablyDiagResult');
+
+    // runs regardless of whether the Ably library itself loaded — that's useful diagnostic
+    // information in itself (a failed CDN load looks very different from a failed connection)
+    if(diagBtn) diagBtn.addEventListener('click', async ()=>{
+      diagOut.textContent = 'Bezig met testen…';
+      const lines = [];
+      lines.push('Ably-bibliotheek geladen: ' + (typeof Ably !== 'undefined' ? 'ja' : 'NEE — CDN-script kwam niet door (adblocker? netwerk?)'));
+      try{
+        const t0 = performance.now();
+        const r = await fetch('https://rest.ably.io/time', {method:'GET'});
+        const dt = Math.round(performance.now()-t0);
+        lines.push('HTTPS-verbinding met rest.ably.io: gelukt (' + r.status + ', ' + dt + 'ms)');
+      } catch(e){
+        lines.push('HTTPS-verbinding met rest.ably.io: MISLUKT — ' + e.message);
+        lines.push('→ dit wijst sterk op een netwerk/firewall die Ably-servers blokkeert, los van de sleutel.');
+      }
+      try{
+        const t0 = performance.now();
+        await fetch('https://www.google.com/generate_204', {mode:'no-cors'});
+        lines.push('Algemene internetverbinding: lijkt in orde (' + Math.round(performance.now()-t0) + 'ms)');
+      } catch(e){
+        lines.push('Algemene internetverbinding: ook problemen — mogelijk zit je helemaal offline.');
+      }
+      // the actual Realtime connection uses WebSockets, NOT plain HTTPS — a network can
+      // easily allow normal HTTPS while blocking WebSocket upgrades, which is exactly the
+      // pattern behind "Unable to connect / no fallback hosts" while the REST test above works
+      await new Promise((resolve)=>{
+        let done = false;
+        const t0 = performance.now();
+        let ws;
+        try{
+          ws = new WebSocket('wss://realtime.ably.io/');
+        } catch(e){
+          lines.push('WebSocket naar realtime.ably.io: MISLUKT direct — ' + e.message);
+          done = true; resolve(); return;
+        }
+        const timer = setTimeout(()=>{
+          if(done) return; done = true;
+          lines.push('WebSocket naar realtime.ably.io: TIMEOUT (>4000ms, geen open/error) — sterke aanwijzing dat WebSockets specifiek geblokkeerd worden op dit netwerk.');
+          try{ ws.close(); }catch(e){}
+          resolve();
+        }, 4000);
+        ws.addEventListener('open', ()=>{
+          if(done) return; done = true; clearTimeout(timer);
+          lines.push('WebSocket naar realtime.ably.io: gelukt (' + Math.round(performance.now()-t0) + 'ms) — WebSockets werken hier prima, dus de oorzaak zit ergens anders.');
+          ws.close(); resolve();
+        });
+        ws.addEventListener('error', ()=>{
+          if(done) return; done = true; clearTimeout(timer);
+          lines.push('WebSocket naar realtime.ably.io: MISLUKT (error-event) — dit netwerk blokkeert WebSocket-verbindingen naar Ably specifiek.');
+          resolve();
+        });
+      });
+      diagOut.textContent = lines.join('\n');
+    });
+
+    if(!connectBtn || typeof Ably === 'undefined') return;
+
+    let ably = null, connectMode = '';
+    const ABLY_TOKEN_URL = '/.netlify/functions/ably-token';
+    let listenChannel = null, talkChannel = null;
+    let currentListenName = null, currentTalkName = null;
+    const myClientId = 'client-' + Math.random().toString(36).slice(2);
+
+    // a custom room code makes BOTH directions use the same one channel (simple override);
+    // otherwise each direction follows its OWN relevant dial, matching real two-way radio use
+    function channelKeyFor(freq){
+      const custom = roomInput.value.trim();
+      if(custom) return 'tornfud2-room-' + custom.toLowerCase().replace(/[^a-z0-9]/g,'-');
+      return 'tornfud2-freq-' + freq.toFixed(1);
+    }
+
+    function updateChannelDisplay(){
+      const listenOut = document.getElementById('ablyListenChannel');
+      const talkOut = document.getElementById('ablyTalkChannel');
+      if(listenOut) listenOut.textContent = currentListenName ? currentListenName.replace('tornfud2-','') : '—';
+      if(talkOut) talkOut.textContent = currentTalkName ? currentTalkName.replace('tornfud2-','') : '—';
+    }
+
+    function refreshPeers(){
+      if(!listenChannel) return;
+      listenChannel.presence.get((err, members)=>{
+        if(err || !members) return;
+        peersEl.textContent = Math.max(0, members.length - 1);
+      });
+    }
+
+    // the channel you LISTEN on — follows your own Empf.-frequency. Whoever is currently
+    // TALKING on this same frequency (i.e. has ​their Sender dial set to it) is who you hear.
+    function joinListenChannel(){
+      if(!ably || ably.connection.state !== 'connected') return;
+      const key = channelKeyFor(state.rxFreq);
+      if(key === currentListenName) return;
+      if(listenChannel){ listenChannel.presence.leave(); listenChannel.unsubscribe(); }
+      currentListenName = key;
+      listenChannel = ably.channels.get(key);
+      listenChannel.subscribe('key', (msg)=>{
+        if(msg.data.from === myClientId) return; // ignore our own published events
+        ensureAudio();
+        if(!checklistDoneInOrder()) return; // your radio isn't operational yet — hear nothing
+        // NOTE: deliberately generic here, no operator name — that attribution is reserved
+        // for actual sent messages (Notizbuch), not the raw key-tap tone
+        // simplex realism: this is a one-thing-at-a-time set — if YOUR switch isn't on
+        // "Empf." you wouldn't actually hear the other station at all, same as a real radio
+        if(state.mode !== 'Empf'){
+          setTone(0, 0);
+          if(msg.data.down) resultEl.textContent = 'Ander station seint, maar jij staat niet op "Empf." — je hoort niets.';
+          return;
+        }
+        if(msg.data.down){
+          setTone(650, 0.08 * (state.volume/100));
+          resultEl.textContent = 'Andere station seint …';
+        } else {
+          setTone(0, 0);
+          resultEl.textContent = 'Luistert op ' + key.replace('tornfud2-','') + '.';
+        }
+      });
+      listenChannel.subscribe('text', (msg)=>{
+        if(msg.data.from === myClientId) return;
+        // your whole radio has to be operational first — same gate as the Morse card itself
+        if(!checklistDoneInOrder()){
+          resultEl.textContent = 'Er kwam een bericht binnen, maar je radio is nog niet bedrijfsklaar.';
+          return;
+        }
+        // same simplex rule: if your switch isn't on "Empf." you're not listening at all,
+        // so the message simply doesn't arrive — same as a real radio operator missing a call
+        if(state.mode !== 'Empf'){
+          resultEl.textContent = 'Er kwam een bericht binnen, maar je stond niet op "Empf." — gemist.';
+          return;
+        }
+        resultEl.textContent = 'Bericht binnengekomen — zie Notizbuch.';
+        if(typeof window.receiveMorseText === 'function'){
+          window.receiveMorseText(msg.data.text, msg.data.name || msg.data.from);
+        }
+      });
+      listenChannel.presence.subscribe(['enter','leave','update'], refreshPeers);
+      listenChannel.presence.enter();
+      refreshPeers();
+      updateChannelDisplay();
+    }
+
+    // the channel you TALK on — follows your own Sender-frequency. Whoever has THEIR
+    // Empf.-dial set to this same frequency is who receives you. Not necessarily the same
+    // channel as joinListenChannel() — exactly like a real two-way radio, unless you both
+    // simply agree to park both dials on one shared frequency (the common, simple case).
+    function joinTalkChannel(){
+      if(!ably || ably.connection.state !== 'connected') return;
+      const key = channelKeyFor(state.txFreq);
+      if(key === currentTalkName) return;
+      currentTalkName = key;
+      talkChannel = ably.channels.get(key);
+      updateChannelDisplay();
+    }
+
+    connectBtn.addEventListener('click', ()=>{
+      const apiKey = keyInput.value.trim();
+      // Preferred: on the hosted site, ask our own Netlify Function for a short-lived token,
+      // so the real key never reaches anyone's browser. A pasted key is only a fallback for
+      // opening the file locally (file://), where there is no server to ask.
+      // GitHub Pages (the VG726 platform) only serves static files, so there is no token
+      // endpoint there: online morse then needs a key typed in by the user (kept in memory only).
+      const hosted = /^https?:$/.test(location.protocol);
+      const hasTokenServer = hosted && !/\.github\.io$/i.test(location.hostname);
+      let opts;
+      if(apiKey) opts = { key: apiKey };
+      else if(hasTokenServer) opts = { authUrl: ABLY_TOKEN_URL };
+      else { resultEl.textContent = hosted
+          ? 'Deze site (GitHub Pages) kan zelf geen toegangscode ophalen: vul een Ably-sleutel in om online te morsen. Hij wordt nergens opgeslagen.'
+          : 'Lokaal geopend: vul een sleutel in, of open de online versie (daar is geen sleutel nodig).'; return; }
+      if(ably){ ably.close(); ably = null; }
+      try{
+        // NOTE: deliberately no clientId here — that requires the API key to have
+        // "identified clients" capability, which a restricted key may not grant. We already
+        // track who's who ourselves via myClientId inside the message payloads, so we don't
+        // need Ably's connection-level identity feature at all.
+        ably = new Ably.Realtime(opts);
+        connectMode = apiKey ? 'eigen sleutel' : 'veilige token';
+      } catch(e){
+        resultEl.textContent = 'Kon geen verbinding maken: ' + e.message;
+        return;
+      }
+      statusEl.textContent = 'Verbinden…';
+      ably.connection.on('connected', ()=>{
+        statusEl.textContent = 'Verbonden (' + connectMode + ')';
+        statusEl.classList.add('locked');
+        resultEl.textContent = 'Verbonden! Luister- en zendkanaal volgen nu je Empf.- en Sender-knop.';
+        joinListenChannel();
+        joinTalkChannel();
+      });
+      ['failed','disconnected','suspended'].forEach(ev=>{
+        ably.connection.on(ev, (change)=>{
+          statusEl.textContent = 'Niet verbonden';
+          statusEl.classList.remove('locked');
+          if(change && change.reason){
+            let msg = 'Verbinding: ' + change.reason.message + ' (code ' + change.reason.code + ')';
+            if(/fallback hosts/i.test(change.reason.message)){
+              msg += ' — dit is meestal een netwerk/firewall-probleem, niet een verkeerde sleutel. Zie de tips hieronder.';
+            }
+            resultEl.textContent = msg;
+          }
+        });
+      });
+    });
+    roomInput.addEventListener('input', ()=>{ joinListenChannel(); joinTalkChannel(); });
+
+    // each dial drives its OWN half of the conversation — Empf. controls what you can hear,
+    // Sender controls where your own transmissions go, exactly like a real two-way radio
+    const origRefreshRx = refreshRx;
+    refreshRx = function(){
+      origRefreshRx();
+      joinListenChannel();
+    };
+    const origRefreshTx = refreshTx;
+    refreshTx = function(){
+      origRefreshTx();
+      joinTalkChannel();
+    };
+
+    // whatever name is filled in on the Notizbuch's own "Naam" field travels along as the
+    // sender's identity, instead of the anonymous technical client id
+    function myOperatorName(){
+      const el = document.getElementById('nbName');
+      const name = el ? el.value.trim() : '';
+      return name || 'onbekend station';
+    }
+    publishKeyEvent = function(down){
+      if(!talkChannel || !ably || ably.connection.state !== 'connected') return;
+      if(!checklistDoneInOrder()) return; // radio not operational yet — can't transmit at all
+      if(state.mode !== 'Tg' && state.mode !== 'Tn') return; // only while actually "transmitting"
+      talkChannel.publish('key', { down, from: myClientId }); // no name here on purpose — only
+      // sent Notizbuch messages carry operator attribution, not raw key-taps
+    };
+    publishTextEvent = function(text){
+      if(!talkChannel || !ably || ably.connection.state !== 'connected') return false;
+      if(!checklistDoneInOrder()) return false; // radio not operational yet — can't transmit at all
+      talkChannel.publish('text', { text, from: myClientId, name: myOperatorName() });
+      return true;
+    };
+  })();
+
+  // ---------- test hook: only exposed when the page is opened with ?test in the URL ----------
+  if(/[?&]test\b/.test(location.search)){
+    window.__tf = { state, setMode, refreshRx, refreshTx, press, checklistDoneInOrder,
+      getAudioCtx: ()=>audioCtx, noiseLevel: ()=> noiseGain ? noiseGain.gain.value : null,
+      qrm: ()=> qrm.freq };
+  }
+})();
+</script>
+</body>
+</html>
