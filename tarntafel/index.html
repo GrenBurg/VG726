@@ -57,6 +57,31 @@
   summary:hover,summary:focus-visible{color:var(--ink);outline:none}
   .moregrid{display:grid;gap:16px;margin-top:10px}
   .btn[disabled]{opacity:.5;cursor:wait}
+  /* ---------- zoekanimatie ---------- */
+  .busy{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;margin:14px 0 6px;padding:16px 18px;
+    background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);animation:busyIn .25s ease-out}
+  .busy[hidden]{display:none}
+  @keyframes busyIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  .busy svg{width:150px;height:150px;display:block}
+  .busy .grid line{stroke:var(--line);stroke-width:.6}
+  .busy .contour{fill:none;stroke:#8a7a52;stroke-width:.9;opacity:.75;stroke-dasharray:420;stroke-dashoffset:420;animation:draw 3.2s ease-in-out infinite}
+  .busy .contour:nth-of-type(2){animation-delay:.5s}.busy .contour:nth-of-type(3){animation-delay:1s}
+  @keyframes draw{0%{stroke-dashoffset:420}55%,80%{stroke-dashoffset:0}100%{stroke-dashoffset:-420}}
+  .busy .sweep{transform-origin:75px 75px;animation:sweep 2.4s linear infinite}
+  @keyframes sweep{to{transform:rotate(360deg)}}
+  .busy .ping{fill:var(--accent);opacity:0;animation:ping 2.4s ease-out infinite}
+  @keyframes ping{0%,8%{opacity:0;r:1}12%{opacity:1;r:2.6}60%{opacity:.85;r:2.2}100%{opacity:.6;r:2.2}}
+  .busy .needle{transform-origin:75px 75px;animation:wobble 1.6s ease-in-out infinite alternate}
+  @keyframes wobble{from{transform:rotate(-14deg)}to{transform:rotate(18deg)}}
+  .busylog{font-family:"Cutive Mono","IBM Plex Mono",monospace;font-size:15px;line-height:1.55;min-height:6.4em}
+  .busylog div{white-space:nowrap;overflow:hidden;max-width:0;animation:type 1s steps(40,end) forwards}
+  .busylog div.done{color:var(--muted)}
+  .busylog div.ok::before{content:"✓ ";color:var(--accent)}
+  .busylog .cursor{display:inline-block;width:.55em;height:1.05em;vertical-align:-.15em;background:var(--ink);margin-left:2px;animation:blink .8s steps(1) infinite}
+  @keyframes type{to{max-width:100%}}
+  @keyframes blink{50%{opacity:0}}
+  @media (max-width:520px){.busy{grid-template-columns:90px 1fr;gap:12px}.busy svg{width:90px;height:90px}.busylog{font-size:13px}}
+  @media (prefers-reduced-motion:reduce){.busy *,.busylog div{animation:none!important;max-width:none!important;stroke-dashoffset:0!important}.busy .ping{opacity:1}}
   .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--ink);background:var(--paper);
     color:var(--ink);font:13px "IBM Plex Mono",monospace;letter-spacing:.06em;cursor:pointer;text-decoration:none;transition:background .15s,color .15s}
   .btn:hover,.btn:focus-visible{background:var(--ink);color:var(--paper);outline:none}
@@ -188,6 +213,28 @@
   </div>
   <div class="msg" id="msg" aria-live="polite"></div>
   <div class="warn" id="warn"></div>
+  <div class="busy" id="busy" hidden aria-live="polite">
+    <svg viewBox="0 0 150 150" aria-hidden="true">
+      <defs><clipPath id="rnd"><circle cx="75" cy="75" r="68"/></clipPath>
+        <linearGradient id="sw" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8e2316" stop-opacity="0"/><stop offset="1" stop-color="#8e2316" stop-opacity=".28"/></linearGradient></defs>
+      <g clip-path="url(#rnd)">
+        <rect x="0" y="0" width="150" height="150" fill="#f3ecd8"/>
+        <g class="grid"><line x1="25" y1="0" x2="25" y2="150"/><line x1="50" y1="0" x2="50" y2="150"/><line x1="75" y1="0" x2="75" y2="150"/><line x1="100" y1="0" x2="100" y2="150"/><line x1="125" y1="0" x2="125" y2="150"/>
+          <line x1="0" y1="25" x2="150" y2="25"/><line x1="0" y1="50" x2="150" y2="50"/><line x1="0" y1="75" x2="150" y2="75"/><line x1="0" y1="100" x2="150" y2="100"/><line x1="0" y1="125" x2="150" y2="125"/></g>
+        <path class="contour" d="M18 96c14-22 30-30 46-24s22 22 40 18 26-26 34-40"/>
+        <path class="contour" d="M10 118c18-14 34-18 52-12s30 10 46 2 22-18 34-20"/>
+        <path class="contour" d="M30 44c10-10 22-14 34-8s18 16 30 12 18-14 26-14"/>
+        <path class="sweep" d="M75 75L75 7A68 68 0 0 1 134 41Z" fill="url(#sw)"/>
+        <circle class="ping" cx="52" cy="58" r="2" style="animation-delay:.3s"/><circle class="ping" cx="104" cy="88" r="2" style="animation-delay:.9s"/>
+        <circle class="ping" cx="88" cy="40" r="2" style="animation-delay:1.4s"/><circle class="ping" cx="40" cy="104" r="2" style="animation-delay:1.9s"/>
+      </g>
+      <circle cx="75" cy="75" r="68" fill="none" stroke="#24231d" stroke-width="2"/>
+      <circle cx="75" cy="75" r="62" fill="none" stroke="#24231d" stroke-width=".6" stroke-dasharray="1 4.4"/>
+      <text x="75" y="22" text-anchor="middle" font-family="Cutive Mono,monospace" font-size="11" fill="#24231d">N</text>
+      <g class="needle"><path d="M75 34l5 41h-10z" fill="#8e2316"/><path d="M75 116l5-41h-10z" fill="#24231d"/><circle cx="75" cy="75" r="3.5" fill="#efe8d4" stroke="#24231d"/></g>
+    </svg>
+    <div class="busylog" id="busylog"></div>
+  </div>
 
   <div id="out"></div>
 
@@ -459,21 +506,44 @@ function newKey(){ const r=Math.random; return "VG-"+Math.floor(1000+r()*9000)+"
 
 /* ---------- gebied opzoeken in OpenStreetMap ---------- */
 const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+/* ---------- zoekanimatie ---------- */
+const busyEl=()=>$("#busy"), logEl=()=>$("#busylog");
+let busyStart=0;
+function busy(on){
+  const b=busyEl();
+  if(on){ logEl().innerHTML=""; b.hidden=false; busyStart=performance.now(); }
+  else b.hidden=true;
+}
+function logLine(text,ok){
+  const L=logEl(); L.querySelectorAll(".cursor").forEach(c=>c.remove());
+  const last=L.lastElementChild; if(last) last.classList.add("done","ok");
+  const d=document.createElement("div"); d.textContent=text;
+  const c=document.createElement("span"); c.className="cursor"; d.appendChild(c);
+  d.style.animationDuration=Math.max(.35,Math.min(1.1,text.length*.028))+"s";
+  L.appendChild(d); while(L.children.length>4) L.firstElementChild.remove();
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function busyDone(){ const l=logEl().lastElementChild; await wait(700); if(l){ l.querySelector(".cursor")?.remove(); l.classList.add("ok"); } await wait(Math.max(500,1700-(performance.now()-busyStart))); busy(false); }
+
 async function lookup(area){
   const q=new URLSearchParams({q:area,format:"jsonv2",limit:"1",countrycodes:"nl,be,de,fr,lu"});
   const nr=await fetch("https://nominatim.openstreetmap.org/search?"+q,{headers:{"Accept-Language":"nl"}});
   if(!nr.ok) throw new Error("Gebied opzoeken lukt nu niet (Nominatim "+nr.status+").");
   const hit=(await nr.json())[0];
+  if(hit) logLine("Gebiet gefunden: "+(hit.name||hit.display_name.split(",")[0]),true), logLine("Ortschaften, Höhen und Kirchen werden erfaßt …");
   if(!hit) throw new Error(`"${area}" niet gevonden. Probeer de naam van een gemeente of streek.`);
   let sel;
   if(hit.osm_type==="relation") sel=`area(${3600000000+Number(hit.osm_id)})->.a;`;
   else if(hit.osm_type==="way") sel=`area(${2400000000+Number(hit.osm_id)})->.a;`;
   const bb=hit.boundingbox.map(Number); // [zuid,noord,west,oost]
+  const la=Number(hit.lat), lo=Number(hit.lon), d=.055, e=.09; // ongeveer 6 km naar elke kant
   let filt;
-  if(sel && ["boundary","place","natural","landuse"].includes(hit.category)) filt="(area.a)";
-  else{ // een losse plaats: neem een vak van ongeveer 12 x 12 km eromheen
-    sel=""; const la=Number(hit.lat), lo=Number(hit.lon), d=.055, e=.09;
-    filt=`(${la-d},${lo-e},${la+d},${lo+e})`;
+  if(sel && (bb[1]-bb[0])>=2*d && (bb[3]-bb[2])>=2*e) filt="(area.a)"; // groot gebied (gemeente, streek): binnen de grens zoeken
+  else{ // dorp of klein gebied: een vak van minstens 12 x 12 km eromheen
+    sel="";
+    const s0=Math.min(bb[0],la-d), n0=Math.max(bb[1],la+d), w0=Math.min(bb[2],lo-e), e0=Math.max(bb[3],lo+e);
+    filt=`(${s0},${w0},${n0},${e0})`;
+    logLine("Kleines Gebiet: Umkreis von etwa 12 km",true);
   }
   const ql=`[out:json][timeout:60];${sel}(
     node["place"~"^(city|town|village|hamlet)$"]["name"]${filt};
@@ -488,7 +558,10 @@ async function lookup(area){
       if(r.ok){ data=await r.json(); break; } last=r.status; }catch(e){ last=e.message; }
   }
   if(!data) throw new Error("Kaartgegevens ophalen lukt nu niet ("+last+"). Probeer het over een minuut opnieuw.");
-  return pickFeatures(data.elements, hit);
+  const res=pickFeatures(data.elements, hit);
+  logLine(`${res.places.length} Ortschaften · ${res.terrain.length} Geländepunkte · ${res.ziel.length} Kirchen`,true);
+  logLine("Tarntafel wird geschrieben …");
+  return res;
 }
 
 function pickFeatures(els, hit){
@@ -530,7 +603,8 @@ async function run(){
   const btn=$("#gen"), area=form.elements.area.value.trim();
   form.elements.units.value=unitLines(form.elements.n.value);
   if(area && area!==HIDDEN.resolved){
-    btn.disabled=true; $("#msg").textContent=`${area} opzoeken…`; $("#warn").innerHTML="";
+    btn.disabled=true; $("#msg").textContent=""; $("#warn").innerHTML="";
+    busy(true); logLine("Gebiet wird gesucht: "+area);
     try{
       const g=await lookup(area);
       form.elements.places.value=g.places.join("\n");
@@ -539,8 +613,9 @@ async function run(){
       form.elements.raum.value=g.label;
       form.elements.key.value=newKey();
       HIDDEN.resolved=area;
+      await busyDone();
     }catch(e){
-      btn.disabled=false; $("#msg").textContent="";
+      busy(false); btn.disabled=false; $("#msg").textContent="";
       $("#warn").textContent = e instanceof TypeError
         ? "OpenStreetMap is vanaf deze pagina niet bereikbaar. In de voorbeeldweergave in Claude is internet afgeschermd; op de VG726-site werkt het opzoeken wel. Je kunt de plaatsen ook zelf invullen onder Meer opties."
         : e.message;
