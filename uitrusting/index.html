@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uitrusting Schütze — nieuwe leden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ebe5d4; --paper2:#e2dac5; --ink:#2a2823; --muted:#6c675a;
+    --rule:#c8bea4; --accent:#9b2c1f; --accent-soft:rgba(155,44,31,.12);
+    --card:#f4f0e4; --ok:#3f6b3a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink)}
+  body{font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.5;
+    background-image:radial-gradient(rgba(0,0,0,.035) 1px,transparent 1px);background-size:4px 4px}
+  header{padding:22px 28px 14px;border-bottom:2px solid var(--ink);display:flex;flex-wrap:wrap;gap:8px 24px;align-items:flex-end;justify-content:space-between}
+  header h1{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:40px;line-height:1;margin:0;letter-spacing:.5px}
+  header .sub{font-family:"IBM Plex Mono",monospace;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+  .progress{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-align:right}
+  .bar{width:180px;height:6px;background:var(--paper2);border:1px solid var(--rule);margin-top:5px}
+  .bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+
+  main{display:grid;grid-template-columns:minmax(320px,1fr) minmax(320px,440px);gap:0;min-height:calc(100vh - 90px)}
+  .left{padding:18px 24px 28px;border-right:1px solid var(--rule)}
+  .right{padding:22px 26px 32px;background:var(--card);position:relative}
+  .right .sticky{position:sticky;top:18px}
+
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .viewlabel{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  button{font:inherit;cursor:pointer}
+  .btn{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    background:var(--ink);color:var(--paper);border:0;padding:8px 12px;border-radius:2px}
+  .btn:hover{background:#000}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+  .btn.ghost:hover{background:var(--accent-soft)}
+
+  .stage{perspective:1400px;height:min(80vh,1150px);width:auto;max-width:100%;margin:0 auto;aspect-ratio:400/940;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+  .stage.dragging{cursor:grabbing}
+  .card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,.7,.2,1)}
+  .card.nodelay{transition:none}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .face.back{transform:rotateY(180deg)}
+  .face svg{width:100%;height:100%;display:block}
+  .hint{text-align:center;font-size:13px;color:var(--muted);margin:4px 0 14px;font-style:italic}
+
+  .face svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .hit{cursor:pointer}
+  .face img{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+  polygon.hit{fill:transparent;stroke:transparent;stroke-width:2px;vector-effect:non-scaling-stroke;stroke-linejoin:round;transition:fill .15s}
+  polygon.hit:hover{fill:rgba(60,55,45,.10);stroke:rgba(60,55,45,.6)}
+  .stage.show polygon.hit{fill:rgba(60,55,45,.06);stroke:rgba(60,55,45,.55);stroke-dasharray:5 4}
+  polygon.hit.sel,.stage.show polygon.hit.sel{fill:rgba(155,44,31,.18);stroke:#b3382a;stroke-width:2.5px;stroke-dasharray:none}
+  .hit .f{transition:fill .15s}
+  .hit:hover .f{fill:#e8dbb2}
+  .stage.show .hit .f{fill:#ebdfba}
+  .hit.sel .f,.stage.show .hit.sel .f{fill:#efc6b3}
+  .nohit{pointer-events:none}
+
+  .tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--paper);font-family:"IBM Plex Mono",monospace;
+    font-size:12px;padding:4px 8px;border-radius:2px;opacity:0;transform:translate(12px,-26px);transition:opacity .12s;z-index:10;white-space:nowrap}
+  .tip.on{opacity:1}
+
+  .chips h3,.panel h4{font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px;border-bottom:1px solid var(--rule);padding-bottom:4px}
+  .chiprow{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{border:1px solid var(--rule);background:var(--card);padding:5px 9px;border-radius:2px;font-size:14px;line-height:1.2;display:flex;align-items:center;gap:6px}
+  .chip:hover{border-color:var(--ink)}
+  .chip.sel{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .chip .dot{width:8px;height:8px;border-radius:50%;border:1px solid currentColor;flex:none}
+  .chip.have .dot{background:var(--ok);border-color:var(--ok)}
+
+  .panel .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .panel h2{font-size:30px;line-height:1.1;margin:6px 0 2px;font-weight:700}
+  .panel .nl{font-style:italic;color:var(--muted);margin:0 0 12px}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tag{font-family:"IBM Plex Mono",monospace;font-size:11px;padding:2px 7px;border:1px solid var(--ink);border-radius:2px}
+  .tag.basis{background:var(--ink);color:var(--paper)}
+  .panel p{margin:0 0 10px}
+  .panel ul{margin:0;padding-left:18px}
+  .panel li{margin:3px 0}
+  .contents{list-style:none;padding:0!important;border-top:1px solid var(--rule)}
+  .contents li{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:7px 0;border-bottom:1px dotted var(--rule);margin:0}
+  .contents li b{font-weight:600}
+  .contents li span.n{color:var(--muted);font-size:14px;display:block}
+  .contents .num{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);padding-top:3px}
+  .buy{border:1px solid var(--ink);padding:12px 14px;margin-top:6px;background:var(--paper)}
+  .buy.empty{border-style:dashed;border-color:var(--muted);color:var(--muted);background:transparent}
+  .buy a{color:var(--accent);font-weight:600}
+  .buy .shop{font-weight:700;font-size:17px}
+  .shops{margin:0;padding-left:20px!important}
+  .shops li{margin:2px 0}
+  .shops li::marker{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--accent)}
+  .shops .noot{display:block;font-size:13px;color:var(--muted)}
+  .buy .shop{font-weight:700;font-size:16px}
+  .buy .opm{margin:10px 0 0;padding-top:8px;border-top:1px dotted var(--rule)}
+  .buy .datum{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-top:8px}
+  .overleg{font-size:13px;color:var(--accent);margin:8px 0 0;font-weight:600}
+  .have{display:flex;align-items:center;gap:8px;margin:16px 0 0;font-size:15px;cursor:pointer}
+  .have input{width:18px;height:18px;accent-color:var(--ok)}
+  .nav{display:flex;justify-content:space-between;gap:8px;margin-top:18px}
+  .empty-state{color:var(--muted)}
+  .empty-state h2{color:var(--ink)}
+  .legal{font-size:13px;color:var(--muted);border-left:3px solid var(--accent);padding:4px 10px;margin:10px 0}
+  .back-up{display:none}
+
+  @media (max-width:820px){
+    header{padding:16px 16px 10px}
+    header h1{font-size:30px}
+    main{grid-template-columns:1fr}
+    .left{border-right:0;padding:12px 14px 6px}
+    .right{padding:18px 16px 28px;border-top:2px solid var(--ink)}
+    .right .sticky{position:static}
+    .stage{height:72vh}
+    .back-up{display:inline-block}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="sub" id="eenheid">Heer · laatoorlogse uitbeelding · 1943–1945</div>
+    <h1>Die Ausrüstung des Grenadiers</h1>
+  </div>
+  <div class="progress">
+    <span id="progText">0 van 0 stukken in bezit</span>
+    <div class="bar"><i id="progBar"></i></div>
+  </div>
+</header>
+
+<main>
+  <section class="left">
+    <div class="toolbar">
+      <span class="viewlabel" id="viewLabel">Vooraanzicht</span>
+      <span style="display:flex;gap:6px"><button class="btn ghost" id="showBtn" type="button">Toon klikvlakken</button><button class="btn" id="flipBtn" type="button">↻ Draai om</button></span>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="card" id="card">
+        <div class="face front">
+          <img src="schets-voor.png" alt="Schets vooraanzicht soldaat" draggable="false">
+          <svg viewBox="0 0 415 975" preserveAspectRatio="none" aria-label="Klikvlakken vooraanzicht">
+            <polygon class="hit" data-id="feldbluse" points="163,158 250,158 300,180 325,198 340,225 355,300 365,400 372,500 370,515 330,518 318,470 312,510 300,528 205,545 110,528 100,505 95,470 88,518 50,515 48,500 55,400 62,300 75,225 90,198 115,182"/>
+            <polygon class="hit" data-id="keilhose" points="105,530 205,548 305,528 318,600 325,700 330,770 330,800 250,815 242,760 235,690 215,610 205,580 195,620 190,700 186,760 185,820 105,820 102,760 100,700 104,600"/>
+            <polygon class="hit" data-id="gamaschen" points="118,815 178,812 175,905 125,910"/>
+            <polygon class="hit" data-id="gamaschen" points="252,818 312,812 312,905 262,908"/>
+            <polygon class="hit" data-id="schnuerschuhe" points="122,905 175,905 174,940 160,948 84,950 80,940 110,920"/>
+            <polygon class="hit" data-id="schnuerschuhe" points="262,908 312,905 330,925 352,940 350,950 270,950 262,935"/>
+            <polygon class="hit" data-id="schulterklappen" points="93,196 132,180 140,191 100,210"/>
+            <polygon class="hit" data-id="schulterklappen" points="278,180 322,196 316,209 274,193"/>
+            <polygon class="hit" data-id="litzen" points="163,160 250,160 255,192 225,210 205,218 198,218 175,208 160,190"/>
+            <polygon class="hit" data-id="hoheitsabzeichen" points="138,230 182,230 182,253 138,253"/>
+            <polygon class="hit" data-id="yriemen" points="122,188 137,188 141,340 132,358 118,358 121,250"/>
+            <polygon class="hit" data-id="yriemen" points="282,188 297,188 300,250 298,358 286,358 278,340"/>
+            <polygon class="hit" data-id="koppel" points="160,375 245,375 245,402 160,402"/>
+            <polygon class="hit" data-id="patronen" points="105,356 165,356 160,416 108,416"/>
+            <polygon class="hit" data-id="patronen" points="238,356 312,356 305,416 245,416"/>
+            <polygon class="hit" data-id="koppelschloss" points="196,372 225,372 225,405 196,405"/>
+            <polygon class="hit" data-id="stahlhelm" points="140,113 146,85 156,55 172,27 200,15 225,18 245,30 258,55 266,85 272,113 252,118 247,95 240,88 165,88 158,97 152,118"/>
+          </svg>
+        </div>
+        <div class="face back"><svg viewBox="0 20 400 940" aria-label="Schets achteraanzicht"><ellipse cx="200" cy="944" rx="120" ry="7" fill="#33312c" opacity=".08"/><use href="#artBack" filter="url(#pencil2)" opacity=".28" transform="translate(1.2 .8)" pointer-events="none"/><g id="artBack" filter="url(#pencil)"><g transform="translate(200 0) scale(1.1 1) translate(-200 0)"><g class="hit" data-id="keilhose"><path d="M141 476 L259 476 C264 560 267 640 263 700 C260 755 257 790 253 812 L217 812 C212 700 207 590 201 498 L199 498 C193 590 188 690 183 812 L147 812 C143 790 140 755 137 700 C133 640 136 560 141 476 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M141 480 C136 560 133 640 137 700 C140 755 143 790 147 812 L158 812 C154 760 150 700 150 640 C150 580 152 520 156 480 Z" fill="url(#h1)" stroke="none" opacity="0.5"/><path d="M 259 480 C 264 560 267 640 263 700 C 260 755 257 790 253 812 L 242 812 C 246 760 250 700 250 640 C 250 580 248 520 244 480 Z" fill="url(#h1)" stroke="none" opacity="0.35"/><path d="M199 500 C193 590 188 690 183 812 L192 812 C196 700 199 600 203 500 Z" fill="url(#h2)" stroke="none" opacity="0.4"/><path d="M 201 500 C 207 590 212 690 217 812 L 208 812 C 204 700 201 600 197 500 Z" fill="url(#h2)" stroke="none" opacity="0.4"/><path d="M141 476 C136 560 133 640 137 700 C140 755 143 790 147 812" fill="none" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 259 476 C 264 560 267 640 263 700 C 260 755 257 790 253 812" fill="none" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M199 498 C193 590 188 690 183 812" fill="none" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 201 498 C 207 590 212 690 217 812" fill="none" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M145 798 C150 826 184 826 186 804" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 255 798 C 250 826 216 826 214 804" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M150 690 C160 700 172 700 180 690" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M160 720 C166 726 174 726 180 718" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M152 600 C158 640 160 660 158 680" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M187 560 C186 600 184 640 186 670" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 250 690 C 240 700 228 700 220 690" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 240 720 C 234 726 226 726 220 718" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 248 600 C 242 640 240 660 242 680" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 213 560 C 214 600 216 640 214 670" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="gamaschen"><path d="M148 810 L184 810 L185 892 L147 892 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M148 810 L158 810 L157 892 L147 892 Z" fill="url(#h1)" stroke="none" opacity="0.45"/><path d="M147 832 L185 834" fill="none" stroke="#33312c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" /><path d="M147 864 L185 866" fill="none" stroke="#33312c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" /><path d="M178 829 l7 0 l0 8 l-7 0 Z" fill="none" stroke="#33312c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M178 861 l7 0 l0 8 l-7 0 Z" fill="none" stroke="#33312c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 252 810 L 216 810 L 215 892 L 253 892 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 252 810 L 242 810 L 243 892 L 253 892 Z" fill="url(#h1)" stroke="none" opacity="0.3"/><path d="M 253 832 L 215 834" fill="none" stroke="#33312c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" /><path d="M 253 864 L 215 866" fill="none" stroke="#33312c" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" /><path d="M 222 829 L 215 829 L 215 837 L 222 837 Z" fill="none" stroke="#33312c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 222 861 L 215 861 L 215 869 L 222 869 Z" fill="none" stroke="#33312c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="schnuerschuhe"><path d="M147 888 L185 888 L186 930 C186 940 180 945 170 945 L156 945 C148 945 145 940 145 932 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M147 888 L185 888 L186 930 C186 940 180 945 170 945 L156 945 C148 945 145 940 145 932 Z" fill="url(#h2)" stroke="none" opacity="0.25"/><path d="M146 940 L186 940" fill="none" stroke="#33312c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M147 932 L186 932" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 253 888 L 215 888 L 214 930 C 214 940 220 945 230 945 L 244 945 C 252 945 255 940 255 932 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 253 888 L 215 888 L 214 930 C 214 940 220 945 230 945 L 244 945 C 252 945 255 940 255 932 Z" fill="url(#h2)" stroke="none" opacity="0.2"/><path d="M 254 940 L 214 940" fill="none" stroke="#33312c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 253 932 L 214 932" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="feldbluse"><path d="M178 178 C160 184 142 190 130 200 C138 214 142 236 143 262 C146 330 150 380 148 410 C146 440 142 460 140 480 C170 488 230 488 260 480 C258 460 254 440 252 410 C250 380 254 330 257 262 C258 236 262 214 270 200 C258 190 240 184 222 178 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M143 262 C146 330 150 380 148 410 C146 440 142 460 140 480 L156 482 C158 440 160 380 160 330 C160 300 156 280 150 262 Z" fill="url(#h1)" stroke="none" opacity="0.4"/><path d="M 257 262 C 254 330 250 380 252 410 C 254 440 258 460 260 480 L 244 482 C 242 440 240 380 240 330 C 240 300 244 280 250 262 Z" fill="url(#h1)" stroke="none" opacity="0.3"/><path d="M200 196 L200 484" fill="none" stroke="#33312c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M166 262 C170 320 172 380 170 410" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 234 262 C 230 320 228 380 230 410" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M170 420 C172 450 172 470 170 484" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 230 420 C 228 450 228 470 230 484" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M130 200 C116 212 109 240 107 282 C105 330 102 382 97 430 L91 500 L121 503 C124 470 127 440 131 410 C136 370 140 320 143 262 C142 236 138 214 130 200 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M130 204 C142 236 143 262 143 262 C140 320 136 370 131 410 L124 470 L116 470 C120 420 126 360 130 300 C132 260 132 230 130 204 Z" fill="url(#h1)" stroke="none" opacity="0.45"/><path d="M91 500 L121 503 L120 515 L90 512 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M106 380 C112 386 120 386 126 380" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M104 398 C110 402 116 402 122 398" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 270 200 C 284 212 291 240 293 282 C 295 330 298 382 303 430 L 309 500 L 279 503 C 276 470 273 440 269 410 C 264 370 260 320 257 262 C 258 236 262 214 270 200 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 270 204 C 258 236 257 262 257 262 C 260 320 264 370 269 410 L 276 470 L 284 470 C 280 420 274 360 270 300 C 268 260 268 230 270 204 Z" fill="url(#h1)" stroke="none" opacity="0.3"/><path d="M 309 500 L 279 503 L 280 515 L 310 512 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 294 380 C 288 386 280 386 274 380" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M 296 398 C 290 402 284 402 278 398" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M176 176 C186 184 214 184 224 176 L226 190 C214 198 186 198 174 190 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="schulterklappen"><path d="M138 197 L176 186 L179 196 L141 207 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 262 197 L 224 186 L 221 196 L 259 207 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="yriemen"><path d="M161 186 L170 186 L203 262 L196 262 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M161 186 L170 186 L203 262 L196 262 Z" fill="url(#h3)" stroke="none" opacity="0.9"/><path d="M 239 186 L 230 186 L 197 262 L 204 262 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 239 186 L 230 186 L 197 262 L 204 262 Z" fill="url(#h3)" stroke="none" opacity="0.9"/><path d="M196 384 L204 384 L204 398 L196 398 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M196 384 L204 384 L204 398 L196 398 Z" fill="url(#h3)" stroke="none" opacity="0.9"/></g><g class="hit" data-id="koppel"><path d="M146 396 C180 392 220 392 254 396 L254 413 C220 409 180 409 146 413 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><path d="M146 396 C180 392 220 392 254 396 L254 413 C220 409 180 409 146 413 Z" fill="url(#h3)" stroke="none" opacity="0.75"/></g><g class="hit" data-id="gefechtsgepaeck"><path d="M176 300 L224 300 L224 336 L176 336 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M176 300 L224 300 L224 336 L176 336 Z" fill="url(#h2)" stroke="none" opacity="0.35"/><path d="M176 312 L224 312" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M178 218 L186 218 L162 362 L154 362 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M178 218 L186 218 L162 362 L154 362 Z" fill="url(#h2)" stroke="none" opacity="0.5"/><path d="M 222 218 L 214 218 L 238 362 L 246 362 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 222 218 L 214 218 L 238 362 L 246 362 Z" fill="url(#h2)" stroke="none" opacity="0.5"/><path d="M156 340 L244 340 L246 352 L154 352 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M156 340 L244 340 L246 352 L154 352 Z" fill="url(#h2)" stroke="none" opacity="0.5"/><path d="M152 196 L176 222" fill="none" stroke="#33312c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 248 196 L 224 222" fill="none" stroke="#33312c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="kochgeschirr"><path d="M178 214 C178 206 186 202 194 202 L206 202 C214 202 222 206 222 214 L222 284 C222 292 214 296 206 296 L194 296 C186 296 178 292 178 284 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M207 204 C215 204 222 208 222 216 L222 284 C222 292 215 296 207 296 Z" fill="url(#h1)" stroke="none" opacity="0.5"/><path d="M178 230 L222 230" fill="none" stroke="#33312c" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" /><path d="M184 216 C190 208 210 208 216 216" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M174 256 L226 256 L226 264 L174 264 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" /><path d="M174 256 L226 256 L226 264 L174 264 Z" fill="url(#h3)" stroke="none" opacity="0.8"/></g><g class="hit" data-id="zeltbahn"><path d="M150 340 C144 340 142 350 142 362 C142 374 144 384 150 384 L250 384 C256 384 258 374 258 362 C258 350 256 340 250 340 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M150 340 C144 340 142 350 142 362 C142 374 144 384 150 384 L250 384 C256 384 258 374 258 362 C258 350 256 340 250 340 Z" fill="url(#hs)" stroke="none" opacity="0.65"/><path d="M142 366 C142 376 144 384 150 384 L250 384 C256 384 258 376 258 366 Z" fill="url(#h1)" stroke="none" opacity="0.45"/><path d="M150 340 C156 350 156 374 150 384" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /><path d="M166 336 L168 388 M234 336 L232 388" fill="none" stroke="#33312c" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="brotbeutel"><path d="M214 404 L274 404 L277 500 C262 512 230 512 214 500 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M262 404 L274 404 L277 500 C270 505 266 507 262 508 Z" fill="url(#h1)" stroke="none" opacity="0.45"/><path d="M214 404 L274 404 L275 456 C262 464 228 464 214 456 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M222 398 L222 412 M266 398 L266 412" fill="none" stroke="#33312c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><circle cx="244" cy="452" r="2" fill="#33312c"/></g><g class="hit" data-id="feldflasche"><path d="M242 470 C234 470 230 488 230 510 C230 534 240 546 252 546 C264 546 274 534 274 510 C274 488 270 470 262 470 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M242 470 C234 470 230 488 230 510 C230 534 240 546 252 546 C264 546 274 534 274 510 C274 488 270 470 262 470 Z" fill="url(#hf)" stroke="none" opacity="0.7"/><path d="M239 444 L265 444 L265 472 C258 476 246 476 239 472 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /><path d="M239 444 L265 444 L265 472 C258 476 246 476 239 472 Z" fill="url(#h3)" stroke="none" opacity="0.85"/><path d="M251 438 L253 548" fill="none" stroke="#33312c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><path d="M228 506 L276 506" fill="none" stroke="#33312c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="spaten"><path d="M146 514 L156 514 L154 600 C153 608 147 608 146 600 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M146 514 L156 514 L154 600 C153 608 147 608 146 600 Z" fill="url(#h1)" stroke="none" opacity="0.5"/><path d="M134 456 L170 456 L167 508 C161 518 143 518 137 508 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /><path d="M134 456 L170 456 L167 508 C161 518 143 518 137 508 Z" fill="url(#h3)" stroke="none" opacity="0.55"/><path d="M137 470 L167 470" fill="none" stroke="#33312c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M140 490 L164 490" fill="none" stroke="#33312c" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="seitengewehr"><path d="M156 462 L162 462 L154 580 Q151 588 149 580 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M156 462 L162 462 L154 580 Q151 588 149 580 Z" fill="url(#h3)" stroke="none" opacity="0.7"/><path d="M155 448 L163 448 L164 462 L155 462 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" /><path d="M155 448 L163 448 L164 462 L155 462 Z" fill="url(#h1)" stroke="none" opacity="0.6"/><path d="M151 462 L165 462 L163 492 L150 492 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" /><path d="M151 462 L165 462 L163 492 L150 492 Z" fill="url(#h3)" stroke="none" opacity="0.8"/></g><g class="hit" data-id="gasmaske"><path d="M146 198 C150 214 156 230 160 244" fill="none" stroke="#33312c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><path d="M140 392 C136 402 134 410 134 418" fill="none" stroke="#33312c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" /><path d="M128 420 C128 412 132 408 140 408 L222 412 C230 412 234 418 234 428 L234 446 C234 456 230 462 222 462 L140 458 C132 458 128 452 128 446 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /><path d="M128 440 L234 446 L234 446 C234 456 230 462 222 462 L140 458 C132 458 128 452 128 446 Z" fill="url(#h1)" stroke="none" opacity="0.55"/><path d="M146 409 C149 420 149 448 146 459" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M158 410 C161 420 161 448 158 460" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M170 410 C173 420 173 448 170 460" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M182 411 C185 420 185 448 182 461" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M194 411 C197 420 197 448 194 461" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M206 412 C209 420 209 448 206 462" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M216 410 C224 410 230 412 234 418 C238 426 238 446 234 454 C230 460 224 462 216 462 C222 448 222 424 216 410 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><circle cx="226" cy="436" r="5" fill="none" stroke="#33312c" stroke-width="1.2"/></g><g class="nohit"><path d="M91 512 C86 526 86 546 92 558 C98 568 112 570 118 560 C123 552 123 532 120 514 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M92 540 C96 546 104 548 110 546" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M93 550 C98 556 106 557 112 555" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M118 524 C112 530 110 538 113 546" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M96 562 C100 566 106 567 110 565" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 309 512 C 314 526 314 546 308 558 C 302 568 288 570 282 560 C 277 552 277 532 280 514 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 308 540 C 304 546 296 548 290 546" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 307 550 C 302 556 294 557 288 555" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 282 524 C 288 530 290 538 287 546" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M 304 562 C 300 566 294 567 290 565" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /></g><g class="nohit"><path d="M176 132 C176 150 182 166 184 182 L216 182 C218 166 224 150 224 132 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /><path d="M176 132 C176 142 178 150 180 156 C192 160 208 160 220 156 C222 150 224 142 224 132 Z" fill="url(#h3)" stroke="none" opacity="0.75"/><path d="M176 122 C168 120 166 136 176 140" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M 224 122 C 232 120 234 136 224 140" fill="none" stroke="#33312c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /><path d="M192 160 L190 182" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /><path d="M208 160 L210 182" fill="none" stroke="#33312c" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" /></g><g class="hit" data-id="stahlhelm"><path d="M146 140 C150 128 154 116 157 104 C157 70 176 48 200 48 C224 48 243 70 243 104 C246 116 250 128 254 140 C238 133 222 130 200 130 C178 130 162 133 146 140 Z" fill="#f3ead0" class="f" stroke="#33312c" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" /><path d="M222 54 C236 66 243 84 243 104 C245 112 249 122 252 132 C242 127 232 124 226 123 C228 100 228 76 222 54 Z" fill="url(#h1)" stroke="none" opacity="0.55"/><path d="M170 66 C180 56 190 52 200 50 C190 60 184 76 182 96 L166 98 Z" fill="url(#h2)" stroke="none" opacity="0.18"/><path d="M157 106 C172 102 228 102 243 106" fill="none" stroke="#33312c" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" /></g></g></g></svg></div>
+      </div>
+    </div>
+    <svg width="0" height="0" style="position:absolute"><defs>
+  <filter id="pencil" x="-3%" y="-3%" width="106%" height="106%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="w"/>
+    <feDisplacementMap in="SourceGraphic" in2="w" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="d"/>
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="9" result="g"/>
+    <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.45" result="ga"/>
+    <feComposite in="d" in2="ga" operator="in"/>
+  </filter>
+  <filter id="pencil2" x="-3%" y="-3%" width="106%" height="106%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.025" numOctaves="2" seed="11" result="w"/>
+    <feDisplacementMap in="SourceGraphic" in2="w" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <pattern id="h1" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(38)">
+    <line x1="0" y1="0" x2="0" y2="6" stroke="#33312c" stroke-width="1"/></pattern>
+  <pattern id="h2" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
+    <line x1="0" y1="0" x2="0" y2="7" stroke="#33312c" stroke-width=".9"/></pattern>
+  <pattern id="h3" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <line x1="0" y1="0" x2="0" y2="3" stroke="#33312c" stroke-width="1.3"/></pattern>
+  <pattern id="hf" width="4" height="4" patternUnits="userSpaceOnUse">
+    <circle cx="1" cy="1" r=".7" fill="#33312c"/><circle cx="3" cy="3" r=".6" fill="#33312c"/></pattern>
+  <pattern id="hs" width="34" height="26" patternUnits="userSpaceOnUse">
+    <path d="M0 4 L12 0 L20 7 L8 13 Z M22 12 L34 6 L32 19 L24 21 Z M3 19 L15 15 L18 26 L1 26 Z" fill="none" stroke="#33312c" stroke-width=".9"/>
+    <path d="M3 0 v5 M9 9 v5 M17 2 v5 M27 0 v5 M31 11 v5 M12 19 v5" stroke="#33312c" stroke-width=".7"/></pattern>
+</defs></svg>
+    <div class="hint">Klik op een uitrustingsstuk · draai om voor de achterkant</div>
+
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <aside class="right" id="panelWrap">
+    <div class="sticky panel" id="panel"></div>
+  </aside>
+</main>
+<div class="tip" id="tip"></div>
+
+<script>
+/* =====================================================================
+   GEGEVENS — overgenomen uit het Adviesdocument eerste aankoop (v0.2).
+   Per stuk:
+     minimaal: true  = staat in het adviesdocument (minimale aankoop)
+     koop: { datum, opties:[{naam, url, noot}], opmerking }
+       volgorde van opties = volgorde van voorkeur (1, 2, 3)
+   Stukken zonder koop-advies tonen "Nog geen advies".
+   ===================================================================== */
+const GROEP = {
+  eenheid: "Heer · laatoorlogse uitbeelding · 1943–1945",
+  versie: "Adviesdocument eerste aankoop v0.2",
+  intro: [
+    "Hier zie je wat minimaal nodig is om mee te doen aan evenementen. Kleding en uitrusting zijn maatgevoelig en daardoor in de groep maar beperkt te leen.",
+    "Reken voor de eerste aankoop, inclusief verzendkosten en onderhoud, op een totaal van rond de €1500.",
+    "Overleg ALTIJD eerst met je begeleidend lid of een van de oudere leden voordat je iets bestelt. Zo voorkom je dat je iets verkeerds koopt, en misschien kun je geld besparen door samen te bestellen.",
+    "Bij elk stuk staan de aanbevolen leveranciers, in volgorde van voorkeur. Lees de opmerkingen goed. Heb je een andere leverancier gevonden die goed lijkt? Overleg dan eerst: er kan een reden zijn dat die niet op de lijst staat."
+  ]
+};
+
+const ITEMS = [
+  /* ---------------- Kleding ---------------- */
+  { id:"feldmuetze", groep:"Kleding", naam:"Einheitsfeldmütze M43", nl:"Veldpet met klep", minimaal:true, variant:"var.43",
+    tekst:"Veldpet met klep, gemaakt van feldgrau wol, met een Bevo-adelaar in trapeziumvorm. De omslag kan naar beneden over de oren.",
+    koop:{ datum:"27.09.2023", opties:[{naam:"Elsenau"}],
+      opmerking:"Voorkeur gaat uit naar een origineel insigne. Gebruik je een reproductie-insigne, dan worden die van Elsenau aanbevolen." } },
+
+  { id:"feldbluse", groep:"Kleding", naam:"Feldbluse M43 / M44", nl:"Veldjas", minimaal:true, variant:"var.43 · var.44",
+    tekst:"Veldjas van feldgrau wol met vlakke borstzakken, vlakke heupzakken, rechte zakkleppen en zes knopen.",
+    letop:["Soldbuch in de rechter borstzak, verbandpakje in de binnenzak."],
+    koop:{ datum:"27.09.2023", opties:[{naam:"Schusters"},{naam:"Gavin"},{naam:"Militaria Harbor"}],
+      opmerking:"Op maat bestellen wordt geadviseerd." } },
+
+  { id:"hoheitsabzeichen", groep:"Kleding", naam:"Hoheitsabzeichen", nl:"Borstadelaar", minimaal:true, variant:"var.39 · var.44",
+    tekst:"Geweven muisgrijze adelaar op feldgrau Bevo-stof, op de rechterborst van de veldjas.",
+    juridisch:"Op de adelaar staat een hakenkruis. Draag hem alleen binnen de afspraken van de groep en de regels van het evenement.",
+    koop:{ datum:"01.01.2021", opties:[{naam:"Origineel"},{naam:"Elsenau"}],
+      opmerking:"Informeer bij Thielen voor het naaiwerk en of er een originele adelaar beschikbaar is." } },
+
+  { id:"litzen", groep:"Kleding", naam:"Litzen", nl:"Kraagspiegels", minimaal:true, variant:"var.39",
+    tekst:"Matgrijze algemene kraagspiegels voor op de kraag van de veldjas.",
+    koop:{ datum:"01.01.2021", opties:[{naam:"Origineel"},{naam:"Elsenau"}],
+      opmerking:"Let op dat je geen vooroorlogse of vroegoorlogse varianten koopt. Bij twijfel: informeer bij Thielen." } },
+
+  { id:"schulterklappen", groep:"Kleding", naam:"Schulterklappen", nl:"Schouderstukken", minimaal:false,
+    tekst:"Schouderstukken van feldgrau stof met witte bies (Waffenfarbe voor infanterie), met een knoop vastgezet op de schouder van de veldjas. Staan niet apart in het adviesdocument: vaak zitten ze al bij de jas, anders koop je ze los. Overleg welke variant past.",
+    koop:{ opties:[], opmerking:"" } },
+
+  { id:"diensthemd", groep:"Kleding", naam:"Diensthemd", nl:"Overhemd", minimaal:true, variant:"var.43",
+    tekst:"Grijs-groen overhemd van katoen gemengd met wol of viscose, met kraag en borstzakken. Gedragen onder de veldjas, dus niet zichtbaar op de figuur.",
+    koop:{ datum:"01.01.2021", opties:[{naam:"Neumann", noot:"via Facebook"}],
+      opmerking:"Op maat bestellen wordt geadviseerd." } },
+
+  { id:"keilhose", groep:"Kleding", naam:"Keilhose", nl:"Veldbroek", minimaal:true, variant:"var.43 · var.44",
+    tekst:"Veldbroek van feldgrau wol met toelopende pijpen, zodat hij goed in de gamaschen past.",
+    koop:{ datum:"01.01.2021", opties:[{naam:"Schusters"},{naam:"Gavin"}],
+      opmerking:"Bestel één maat groter in de lengte. Knopen moeten misschien vervangen worden." } },
+
+  { id:"hosentraeger", groep:"Kleding", naam:"Hosenträger", nl:"Bretels", minimaal:true,
+    tekst:"Bretels voor de veldbroek, in V- of Y-model. Gedragen onder de veldjas.",
+    koop:{ datum:"25.04.2021", opties:[{naam:"Replik"},{naam:"eBay of in Nederland"}],
+      opmerking:"Vrije keuze, zolang het in de lijn van de geadviseerde modellen ligt. Bretels waren in die tijd ook niet uniform." } },
+
+  { id:"schnuerschuhe", groep:"Kleding", naam:"Schnürschuhe", nl:"Veterschoenen", minimaal:true, variant:"var.43",
+    tekst:"Veterschoenen met zeven veterogen van ongekleurd leer, met hoefijzers en ijzeren nagels onder de zool.",
+    koop:{ datum:"01.01.2021", opties:[{naam:"Jan Berger"},{naam:"Wehrmachtshoes"},{naam:"Fredericci", noot:"op Nestof"}],
+      opmerking:"Bestel ook lijnzaadolie, ledervet, ledercrème en lederwax. Rapide wordt hiervoor aanbevolen. Vraag om advies." } },
+
+  { id:"gamaschen", groep:"Kleding", naam:"Gamaschen", nl:"Beenwindsels", minimaal:true, variant:"var.43",
+    tekst:"Beenkappen van canvas, gesloten met leren riempjes. Ze zorgen dat er geen vuil in de schoenen komt.",
+    koop:{ datum:"27.09.2023", opties:[{naam:"At The Front", noot:"origineel canvas, leerwerk deels reproductie"}],
+      opmerking:"Vrije keuze in bruin of zwart leer. Kies je VEQP, dan moet het canvas bewerkt worden zodat het soepeler wordt en de kleur wat vervaagt." } },
+
+  { id:"stahlhelm", groep:"Kleding", naam:"Stahlhelm M40 / M42", nl:"Stalen helm met overtrek", minimaal:false,
+    tekst:"Stalen helm, hier gedragen met een overtrek van zeildoekstof en een rubberen band (Tarnband) om takken en gras in te steken. Staat niet in het adviesdocument: overleg eerst wat de groep gebruikt." },
+
+  /* ---------------- Koppel ---------------- */
+  { id:"koppel", groep:"Koppel & draagstel", naam:"Koppelriemen", nl:"Koppelriem", minimaal:true, variant:"var.40 · var.44",
+    tekst:"Riem van gezwart leer met een stalen haak met verstevigingsribben en een leren tong met stelgaten voor het koppelslot.",
+    koop:{ datum:"27.11.2021", opties:[{naam:"VEQP", noot:"via Facebook"}],
+      opmerking:"VEQP kun je het beste via Lt. Küpfner (Volksgrenadier) bestellen, vanwege de maten en specifieke details." } },
+
+  { id:"koppelschloss", groep:"Koppel & draagstel", naam:"Koppelschloss", nl:"Koppelslot", minimaal:true, variant:"var.41",
+    tekst:"Heeres-koppelslot van staal zonder reliëf rond de krans, geverfd in feldgrau of Einheitsblau.",
+    juridisch:"Het gewone koppelslot heeft een adelaar met hakenkruis. Voor op het veld is er een slot zonder tekst, zodat we niet met hakenkruizen rondlopen.",
+    koop:{ datum:"27.09.2023 · 19.01.2025", opties:[
+        {naam:"Nestof", noot:"var.41, staal"},
+        {naam:"MC4U", noot:"var.41, staal"},
+        {naam:"Nestof", noot:"slot zonder tekst (Legion Condor), voor op het veld"}],
+      opmerking:"Kies het koppelslot van de Hongaarse fabrikant: herkenbaar aan het JFS-stempel aan de binnenkant." } },
+
+  { id:"koppelhaken", groep:"Koppel & draagstel", naam:"Koppelhaken", nl:"Koppelhaken", minimaal:false, variant:"var.42",
+    tekst:"Stalen, geverfde haken die door de veldjas steken en de koppel op hoogte houden. Niet zichtbaar op de figuur.",
+    koop:{ datum:"27.09.2023", opties:[{naam:"Schusters"},{naam:"Elsenau"}],
+      opmerking:"Geen verplicht onderdeel. Zijn er geen stalen beschikbaar, dan mag je ook aluminium gebruiken." } },
+
+  { id:"patronen", groep:"Koppel & draagstel", naam:"Patronentaschen M1911", nl:"Patroontassen (K98)", minimaal:true,
+    tekst:"Twee zwarte lederen tassen met elk drie vakjes, links en rechts voorop de koppel. In elk vakje gaan twee laders van vijf patronen: 30 per tas, 60 in totaal. Het Y-draagstel haakt voorop aan deze tassen.",
+    inhoud:[
+      {n:"Laders (Ladestreifen)", t:"2 per vakje, 6 per tas"},
+      {n:"Dummypatronen", t:"Alleen wat de groep toestaat"}
+    ],
+    letop:["Kies tassen met een goede lus en haak aan de achterkant voor het Y-draagstel."],
+    koop:{ datum:"31.10.2026", opties:[{naam:"eBay", noot:"verkoper Cocomo"}], opmerking:"" } },
+
+  { id:"yriemen", groep:"Koppel & draagstel", naam:"Koppeltraggestell (Y-Riemen)", nl:"Y-draagstel", minimaal:false,
+    tekst:"Lederen draagstel in Y-vorm dat het gewicht van de koppel over de schouders verdeelt. Aan de D-ringen hangt het gevechtspakket." },
+
+  /* ---------------- Bepakking (aanvulling) ---------------- */
+  { id:"brotbeutel", groep:"Bepakking (aanvulling)", naam:"Brotbeutel M31", nl:"Broodzak", minimaal:false,
+    tekst:"Canvas tas die met twee lussen aan de koppel hangt, op de rechterheup. Hier zitten de persoonlijke spullen en het eten voor de dag in. De veldfles hangt eraan.",
+    inhoud:[
+      {n:"Essbesteck", t:"Klapbestek (lepel-vork) of losse lepel en vork"},
+      {n:"Zakmes", t:"Eenvoudig zakmes in periode-stijl"},
+      {n:"Fettbüchse", t:"Bakelieten of blikken vetdoos voor boter of reuzel"},
+      {n:"Brood", t:"Kommissbrot of ander donker brood"},
+      {n:"Esbit-kooktoestel", t:"Opvouwbaar kookstelletje met brandstoftabletten"},
+      {n:"Waszak", t:"Scheermes, scheerzeep, kam, tandenborstel"},
+      {n:"Lederonderhoud", t:"Klein blikje ledervet voor schoenen en koppel"},
+      {n:"Zeltzubehör", t:"Zakje met scheerlijn, stokdelen en haringen voor de zeildoek"},
+      {n:"Persoonlijke spullen", t:"Briefpapier, potlood, tabak of sigaretten, lucifers"}
+    ],
+    letop:["Alleen periode-correcte spullen in het zicht: geen plastic zakjes of telefoon.","Moderne noodzaak (medicatie, telefoon) liever onderin, in een linnen zakje."] },
+
+  { id:"feldflasche", groep:"Bepakking (aanvulling)", naam:"Feldflasche M31", nl:"Veldfles met drinkbeker", minimaal:false,
+    tekst:"Veldfles van 0,8 liter met vilten hoes, draagriemen en drinkbeker. Hangt aan de broodzak." },
+
+  { id:"kochgeschirr", groep:"Bepakking (aanvulling)", naam:"Kochgeschirr M31", nl:"Eetketel", minimaal:false,
+    tekst:"Eetketel in niervorm, veldgrijs geverfd. Het deksel dient als pan of bord. Zit achterop het gevechtspakket of aan de broodzak.",
+    inhoud:[{n:"Eiserne Portion", t:"Noodrantsoen: beschuit en een blik vlees"},{n:"Kleine spullen", t:"Thee of koffie, zout"}] },
+
+  { id:"gefechtsgepaeck", groep:"Bepakking (aanvulling)", naam:"Gefechtsgepäck (A-Rahmen)", nl:"Gevechtspakket", minimaal:false,
+    tekst:"Canvas frame aan de D-ringen van het Y-draagstel. Hierop zitten de eetketel en de opgerolde zeildoek." },
+
+  { id:"zeltbahn", groep:"Bepakking (aanvulling)", naam:"Zeltbahn 31", nl:"Zeildoek", minimaal:false,
+    tekst:"Driehoekig zeildoek in camouflagedruk. Te dragen als regenponcho, of met vier stuks samen te knopen tot een tent." },
+
+  { id:"gasmaske", groep:"Bepakking (aanvulling)", naam:"Gasmaskenbüchse", nl:"Gasmaskerbus", minimaal:false,
+    tekst:"Gegroefde metalen bus voor het gasmasker, aan een riem over de schouder en achterop de heup gedragen.",
+    inhoud:[{n:"Gasmasker", t:"Mag ontbreken: de bus wordt vaak leeg gedragen"},{n:"Reserve-Klarscheiben", t:"Antiwaas-glaasjes in het deksel"},{n:"Gasplane", t:"Beschermcape tegen gas, in een tasje op de riem"}] },
+
+  { id:"seitengewehr", groep:"Bepakking (aanvulling)", naam:"Seitengewehr 84/98", nl:"Bajonet met koppelschoen", minimaal:false,
+    tekst:"Bajonet in metalen schede, met een lederen houder (Koppelschuh) aan de koppel op de linkerheup, over het schepfoedraal.",
+    juridisch:"Overleg vóór aankoop met het bestuur: een bajonet valt onder de Wet wapens en munitie." },
+
+  { id:"spaten", groep:"Bepakking (aanvulling)", naam:"Kleines Schanzzeug", nl:"Rechte schep met foedraal", minimaal:false,
+    tekst:"Korte schep met vast blad en houten steel, in een foedraal van leer of geperst karton (Preßstoff) aan de koppel op de linkerheup. Het blad zit in het foedraal, de steel wijst naar beneden." }];
+</script>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const byId = Object.fromEntries(ITEMS.map(i => [i.id, i]));
+  const order = ITEMS.map(i => i.id);
+  const onFigure = new Set([...document.querySelectorAll('.hit')].map(g => g.dataset.id));
+  const frontIds = new Set([...document.querySelectorAll('.front .hit')].map(g => g.dataset.id));
+  const backIds = new Set([...document.querySelectorAll('.back .hit')].map(g => g.dataset.id));
+  $('#eenheid').textContent = GROEP.eenheid;
+
+  // ---- bezit (per bezoeker, in deze browser) ----
+  let have = {};
+  try { have = JSON.parse(localStorage.getItem('uitrusting-bezit') || '{}'); } catch(e){}
+  const saveHave = () => { try { localStorage.setItem('uitrusting-bezit', JSON.stringify(have)); } catch(e){} };
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // ---- chips ----
+  function renderChips(){
+    const groups = {};
+    ITEMS.forEach(i => (groups[i.groep] ||= []).push(i));
+    $('#chips').innerHTML = Object.entries(groups).map(([g, list]) =>
+      `<h3>${esc(g)}</h3><div class="chiprow">` +
+      list.map(i => `<button type="button" class="chip${have[i.id]?' have':''}${i.id===current?' sel':''}" data-id="${i.id}"><span class="dot"></span>${esc(i.naam)}</button>`).join('') +
+      `</div>`).join('');
+  }
+
+  function renderProgress(){
+    const req = ITEMS.filter(i => i.minimaal); const n = req.filter(i => have[i.id]).length;
+    $('#progText').textContent = `${n} van ${req.length} minimale stukken in bezit`;
+    $('#progBar').style.width = (100*n/req.length) + '%';
+  }
+
+  // ---- paneel ----
+  let current = null;
+  function renderPanel(){
+    const p = $('#panel');
+    if(!current){
+      p.innerHTML = `<div class="empty-state">
+        <div class="eyebrow">Welkom bij de groep</div>
+        <h2>Wat heb je nodig?</h2>
+        ${GROEP.intro.map(t=>`<p>${esc(t)}</p>`).join('')}
+        <p><b style="color:var(--ink)">Minimaal</b> = staat in het adviesdocument, nodig voor je eerste evenement. <b style="color:var(--ink)">Aanvulling</b> = later, na overleg.</p>
+        <p style="font-size:13px">Bron: ${esc(GROEP.versie)}</p>
+      </div>`;
+      return;
+    }
+    const i = byId[current];
+    const k = i.koop || {};
+    const idx = order.indexOf(current);
+    const prev = byId[order[(idx-1+order.length)%order.length]];
+    const next = byId[order[(idx+1)%order.length]];
+    let where = '';
+    if(onFigure.has(i.id)){
+      const f = frontIds.has(i.id), b = backIds.has(i.id);
+      where = f && b ? 'Voor- en achterkant' : f ? 'Zichtbaar van voren' : 'Zichtbaar van achteren';
+    } else where = 'Niet zichtbaar op de figuur';
+
+    p.innerHTML = `
+      <div class="eyebrow">${esc(i.groep)}</div>
+      <h2>${esc(i.naam)}</h2>
+      <p class="nl">${esc(i.nl)}</p>
+      <div class="tags">
+        <span class="tag ${i.minimaal?'basis':''}">${i.minimaal?'Minimaal':'Aanvulling'}</span>
+        ${i.variant ? `<span class="tag">${esc(i.variant)}</span>` : ''}
+        <span class="tag">${where}</span>
+      </div>
+      <p>${esc(i.tekst)}</p>
+      ${i.juridisch ? `<div class="legal">${esc(i.juridisch)}</div>` : ''}
+      ${i.inhoud ? `<h4>Wat hoort erin</h4><ul class="contents">${i.inhoud.map((c,n)=>`<li><span class="num">${String(n+1).padStart(2,'0')}</span><div><b>${esc(c.n)}</b><span class="n">${esc(c.t)}</span></div></li>`).join('')}</ul>` : ''}
+      ${i.letop ? `<h4>Let op</h4><ul>${i.letop.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+      <h4>Waar kopen — advies van de groep</h4>
+      ${(k.opties && k.opties.length) ? `<div class="buy"><ol class="shops">${k.opties.map(o=>`<li><span class="shop">${o.url?`<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.naam)}</a>`:esc(o.naam)}</span>${o.noot?`<span class="noot">${esc(o.noot)}</span>`:''}</li>`).join('')}</ol>
+          ${k.opmerking ? `<p class="opm">${esc(k.opmerking)}</p>` : ''}
+          ${k.datum ? `<div class="datum">Advies d.d. ${esc(k.datum)}</div>` : ''}</div>`
+        : `<div class="buy empty">${k.opmerking?esc(k.opmerking)+' ':''}Nog geen advies in het adviesdocument. Overleg met je begeleidend lid.</div>`}
+      <p class="overleg">Overleg altijd eerst met je begeleidend lid voordat je iets bestelt.</p>
+      <label class="have"><input type="checkbox" id="haveBox" ${have[i.id]?'checked':''}> Heb ik al</label>
+      <div class="nav">
+        <button class="btn ghost" type="button" data-go="${prev.id}">← ${esc(prev.naam.split(' ')[0])}</button>
+        <button class="btn ghost back-up" type="button" id="backUp">↑ Figuur</button>
+        <button class="btn ghost" type="button" data-go="${next.id}">${esc(next.naam.split(' ')[0])} →</button>
+      </div>`;
+    $('#haveBox').addEventListener('change', e => { have[i.id] = e.target.checked; if(!have[i.id]) delete have[i.id]; saveHave(); renderChips(); renderProgress(); });
+    p.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => select(b.dataset.go, true)));
+    const bu = $('#backUp'); if(bu) bu.addEventListener('click', () => $('#stage').scrollIntoView({behavior:'smooth', block:'start'}));
+  }
+
+  function select(id, fromNav){
+    if(!byId[id]) return;
+    current = id;
+    document.querySelectorAll('.hit').forEach(g => g.classList.toggle('sel', g.dataset.id === id));
+    // draai mee als het stuk alleen aan de andere kant zichtbaar is
+    {
+      if(flipped && frontIds.has(id) && !backIds.has(id)) setFlip(false);
+      else if(!flipped && backIds.has(id) && !frontIds.has(id)) setFlip(true);
+    }
+    renderPanel(); renderChips();
+    if(location.hash !== '#'+id) history.replaceState(null, '', '#'+id);
+    if(window.matchMedia('(max-width:820px)').matches && !fromNav){
+      $('#panelWrap').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  }
+
+  // ---- draaien ----
+  let flipped = false, angle = 0;
+  const card = $('#card'), stage = $('#stage');
+  function setFlip(v){
+    flipped = v; angle = v ? 180 : 0;
+    card.classList.remove('nodelay');
+    card.style.transform = `rotateY(${angle}deg)`;
+    $('#viewLabel').textContent = v ? 'Achteraanzicht' : 'Vooraanzicht';
+  }
+  $('#flipBtn').addEventListener('click', () => setFlip(!flipped));
+  $('#showBtn').addEventListener('click', () => { const on = stage.classList.toggle('show'); $('#showBtn').textContent = on ? 'Verberg klikvlakken' : 'Toon klikvlakken'; });
+
+  let dragStart = null, dragged = false;
+  stage.addEventListener('pointerdown', e => { dragStart = {x:e.clientX, a:angle}; dragged = false; });
+  window.addEventListener('pointermove', e => {
+    if(!dragStart) return;
+    const dx = e.clientX - dragStart.x;
+    if(Math.abs(dx) > 6){
+      if(!dragged){ dragged = true; stage.classList.add('dragging'); card.classList.add('nodelay'); try{stage.setPointerCapture(e.pointerId)}catch(_){} }
+      angle = dragStart.a + dx * 0.7;
+      card.style.transform = `rotateY(${angle}deg)`;
+    }
+  });
+  window.addEventListener('pointerup', () => {
+    if(!dragStart) return;
+    dragStart = null; stage.classList.remove('dragging');
+    if(dragged){
+      const norm = ((angle % 360) + 360) % 360;
+      const back = norm > 90 && norm < 270;
+      // snap naar dichtstbijzijnde zijde
+      angle = Math.round(angle/180)*180;
+      card.classList.remove('nodelay');
+      card.style.transform = `rotateY(${angle}deg)`;
+      flipped = back;
+      $('#viewLabel').textContent = back ? 'Achteraanzicht' : 'Vooraanzicht';
+    }
+  });
+
+  // ---- klikken & tooltip ----
+  const tip = $('#tip');
+  document.querySelectorAll('.hit').forEach(g => {
+    g.addEventListener('click', e => { if(dragged){ e.preventDefault(); return; } select(g.dataset.id); });
+    g.addEventListener('pointerenter', () => { tip.textContent = byId[g.dataset.id]?.naam || ''; tip.classList.add('on'); });
+    g.addEventListener('pointerleave', () => tip.classList.remove('on'));
+  });
+  window.addEventListener('pointermove', e => { tip.style.left = e.clientX+'px'; tip.style.top = e.clientY+'px'; });
+  $('#chips').addEventListener('click', e => { const c = e.target.closest('.chip'); if(c) select(c.dataset.id); });
+
+  window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if(h && h !== current) select(h, true); });
+
+  renderChips(); renderProgress(); renderPanel();
+  const h = location.hash.slice(1); if(byId[h]) select(h, true);
+})();
+</script>
+</body>
+</html>
