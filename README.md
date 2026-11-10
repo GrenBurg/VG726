@@ -1,6 +1,6 @@
 # VG726
 
-Klein platform met een startpagina en vijf onderdelen:
+Klein platform met een startpagina en zeven onderdelen:
 
 | Map | Wat |
 |---|---|
@@ -10,6 +10,8 @@ Klein platform met een startpagina en vijf onderdelen:
 | `setboek/` | Setboek, de sport-app (12-weken trainingsschema, werkt offline) |
 | `reibert/` | Reibert Online: de inhoud van het boekje *Der Dienstunterricht im Heere* (2026), doorzoekbaar en met correcties |
 | `funkgeraet/` | Bediensimulator Tornisterfunkgerät d2 (Torn.Fu.d2): opbouwen, afstemmen, morse-oefenen en online morsen via Ably |
+| `maps/` | Kaarten: kaartbladen in periodestijl (Meßtischblätter) als PDF |
+| `tarntafel/` | Tarntafel-generator: codetabel voor het Funksprechverkehr naar het systeem van de Tarntafel J.R. 726 (1942), af te drukken als PDF, met Excel-sleutel |
 
 Alles is statische HTML en draait op GitHub Pages: **Settings → Pages → Deploy from a branch → `main` / root**.
 De site staat daarna op `https://grenburg.github.io/VG726/`.
@@ -22,3 +24,7 @@ GitHub Pages serveert alleen statische bestanden en kan dus geen tijdelijke Ably
 Wie op deze site online wil morsen, vult zelf een Ably-sleutel in het venster *Online* in; die wordt nergens opgeslagen.
 Zet hiervoor bij voorkeur een aparte, beperkte sleutel aan (alleen `tornfud2-*` kanalen, rechten publish/subscribe/presence), nooit de root-sleutel.
 Alles behalve online morsen werkt zonder sleutel.
+
+## Tarntafel
+
+De generator draait volledig in de browser. Dezelfde **sleutel** met dezelfde invoer geeft altijd dezelfde tafel, dus de leiding kan de tafel delen met een link (knop *Link kopiëren*, de invoer zit in de link na `#`). Afdrukken op A4 zonder marges; de Excel-sleutel bevat de Nederlandse vertaling van alle begrippen.
