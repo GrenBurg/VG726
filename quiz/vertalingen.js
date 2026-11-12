@@ -55,3 +55,53 @@ window.VG726 && VG726.add({
   "Nog even oefenen: lees het onderdeel in Reibert Online en probeer het opnieuw.": "A bit more practice: read the section in Reibert Online and try again."
  }
 });
+
+/* Highscores */
+window.VG726 && VG726.add({
+ "de": {
+  "Highscores": "Bestenliste",
+  "Bestenliste": "Bestenliste",
+  "Opgeteld: de beste score van elk onderdeel.": "Zusammengezählt: das beste Ergebnis jedes Bereichs.",
+  "De gedeelde lijst is nog niet gekoppeld.": "Die gemeinsame Liste ist noch nicht verbunden.",
+  "Lijst wordt geladen…": "Liste wird geladen …",
+  "De lijst kon niet worden geladen. Probeer het later nog eens.": "Die Liste konnte nicht geladen werden. Versuch es später noch einmal.",
+  "Nog niemand op de lijst. Word jij de eerste?": "Noch niemand auf der Liste. Wirst du der Erste?",
+  "Alle onderdelen afgetekend? Dan kun je je score invoeren.": "Alle Bereiche abgezeichnet? Dann kannst du dein Ergebnis eintragen.",
+  "Vul eerst je naam in.": "Gib zuerst deinen Namen ein.",
+  "Bezig met invoeren…": "Wird eingetragen …",
+  "Ingevoerd! Je staat op de lijst.": "Eingetragen! Du stehst auf der Liste.",
+  "Invoeren lukte niet. Probeer het later nog eens.": "Eintragen hat nicht geklappt. Versuch es später noch einmal.",
+  "Afgetekend": "Abgezeichnet",
+  "Totaal": "Gesamt",
+  "Alles afgetekend!": "Alles abgezeichnet!",
+  "Je score staat op de lijst. Haal je ergens een hogere score, dan kun je hem opnieuw invoeren.": "Dein Ergebnis steht auf der Liste. Erreichst du irgendwo mehr Punkte, kannst du es erneut eintragen.",
+  "Vul je naam in en zet je score op de lijst.": "Gib deinen Namen ein und trag dein Ergebnis in die Liste ein.",
+  "Je naam": "Dein Name",
+  "Invoeren": "Eintragen",
+  "Alle onderdelen afgetekend! Je kunt nu je score op de lijst zetten.": "Alle Bereiche abgezeichnet! Du kannst jetzt dein Ergebnis in die Liste eintragen.",
+  "Score invoeren": "Ergebnis eintragen"
+ },
+ "en": {
+  "Highscores": "High scores",
+  "Bestenliste": "Bestenliste",
+  "Opgeteld: de beste score van elk onderdeel.": "Added up: the best score in each topic.",
+  "De gedeelde lijst is nog niet gekoppeld.": "The shared list isn't connected yet.",
+  "Lijst wordt geladen…": "Loading list…",
+  "De lijst kon niet worden geladen. Probeer het later nog eens.": "The list couldn't be loaded. Try again later.",
+  "Nog niemand op de lijst. Word jij de eerste?": "Nobody on the list yet. Will you be the first?",
+  "Alle onderdelen afgetekend? Dan kun je je score invoeren.": "Completed every topic? Then you can enter your score.",
+  "Vul eerst je naam in.": "Enter your name first.",
+  "Bezig met invoeren…": "Submitting…",
+  "Ingevoerd! Je staat op de lijst.": "Done! You're on the list.",
+  "Invoeren lukte niet. Probeer het later nog eens.": "Submitting failed. Try again later.",
+  "Afgetekend": "Completed",
+  "Totaal": "Total",
+  "Alles afgetekend!": "All topics completed!",
+  "Je score staat op de lijst. Haal je ergens een hogere score, dan kun je hem opnieuw invoeren.": "Your score is on the list. If you improve a score anywhere, you can enter it again.",
+  "Vul je naam in en zet je score op de lijst.": "Enter your name and put your score on the list.",
+  "Je naam": "Your name",
+  "Invoeren": "Submit",
+  "Alle onderdelen afgetekend! Je kunt nu je score op de lijst zetten.": "All topics completed! You can now put your score on the list.",
+  "Score invoeren": "Enter score"
+ }
+});

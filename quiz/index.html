@@ -12,13 +12,41 @@
 <script src="../i18n.js"></script>
 <script src="vertalingen.js"></script>
 <script src="vragen.js"></script>
+<script src="highscore-adres.js"></script>
 <style>
   :root{--paper:#e4dbc2;--card:#efe8d4;--ink:#24231d;--muted:#625c4a;--line:#a99d7c;--accent:#8e2316;--soft:rgba(142,35,22,.08);--ok:#3d5a2a;--okbg:#dfe5cf;--bad:#8e2316;--badbg:#f1dccf}
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink)}
   body{font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.5;
     background-image:radial-gradient(rgba(0,0,0,.04) 1px,transparent 1px);background-size:4px 4px}
-  .wrap{max-width:640px;margin:0 auto;padding:48px 20px 48px}
+  .wrap{max-width:1040px;margin:0 auto;padding:48px 20px 48px}
+  .cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+  @media (max-width:880px){.cols{grid-template-columns:1fr}}
+  header,.cols>main{min-width:0}
+  /* highscorelijst */
+  .board{position:sticky;top:16px;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--ink)}
+  .board h2{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:30px;line-height:1;margin:0;padding:14px 16px 4px}
+  .board .sub{padding:0 16px 10px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
+  .board ol{list-style:none;margin:0;padding:6px 0}
+  .board li{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:baseline;padding:6px 16px;font-size:15px}
+  .board li:nth-child(-n+3) .pl{color:var(--accent);font-weight:600}
+  .board li.me{background:var(--soft)}
+  .board .pl{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+  .board .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .board .sc{font-family:"IBM Plex Mono",monospace;font-size:13px}
+  .board .empty{padding:14px 16px;font-size:14px;color:var(--muted)}
+  .board .foot{padding:8px 16px 12px;border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.04em}
+  /* aftekenen */
+  .tally{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;padding:10px 14px;border:1px dashed var(--line);font-size:14px}
+  .tally b{font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.06em}
+  .cat.done::after{content:"✓";position:absolute;top:10px;right:12px;font-family:"IBM Plex Mono",monospace;color:var(--ok);font-size:16px}
+  .submit{margin:0 0 18px;padding:16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent)}
+  .submit h3{margin:0 0 4px;font-size:18px}
+  .submit p{margin:0 0 10px;font-size:14px;color:var(--muted)}
+  .submit form{display:flex;gap:8px;flex-wrap:wrap}
+  .submit input{flex:1 1 180px;font:inherit;padding:10px 12px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);min-width:0}
+  .submit input:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .submit .msg{margin-top:8px;font-size:14px}
   .home{display:inline-block;margin-bottom:10px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none}
   .home:hover{color:var(--accent)}
   header{border-bottom:3px double var(--ink);padding-bottom:14px;margin-bottom:24px;text-align:center}
@@ -31,7 +59,7 @@
 
   /* keuze */
   .cats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .cat{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);transition:border-color .15s,background .15s}
+  .cat{all:unset;position:relative;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);transition:border-color .15s,background .15s}
   .cat:hover,.cat:focus-visible{border-left-color:var(--accent);background:#f3eddb}
   .cat:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
   .cat b{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:24px;line-height:1.1}
@@ -55,7 +83,6 @@
   .opt[disabled]{cursor:default}
   .opt.ok{border-color:var(--ok);background:var(--okbg)}
   .opt.bad{border-color:var(--bad);background:var(--badbg)}
-  .opt.morse{font-family:"IBM Plex Mono",monospace;font-size:20px;letter-spacing:.14em}
   .fb{margin-top:14px;padding:12px 14px;border-left:3px solid var(--ok);background:var(--okbg);font-size:15px}
   .fb.bad{border-left-color:var(--bad);background:var(--badbg)}
   .fb b{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
@@ -84,8 +111,11 @@
     <h1 data-i18n>Quiz</h1>
     <p class="lead" data-i18n>Test wat je weet. Tien vragen per ronde.</p>
   </header>
-  <main id="app" aria-live="polite"></main>
-  <footer data-i18n>Vragen uit Reibert Online, de Merkblätter, de uitrustingsgids en de Funkgerät-simulator.</footer>
+  <div class="cols">
+    <main id="app" aria-live="polite"></main>
+    <aside class="board" id="board" aria-label="Highscores" data-i18n-attr="aria-label"></aside>
+  </div>
+  <footer data-i18n>Vragen uit Reibert Online, de Merkblätter en de uitrustingsgids.</footer>
 </div>
 
 <script>
@@ -98,13 +128,17 @@
   const pick = (a, n) => shuffle(a).slice(0, n);
   const $ = s => document.querySelector(s);
   const Q = window.QUIZ;
-  const morse = c => c.replace(/\./g, '·').replace(/-/g, '−');
   const PER_RONDE = 10;
+
+  /* Adres van het Google-script dat de highscores bewaart (zie quiz/highscore-google-sheet.gs).
+     Leeg = lijst nog niet gekoppeld. */
+  const HIGHSCORE_URL = window.QUIZ_HIGHSCORE_URL || '';
+  const NK = 'vg726.quiz.naam', SK = 'vg726.quiz.ingezonden';
 
   // maak een vraag met 4 opties uit een lijst; key = vergelijkingswaarde
   function mc(cat, question, right, wrongPool, opts = {}) {
     const wrongs = pick(wrongPool.filter(w => JSON.stringify(w) !== JSON.stringify(right)), 3);
-    return { cat, q: question, big: opts.big, right, options: shuffle([right, ...wrongs]), morse: !!opts.morse, x: opts.x };
+    return { cat, q: question, big: opts.big, right, options: shuffle([right, ...wrongs]), x: opts.x };
   }
 
   /* -------- vraaggenerators per categorie -------- */
@@ -140,12 +174,6 @@
         if (Math.random() < .6) return mc('buchstaben', { nl: 'Hoe spel je deze letter?', de: 'Wie buchstabierst du diesen Buchstaben?', en: 'How do you spell this letter?' }, w, B.map(b => b[1]), { big: l });
         return mc('buchstaben', { nl: 'Welke letter is dit?', de: 'Welcher Buchstabe ist das?', en: 'Which letter is this?' }, l, B.map(b => b[0]), { big: w });
       } },
-    morse: { name: { nl: 'Morse', de: 'Morsen', en: 'Morse' }, desc: { nl: 'Letters en cijfers seinen', de: 'Buchstaben und Ziffern geben', en: 'Letters and numbers' },
-      make() {
-        const keys = Object.keys(Q.MORSE), k = keys[Math.random() * keys.length | 0], c = morse(Q.MORSE[k]);
-        if (Math.random() < .5) return mc('morse', { nl: 'Welk teken is dit?', de: 'Welches Zeichen ist das?', en: 'Which character is this?' }, k, keys, { big: c });
-        return mc('morse', { nl: 'Hoe sein je dit teken?', de: 'Wie gibst du dieses Zeichen?', en: 'How do you send this character?' }, c, keys.map(x => morse(Q.MORSE[x])), { big: k, morse: true });
-      } },
     uitrusting: { name: { nl: 'Ausrüstung', de: 'Ausrüstung', en: 'Equipment' }, desc: { nl: 'Wat is wat?', de: 'Was ist was?', en: 'What is what?' },
       make() {
         const U = Q.UITRUSTING, [n, m] = U[Math.random() * U.length | 0];
@@ -161,7 +189,7 @@
         return { cat: 'dienst', q: f.q, right: f.a[0], options: shuffle(f.a), x: f.x };
       } },
   };
-  const ORDER = ['rangen', 'kommandos', 'zeichen', 'buchstaben', 'morse', 'uitrusting', 'dienst'];
+  const ORDER = ['rangen', 'kommandos', 'zeichen', 'buchstaben', 'uitrusting', 'dienst'];
 
   /* -------- beste scores (op dit toestel) -------- */
   const BK = 'vg726.quiz.best';
@@ -184,11 +212,68 @@
     return { cat, qs, i: 0, score: 0, answered: null, wrong: [] };
   }
 
+  /* -------- highscores -------- */
+  const total = () => ORDER.reduce((a, c) => a + (best[c] || 0), 0);
+  const doneCount = () => ORDER.filter(c => best[c] != null).length;
+  const MAX = ORDER.length * PER_RONDE;
+  let board = { state: HIGHSCORE_URL ? 'laden' : 'geen', list: [] };
+  let myName = ''; try { myName = localStorage.getItem(NK) || ''; } catch (e) {}
+  let sent = null; try { sent = JSON.parse(localStorage.getItem(SK) || 'null'); } catch (e) {}
+  let submitMsg = '';
+  async function loadBoard() {
+    if (!HIGHSCORE_URL) return renderBoard();
+    try {
+      const r = await fetch(HIGHSCORE_URL + (HIGHSCORE_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
+      const j = await r.json();
+      board = { state: 'ok', list: Array.isArray(j.list) ? j.list : [] };
+    } catch (e) { board = { state: 'fout', list: [] }; }
+    renderBoard();
+  }
+  function renderBoard() {
+    const el = $('#board'); if (!el) return;
+    let body;
+    if (board.state === 'geen') body = `<div class="empty">${esc(T('De gedeelde lijst is nog niet gekoppeld.'))}</div>`;
+    else if (board.state === 'laden') body = `<div class="empty">${esc(T('Lijst wordt geladen…'))}</div>`;
+    else if (board.state === 'fout') body = `<div class="empty">${esc(T('De lijst kon niet worden geladen. Probeer het later nog eens.'))}</div>`;
+    else if (!board.list.length) body = `<div class="empty">${esc(T('Nog niemand op de lijst. Word jij de eerste?'))}</div>`;
+    else body = `<ol>${board.list.slice(0, 15).map((x, i) => `<li class="${myName && x.naam === myName ? 'me' : ''}"><span class="pl">${i + 1}.</span><span class="nm">${esc(x.naam)}</span><span class="sc">${esc(x.score)}/${MAX}</span></li>`).join('')}</ol>`;
+    el.innerHTML = `<h2>${esc(T('Bestenliste'))}</h2><div class="sub">${esc(T('Opgeteld: de beste score van elk onderdeel.'))}</div>${body}<div class="foot">${esc(T('Alle onderdelen afgetekend? Dan kun je je score invoeren.'))}</div>`;
+  }
+  async function submitScore(naam) {
+    naam = naam.replace(/\s+/g, ' ').trim().slice(0, 24);
+    if (!naam) { submitMsg = T('Vul eerst je naam in.'); return render(); }
+    if (!HIGHSCORE_URL) { submitMsg = T('De gedeelde lijst is nog niet gekoppeld.'); return render(); }
+    myName = naam; try { localStorage.setItem(NK, naam); } catch (e) {}
+    submitMsg = T('Bezig met invoeren…'); render();
+    try {
+      const detail = Object.fromEntries(ORDER.map(c => [c, best[c] || 0]));
+      // text/plain: geen extra toestemmingsvraag (preflight) nodig bij Google
+      const r = await fetch(HIGHSCORE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ naam, score: total(), detail }) });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'fout');
+      sent = { naam, score: total() }; try { localStorage.setItem(SK, JSON.stringify(sent)); } catch (e) {}
+      submitMsg = T('Ingevoerd! Je staat op de lijst.');
+      if (Array.isArray(j.list)) board = { state: 'ok', list: j.list };
+    } catch (e) { submitMsg = T('Invoeren lukte niet. Probeer het later nog eens.'); }
+    render(); renderBoard();
+  }
+  function submitBox() {
+    const d = doneCount(), all = d === ORDER.length;
+    let h = `<div class="tally"><span>${esc(T('Afgetekend'))}: <b>${d} / ${ORDER.length}</b></span><span>${esc(T('Totaal'))}: <b>${total()} / ${MAX}</b></span></div>`;
+    if (!all) return h;
+    const already = sent && sent.score >= total();
+    h += `<div class="submit"><h3>${esc(T('Alles afgetekend!'))}</h3>
+      <p>${esc(already ? T('Je score staat op de lijst. Haal je ergens een hogere score, dan kun je hem opnieuw invoeren.') : T('Vul je naam in en zet je score op de lijst.'))}</p>
+      ${already ? '' : `<form id="hsform" autocomplete="off"><input id="hsname" name="naam" maxlength="24" placeholder="${esc(T('Je naam'))}" value="${esc(myName)}" required><button class="btn" type="submit">${esc(T('Invoeren'))}</button></form>`}
+      ${submitMsg ? `<div class="msg">${esc(submitMsg)}</div>` : ''}</div>`;
+    return h;
+  }
+
   function render() {
     const app = $('#app');
     if (view === 'menu') {
-      app.innerHTML = `<p class="label">${esc(T('Kies een onderdeel'))}</p><div class="cats">` +
-        ORDER.map(c => `<button class="cat" data-cat="${c}" type="button"><b>${esc(tr(CATS[c].name))}</b><span>${esc(tr(CATS[c].desc))}</span>${best[c] != null ? `<small>${esc(T('Beste score'))}: ${best[c]}/${PER_RONDE}</small>` : ''}</button>`).join('') +
+      app.innerHTML = submitBox() + `<p class="label">${esc(T('Kies een onderdeel'))}</p><div class="cats">` +
+        ORDER.map(c => `<button class="cat${best[c] != null ? ' done' : ''}" data-cat="${c}" type="button"><b>${esc(tr(CATS[c].name))}</b><span>${esc(tr(CATS[c].desc))}</span>${best[c] != null ? `<small>${esc(T('Beste score'))}: ${best[c]}/${PER_RONDE}</small>` : ''}</button>`).join('') +
         `<button class="cat all" data-cat="alles" type="button"><b>${esc(T('Alles door elkaar'))}</b><span>${esc(T('Van elk onderdeel wat'))}</span>${best.alles != null ? `<small>${esc(T('Beste score'))}: ${best.alles}/${PER_RONDE}</small>` : ''}</button></div>`;
       return;
     }
@@ -205,7 +290,7 @@
           <div class="opts">${q.options.map((o, n) => {
             let cls = '';
             if (a) { if (key(o) === key(q.right)) cls = ' ok'; else if (key(o) === key(a)) cls = ' bad'; }
-            return `<button class="opt${q.morse ? ' morse' : ''}${cls}" type="button" data-n="${n}" ${a ? 'disabled' : ''}><span class="k">${'ABCD'[n]}</span><span>${esc(tr(o))}</span></button>`;
+            return `<button class="opt${cls}" type="button" data-n="${n}" ${a ? 'disabled' : ''}><span class="k">${'ABCD'[n]}</span><span>${esc(tr(o))}</span></button>`;
           }).join('')}</div>
           ${a ? `<div class="fb ${key(a) === key(q.right) ? '' : 'bad'}"><b>${esc(T(key(a) === key(q.right) ? 'Goed!' : 'Fout'))}</b>${key(a) === key(q.right) ? '' : ` — ${esc(T('het goede antwoord is'))}: <strong>${esc(tr(q.right))}</strong>`}${q.x ? `<div>${esc(tr(q.x))}</div>` : ''}</div>` : ''}
         </div>
@@ -222,7 +307,8 @@
           <div class="score">${s} / ${n}</div>
           <div class="stamp">${esc(verdict)}</div>
           <p>${esc(T(msg))}</p>
-          <div class="row" style="justify-content:center"><button class="btn" type="button" data-again>${esc(T('Nog een ronde'))}</button><button class="btn ghost" type="button" data-menu>${esc(T('Ander onderdeel'))}</button></div>
+          ${doneCount() === ORDER.length && !(sent && sent.score >= total()) ? `<p><strong>${esc(T('Alle onderdelen afgetekend! Je kunt nu je score op de lijst zetten.'))}</strong></p>` : ''}
+          <div class="row" style="justify-content:center"><button class="btn" type="button" data-again>${esc(T('Nog een ronde'))}</button><button class="btn ghost" type="button" data-menu>${esc(T(doneCount() === ORDER.length && !(sent && sent.score >= total()) ? 'Score invoeren' : 'Ander onderdeel'))}</button></div>
         </div>
         ${r.wrong.length ? `<div class="review"><p class="label">${esc(T('Nakijken'))}</p><ol>${r.wrong.map(w => `<li>${esc(tr(w.q.q))}${w.q.big ? ` <strong>${esc(tr(w.q.big))}</strong>` : ''}<br><span class="was">✗ ${esc(tr(w.a))}</span> · <span class="is">✓ ${esc(tr(w.q.right))}</span></li>`).join('')}</ol></div>` : ''}`;
     }
@@ -239,7 +325,7 @@
     }
     if (b.hasAttribute('data-next')) {
       round.i++; round.answered = null;
-      if (round.i >= round.qs.length) { saveBest(round.cat, round.score); view = 'end'; }
+      if (round.i >= round.qs.length) { saveBest(round.cat, round.score); submitMsg = ''; view = 'end'; }
       render(); return;
     }
     if (b.hasAttribute('data-stop') || b.hasAttribute('data-menu')) { view = 'menu'; round = null; render(); return; }
@@ -251,8 +337,12 @@
     const m = '1234abcd'.indexOf(e.key.toLowerCase());
     if (m >= 0 && !round.answered) { const b = document.querySelector(`.opt[data-n="${m % 4}"]`); if (b) b.click(); }
   });
-  window.addEventListener('vg726:lang', render);
-  render();
+  document.addEventListener('submit', e => {
+    if (e.target.id !== 'hsform') return;
+    e.preventDefault(); submitScore($('#hsname').value);
+  });
+  window.addEventListener('vg726:lang', () => { render(); renderBoard(); });
+  render(); renderBoard(); loadBoard();
 })();
 </script>
 </body>

@@ -68,10 +68,10 @@ VG726.add({
 VG726.add({
  "de": {
   "Quiz": "Quiz",
-  "Test je kennis: rangen, commando's, Führungszeichen, spellen, morse, uitrusting en dienst.": "Prüfe dein Wissen: Dienstgrade, Kommandos, Führungszeichen, Buchstabieren, Morsen, Ausrüstung und Dienst."
+  "Test je kennis: rangen, commando's, Führungszeichen, spellen, uitrusting en dienst. Met highscorelijst.": "Prüfe dein Wissen: Dienstgrade, Kommandos, Führungszeichen, Buchstabieren, Ausrüstung und Dienst. Mit Bestenliste."
  },
  "en": {
   "Quiz": "Quiz",
-  "Test je kennis: rangen, commando's, Führungszeichen, spellen, morse, uitrusting en dienst.": "Test your knowledge: ranks, commands, hand signals, spelling, Morse, equipment and duty."
+  "Test je kennis: rangen, commando's, Führungszeichen, spellen, uitrusting en dienst. Met highscorelijst.": "Test your knowledge: ranks, commands, hand signals, spelling, equipment and duty. With a high-score list."
  }
 });

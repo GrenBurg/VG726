@@ -36,3 +36,14 @@ De generator draait volledig in de browser. Dezelfde **sleutel** met dezelfde in
 ## Talen
 
 De site is er in het Nederlands, Duits en Engels (Reibert blijft Nederlands). `i18n.js` zet de vlaggetjes rechtsboven en onthoudt de gekozen taal. Elke pagina laadt daarnaast een `vertalingen.js` met de Duitse en Engelse teksten; de sleutel is steeds de Nederlandse tekst. Nieuwe tekst toevoegen: geef het element `data-i18n` en zet de vertaling in `vertalingen.js`.
+
+## Quiz-highscores
+
+De gedeelde highscorelijst van de quiz staat in een Google Sheet. Eenmalig instellen:
+
+1. Maak een nieuwe Google Sheet (bijvoorbeeld "VG726 Quiz Highscores").
+2. **Extensies → Apps Script**, wis wat er staat en plak de inhoud van `quiz/highscore-google-sheet.gs`. Opslaan.
+3. **Implementeren → Nieuwe implementatie → Web-app**. Uitvoeren als: *Ik*. Toegang: *Iedereen*. Toestemming geven.
+4. Zet de Web-app-URL (eindigt op `/exec`) in `quiz/highscore-adres.js`.
+
+Beheren: de scores staan in het tabblad "Highscores"; een regel wissen haalt iemand van de lijst. De lijst toont per naam de beste score.

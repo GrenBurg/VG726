@@ -1,7 +1,7 @@
 /* VG726 — vragenbank voor de quiz
  *
  * Bronnen: Reibert Online (rangen, Benehmen, Exerzieren, Führungszeichen, Spähtrupp, Gefecht, Organisatie),
- * het Merkblatt Buchstabiertafel, de morsetabel van de Funkgerät-simulator en de uitrustingsgids.
+ * het Merkblatt Buchstabiertafel en de uitrustingsgids.
  *
  * Tekst in drie talen: { nl, de, en }. Een gewone tekst (string) is in alle talen gelijk.
  * Een vraag toevoegen bij "Dienst & Gefecht": zet een nieuw object in FEITEN; het eerste antwoord is het goede.
@@ -65,12 +65,6 @@ window.QUIZ = (function () {
     ['L', 'Ludwig'], ['M', 'Marie'], ['N', 'Nordpol'], ['O', 'Otto'], ['Ö', 'Öse'], ['P', 'Paula'], ['Q', 'Quelle'],
     ['R', 'Richard'], ['S', 'Siegfried'], ['Sch', 'Schule'], ['T', 'Toni'], ['U', 'Ulrich'], ['Ü', 'Übel'],
     ['V', 'Viktor'], ['W', 'Wilhelm'], ['X', 'Xantippe'], ['Y', 'Ypern'], ['Z', 'Zeppelin']];
-
-  /* ---------------- Morse (zoals in de Funkgerät-simulator) ---------------- */
-  const MORSE = { A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---',
-    K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-',
-    V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..', 'Ä': '.-.-', 'Ö': '---.', 'Ü': '..--', CH: '----',
-    '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----' };
 
   /* ---------------- Ausrüstung ---------------- */
   const UITRUSTING = [
@@ -174,5 +168,5 @@ window.QUIZ = (function () {
       x: { nl: 'In het foedraal op de linkerheup, onder de bajonet.', de: 'Im Futteral auf der linken Hüfte, unter dem Seitengewehr.', en: 'In its carrier on the left hip, under the bayonet.' } },
   ];
 
-  return { RANGEN, KOMMANDOS, ZEICHEN, BUCHSTABEN, MORSE, UITRUSTING, FEITEN };
+  return { RANGEN, KOMMANDOS, ZEICHEN, BUCHSTABEN, UITRUSTING, FEITEN };
 })();
