@@ -175,3 +175,5 @@ window.VG726 && VG726.add({
   "Ander antwoord": "Change answer"
  }
 });
+
+window.VG726 && VG726.add({"de": {"Vragen uit Reibert Online, de H.Dv. 130/2a (1942), de Merkblätter en de uitrustingsgids.": "Fragen aus Reibert Online, der H.Dv. 130/2a (1942), den Merkblättern und dem Ausrüstungsführer."}, "en": {"Vragen uit Reibert Online, de H.Dv. 130/2a (1942), de Merkblätter en de uitrustingsgids.": "Questions from Reibert Online, H.Dv. 130/2a (1942), the Merkblätter and the equipment guide."}});
