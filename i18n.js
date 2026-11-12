@@ -25,6 +25,7 @@
   function t(nl) {
     if (lang === 'nl' || nl == null) return nl;
     var k = norm(nl), d = dicts[lang];
+    if (!k) return nl;
     if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
     missing[lang + '|' + k] = 1;
     return nl;
