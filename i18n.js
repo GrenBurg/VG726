@@ -9,6 +9,7 @@
  * - data-i18n-attr="alt,title,aria-label,placeholder" vertaalt die attributen.
  * - In JavaScript: VG726.t("Nederlandse tekst"), VG726.lang, en het event
  *   "vg726:lang" op window om opnieuw te tekenen na een taalwissel.
+ * - Patronen: {x} past op elke tekst, {0} {1} … alleen op een getal.
  * - Vlaggetjes komen rechtsboven, of in een element met id="vg-lang" als dat bestaat.
  *   <body data-no-flags> zet ze uit.
  */
@@ -68,7 +69,7 @@
         dicts[l][nk] = d[l][k];
         if (/\{\w+\}/.test(nk)) {
           var names = [];
-          var src = reEsc(nk).replace(/\\\{(\w+)\\\}/g, function (_, n) { names.push(n); return '(.+?)'; });
+          var src = reEsc(nk).replace(/\\\{(\w+)\\\}/g, function (_, n) { names.push(n); return /^\d+$/.test(n) ? '(\\d+(?:[.,]\\d+)?)' : '(.+?)'; });
           pats[l].push({ re: new RegExp('^' + src + '$'), names: names, out: d[l][k] });
         }
       }
@@ -96,6 +97,11 @@
     var out = o;
     if (lang !== 'nl') {
       var t = tx(o);
+      if (t == null && o.indexOf('\n') >= 0) {
+        var any = false, ls = o.split('\n').map(function (ln) { var x = ln.trim() ? tx(ln) : null; if (x != null) { any = true; return ln.match(/^\s*/)[0] + x; } return ln; });
+        if (any) t = ls.join('\n');
+        if (t != null) { if (n.nodeValue !== t) n.nodeValue = t; return; }
+      }
       if (t != null) { var lead = o.match(/^\s*/)[0], trail = o.match(/\s*$/)[0]; out = lead + t + trail; }
       else if (/[a-z]{3}/i.test(o)) missing[lang + '|' + norm(o)] = 1;
     }
@@ -121,7 +127,7 @@
     if (root.nodeType !== 1 || root.closest('[data-noi18n],[data-i18n],.vg-lang,script,style,textarea,code')) return;
     domAttrs(root);
     var w = document.createTreeWalker(root, 5, { acceptNode: function (n) {
-      if (n.nodeType === 1) return skipEl(n) ? 2 : 1;
+      if (n.nodeType === 1) { if (skipEl(n)) { if (n.tagName === 'TEXTAREA') domAttrs(n); return 2; } return 1; }
       return n.nodeValue.trim() ? 1 : 3;
     } }), n;
     while ((n = w.nextNode())) { if (n.nodeType === 1) domAttrs(n); else domText(n); }

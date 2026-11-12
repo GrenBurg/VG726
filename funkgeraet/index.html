@@ -771,8 +771,10 @@
 </style>
 <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
 <style>.vg-home{display:inline-block;font-family:var(--mono),monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-dim);text-decoration:none;margin-bottom:4px}.vg-home:hover,.vg-home:focus-visible{color:#efe6cc}</style>
+<script src="../i18n.js"></script>
+<script src="vertalingen.js"></script>
 </head>
-<body>
+<body data-i18n-auto>
 <div class="wrap">
 
   <div class="title">
@@ -3195,7 +3197,7 @@
     window.receiveMorseText = function(text, fromInfo){
       const ta = document.getElementById('nbText');
       const stamp = fromInfo || 'tegenstation';
-      ta.value += (ta.value ? '\n' : '') + '--- ontvangen van ' + stamp + ' ---\n';
+      ta.value += (ta.value ? '\n' : '') + '--- ' + (window.VG726 ? VG726.t('ontvangen van') : 'ontvangen van') + ' ' + stamp + ' ---\n';
       persist();
       if(sendResult){
         sendResult.textContent = 'Bericht komt binnen — wordt live uitgeschreven op Morse-tempo…';
