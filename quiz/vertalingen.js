@@ -105,3 +105,39 @@ window.VG726 && VG726.add({
   "Score invoeren": "Enter score"
  }
 });
+
+/* Examen */
+window.VG726 && VG726.add({
+ "de": {
+  "Beste examenscore per naam.": "Bestes Prüfungsergebnis pro Name.",
+  "Doe het examen en zet je score op de lijst.": "Mach die Prüfung und trag dein Ergebnis in die Liste ein.",
+  "Examen": "Prüfung",
+  "30 vragen uit alle onderdelen. Je uitslag in procenten kan op de Bestenliste.": "30 Fragen aus allen Bereichen. Dein Ergebnis in Prozent kann auf die Bestenliste.",
+  "Oefenen per onderdeel": "Üben nach Bereich",
+  "goed": "richtig",
+  "Uitstekend. Daar kan de Spieß niets op aanmerken.": "Ausgezeichnet. Da hat selbst der Spieß nichts auszusetzen.",
+  "Zeer goed. Kijk de fouten nog even na.": "Sehr gut. Sieh dir die Fehler noch einmal an.",
+  "Geslaagd. Met wat oefenen per onderdeel haal je meer.": "Bestanden. Mit etwas Üben pro Bereich schaffst du mehr.",
+  "Niet geslaagd. Oefen eerst de onderdelen en probeer het opnieuw.": "Nicht bestanden. Üb zuerst die Bereiche und versuch es dann noch einmal.",
+  "Zet je uitslag op de Bestenliste:": "Trag dein Ergebnis in die Bestenliste ein:",
+  "Nieuw examen": "Neue Prüfung",
+  "Terug naar het overzicht": "Zurück zur Übersicht"
+ },
+ "en": {
+  "Beste examenscore per naam.": "Best exam score per name.",
+  "Doe het examen en zet je score op de lijst.": "Take the exam and put your score on the list.",
+  "Examen": "Exam",
+  "30 vragen uit alle onderdelen. Je uitslag in procenten kan op de Bestenliste.": "30 questions from every topic. Your result as a percentage can go on the Bestenliste.",
+  "Oefenen per onderdeel": "Practise by topic",
+  "goed": "correct",
+  "Uitstekend. Daar kan de Spieß niets op aanmerken.": "Excellent. Even the Spieß can't find fault with that.",
+  "Zeer goed. Kijk de fouten nog even na.": "Very good. Have a look at the mistakes.",
+  "Geslaagd. Met wat oefenen per onderdeel haal je meer.": "Passed. With some practice per topic you'll score higher.",
+  "Niet geslaagd. Oefen eerst de onderdelen en probeer het opnieuw.": "Not passed. Practise the topics first and try again.",
+  "Zet je uitslag op de Bestenliste:": "Put your result on the Bestenliste:",
+  "Nieuw examen": "New exam",
+  "Terug naar het overzicht": "Back to overview"
+ }
+});
+
+window.VG726 && VG726.add({"de": {"Oefen per onderdeel en doe dan het examen.": "Übe nach Bereich und mach dann die Prüfung."}, "en": {"Oefen per onderdeel en doe dan het examen.": "Practise by topic, then take the exam."}});

@@ -39,7 +39,7 @@ De site is er in het Nederlands, Duits en Engels (Reibert blijft Nederlands). `i
 
 ## Quiz-highscores
 
-De gedeelde highscorelijst van de quiz staat in een Google Sheet. Eenmalig instellen:
+De quiz heeft oefenmodules per onderdeel en een examen van 30 vragen. De examenscore (in %) gaat naar een gedeelde highscorelijst in een Google Sheet. Eenmalig instellen:
 
 1. Maak een nieuwe Google Sheet (bijvoorbeeld "VG726 Quiz Highscores").
 2. **Extensies → Apps Script**, wis wat er staat en plak de inhoud van `quiz/highscore-google-sheet.gs`. Opslaan.

@@ -92,6 +92,61 @@ window.QUIZ = (function () {
     ['Kleines Schanzzeug', { nl: 'Korte schep', de: 'Kurzer Spaten', en: 'Entrenching tool' }],
   ];
 
+
+  /* ---------------- Gliederung des Heeres (groot → klein) ---------------- */
+  const EENHEDEN = [
+    ['Heeresgruppe', { nl: 'Legergroep', de: 'Heeresgruppe', en: 'Army group' }, { nl: 'Honderdduizenden', de: 'Hunderttausende', en: 'Hundreds of thousands' }],
+    ['Armee', { nl: 'Leger', de: 'Armee', en: 'Army' }, '60.000–100.000'],
+    ['Korps', { nl: 'Legerkorps', de: 'Korps', en: 'Corps' }, '40.000–60.000'],
+    ['Division', { nl: 'Divisie', de: 'Division', en: 'Division' }, '10.000–20.000'],
+    ['Brigade', { nl: 'Brigade', de: 'Brigade', en: 'Brigade' }, '5.000–7.000'],
+    ['Regiment', { nl: 'Regiment', de: 'Regiment', en: 'Regiment' }, '2.000–6.000'],
+    ['Bataillon', { nl: 'Bataljon', de: 'Bataillon', en: 'Battalion' }, '500–1.000'],
+    ['Kompanie', { nl: 'Compagnie', de: 'Kompanie', en: 'Company' }, '100–200'],
+    ['Zug', { nl: 'Peloton', de: 'Zug', en: 'Platoon' }, '30–40'],
+    ['Gruppe', { nl: 'Groep (sectie)', de: 'Gruppe', en: 'Squad' }, { nl: 'Ongeveer 10', de: 'Etwa 10', en: 'About 10' }],
+    ['Trupp', { nl: 'Ploeg', de: 'Trupp', en: 'Team' }, { nl: 'Een paar man', de: 'Einige Mann', en: 'A few men' }],
+  ];
+
+  const GLIEDERUNG_FEITEN = [
+    { q: { nl: 'Hoeveel man telt een Gruppe ongeveer?', de: 'Wie viele Mann hat eine Gruppe ungefähr?', en: 'About how many men are in a Gruppe?' },
+      a: ['10', '4', '30', '100'],
+      x: { nl: 'Ongeveer tien man onder een Gruppenführer.', de: 'Etwa zehn Mann unter einem Gruppenführer.', en: 'About ten men under a Gruppenführer.' } },
+    { q: { nl: 'Hoeveel man telt een Zug ongeveer?', de: 'Wie viele Mann hat ein Zug ungefähr?', en: 'About how many men are in a Zug?' },
+      a: ['30–40', '10', '100–200', '500'],
+      x: { nl: 'Een Zug bestaat uit een paar Gruppen.', de: 'Ein Zug besteht aus einigen Gruppen.', en: 'A Zug consists of a few Gruppen.' } },
+    { q: { nl: 'Hoeveel infanteriebataljons had een Volksgrenadier-Division?', de: 'Wie viele Infanterie-Bataillone hatte eine Volksgrenadier-Division?', en: 'How many infantry battalions did a Volksgrenadier-Division have?' },
+      a: ['6', '9', '3', '12'],
+      x: { nl: 'Zes in plaats van de gewone negen, met meer automatische wapens.', de: 'Sechs statt der üblichen neun, dafür mehr automatische Waffen.', en: 'Six instead of the usual nine, with more automatic weapons.' } },
+    { q: { nl: 'Bij welke divisie hoorde Grenadier-Regiment 726?', de: 'Zu welcher Division gehörte das Grenadier-Regiment 726?', en: 'Which division did Grenadier-Regiment 726 belong to?' },
+      a: ['716. Infanterie-Division', '352. Infanterie-Division', '21. Panzer-Division', '12. Volksgrenadier-Division'],
+      x: { nl: 'Al in 1941 bij de opbouw van de 716. Infanterie-Division.', de: 'Schon 1941 bei der Aufstellung der 716. Infanterie-Division.', en: 'Since the 716. Infanterie-Division was raised in 1941.' } },
+    { q: { nl: 'Onder welke divisie stonden I. en III./GR 726 op D-Day bij Omaha?', de: 'Welcher Division unterstanden I. und III./GR 726 am D-Day bei Omaha?', en: 'Which division were I. and III./GR 726 under at Omaha on D-Day?' },
+      a: ['352. Infanterie-Division', '716. Infanterie-Division', '21. Panzer-Division', '91. Luftlande-Division'],
+      x: { nl: 'Ze waren toegewezen aan de buurdivisie, de 352.', de: 'Sie waren der Nachbardivision, der 352., unterstellt.', en: 'They were under the neighbouring 352nd Division.' } },
+    { q: { nl: 'Wat is een Kampfgruppe?', de: 'Was ist eine Kampfgruppe?', en: 'What is a Kampfgruppe?' },
+      a: [{ nl: 'Een tijdelijke mix van eenheden voor één taak, genoemd naar de commandant', de: 'Ein zeitweiliger Verband verschiedener Einheiten für eine Aufgabe, benannt nach dem Führer', en: 'A temporary mix of units for one task, named after its commander' }, { nl: 'Een vaste eenheid tussen Zug en Kompanie', de: 'Eine feste Einheit zwischen Zug und Kompanie', en: 'A permanent unit between platoon and company' }, { nl: 'Een ander woord voor Gruppe', de: 'Ein anderes Wort für Gruppe', en: 'Another word for Gruppe' }, { nl: 'Een gevechtsopleiding voor rekruten', de: 'Eine Gefechtsausbildung für Rekruten', en: 'Combat training for recruits' }],
+      x: { nl: 'Vaak ongeveer zo groot als een Abteilung, maar het kon ook een Korps of een Kompanie zijn.', de: 'Oft etwa so groß wie eine Abteilung, konnte aber auch Korps- oder Kompaniegröße haben.', en: 'Often about the size of an Abteilung, but it could range from a Korps to a Kompanie.' } },
+    { q: { nl: 'Wat was de kleinste eenheid die zichzelf in een gevecht kon redden?', de: 'Was war der kleinste Verband, der sich im Gefecht selbst versorgen konnte?', en: 'What was the smallest formation that could sustain itself in combat?' },
+      a: ['Abteilung / Bataillon', 'Kompanie', 'Zug', 'Regiment'],
+      x: { nl: 'Kleiner dan een Abteilung had meestal te weinig vuurkracht en ondersteuning.', de: 'Darunter fehlte es meist an Feuerkraft und Unterstützung.', en: 'Anything smaller usually lacked the firepower and support.' } },
+    { q: { nl: 'Is „Truppen“ het meervoud van „Trupp“?', de: 'Ist „Truppen“ die Mehrzahl von „Trupp“?', en: 'Is "Truppen" the plural of "Trupp"?' },
+      a: [{ nl: 'Nee: Truppen betekent troepen; het meervoud is Trupps', de: 'Nein: Truppen heißt Streitkräfte; die Mehrzahl ist Trupps', en: 'No: Truppen means troops; the plural is Trupps' }, { nl: 'Ja', de: 'Ja', en: 'Yes' }, { nl: 'Nee, het meervoud is Trüppe', de: 'Nein, die Mehrzahl ist Trüppe', en: 'No, the plural is Trüppe' }, { nl: 'Alleen bij de artillerie', de: 'Nur bei der Artillerie', en: 'Only in the artillery' }],
+      x: { nl: 'Een Trupp is een klein ploegje voor één taak, zoals een MG-Trupp of Spähtrupp.', de: 'Ein Trupp ist eine kleine Gruppe für eine Aufgabe, etwa MG-Trupp oder Spähtrupp.', en: 'A Trupp is a small team for one task, such as an MG-Trupp or Spähtrupp.' } },
+    { q: { nl: 'Wat is een Halbzug?', de: 'Was ist ein Halbzug?', en: 'What is a Halbzug?' },
+      a: [{ nl: 'Een Zug die in twee delen is gesplitst', de: 'Ein in zwei Teile geteilter Zug', en: 'A Zug split into two parts' }, { nl: 'Een Zug op halve sterkte na verliezen', de: 'Ein Zug mit halber Stärke nach Verlusten', en: 'A Zug at half strength after losses' }, { nl: 'Twee Gruppen samen met een MG', de: 'Zwei Gruppen mit einem MG', en: 'Two Gruppen with an MG' }, { nl: 'Een halftrack', de: 'Ein Halbkettenfahrzeug', en: 'A half-track' }],
+      x: { nl: 'Halbzug: de helft van een opgesplitste Zug.', de: 'Halbzug: die Hälfte eines geteilten Zuges.', en: 'Halbzug: half of a Zug that has been split.' } },
+    { q: { nl: 'Hoe heet een bataljon bij de artillerie?', de: 'Wie heißt ein Bataillon bei der Artillerie?', en: 'What is a battalion called in the artillery?' },
+      a: ['Abteilung', 'Batterie', 'Staffel', 'Kolonne'],
+      x: { nl: 'Bij de artillerie en andere wapens heette het Abteilung.', de: 'Bei der Artillerie und anderen Waffengattungen hieß es Abteilung.', en: 'In the artillery and other arms it was called an Abteilung.' } },
+    { q: { nl: 'Wat is een Kolonne?', de: 'Was ist eine Kolonne?', en: 'What is a Kolonne?' },
+      a: [{ nl: 'Een zelfstandige transporteenheid', de: 'Eine selbständige Transporteinheit', en: 'An independent transport unit' }, { nl: 'Een marsformatie van drie naast elkaar', de: 'Eine Marschordnung zu dreien', en: 'A marching formation three abreast' }, { nl: 'Een verkenningsploeg', de: 'Ein Spähtrupp', en: 'A scout patrol' }, { nl: 'De staf van een divisie', de: 'Der Stab einer Division', en: 'A division staff' }],
+      x: { nl: 'Bijvoorbeeld een brugkolonne die het brugmateriaal vervoerde.', de: 'Zum Beispiel eine Brückenkolonne, die das Brückengerät beförderte.', en: 'For example a bridge column carrying bridging equipment.' } },
+    { q: { nl: 'Wie voert een Gruppe aan?', de: 'Wer führt eine Gruppe?', en: 'Who leads a Gruppe?' },
+      a: ['Gruppenführer', 'Zugführer', 'Kompaniechef', 'Spieß'],
+      x: { nl: 'Vaak een Unteroffizier; aan het eind van de oorlog ook wel een Stabsgefreiter.', de: 'Meist ein Unteroffizier; gegen Kriegsende oft auch ein Stabsgefreiter.', en: 'Usually an Unteroffizier; late in the war often a Stabsgefreiter.' } },
+  ];
+
   /* ---------------- Dienst & Gefecht: losse vragen (eerste antwoord = goed) ---------------- */
   const FEITEN = [
     { q: { nl: 'Hoe spreek je een Unteroffizier aan?', de: 'Wie sprichst du einen Unteroffizier an?', en: 'How do you address an Unteroffizier?' },
@@ -136,21 +191,6 @@ window.QUIZ = (function () {
     { q: { nl: 'Met welke rang beginnen de Unteroffiziere mit Portepee?', de: 'Mit welchem Dienstgrad beginnen die Unteroffiziere mit Portepee?', en: 'With which rank do the Unteroffiziere mit Portepee begin?' },
       a: ['Feldwebel', 'Unteroffizier', 'Unterfeldwebel', 'Stabsgefreiter'],
       x: { nl: 'Unteroffizier en Unterfeldwebel zijn zonder Portepee; vanaf Feldwebel met.', de: 'Unteroffizier und Unterfeldwebel sind ohne Portepee, ab Feldwebel mit.', en: 'Unteroffizier and Unterfeldwebel are without Portepee; from Feldwebel up, with.' } },
-    { q: { nl: 'Hoeveel man telt een Gruppe ongeveer?', de: 'Wie viele Mann hat eine Gruppe ungefähr?', en: 'About how many men are in a Gruppe?' },
-      a: ['10', '4', '30', '100'],
-      x: { nl: 'Ongeveer tien man onder een Gruppenführer.', de: 'Etwa zehn Mann unter einem Gruppenführer.', en: 'About ten men under a Gruppenführer.' } },
-    { q: { nl: 'Hoeveel man telt een Zug ongeveer?', de: 'Wie viele Mann hat ein Zug ungefähr?', en: 'About how many men are in a Zug?' },
-      a: ['30–40', '10', '100–200', '500'],
-      x: { nl: 'Een Zug bestaat uit een paar Gruppen.', de: 'Ein Zug besteht aus einigen Gruppen.', en: 'A Zug consists of a few Gruppen.' } },
-    { q: { nl: 'Hoeveel infanteriebataljons had een Volksgrenadier-Division?', de: 'Wie viele Infanterie-Bataillone hatte eine Volksgrenadier-Division?', en: 'How many infantry battalions did a Volksgrenadier-Division have?' },
-      a: ['6', '9', '3', '12'],
-      x: { nl: 'Zes in plaats van de gewone negen, met meer automatische wapens.', de: 'Sechs statt der üblichen neun, dafür mehr automatische Waffen.', en: 'Six instead of the usual nine, with more automatic weapons.' } },
-    { q: { nl: 'Bij welke divisie hoorde Grenadier-Regiment 726?', de: 'Zu welcher Division gehörte das Grenadier-Regiment 726?', en: 'Which division did Grenadier-Regiment 726 belong to?' },
-      a: ['716. Infanterie-Division', '352. Infanterie-Division', '21. Panzer-Division', '12. Volksgrenadier-Division'],
-      x: { nl: 'Al in 1941 bij de opbouw van de 716. Infanterie-Division.', de: 'Schon 1941 bei der Aufstellung der 716. Infanterie-Division.', en: 'Since the 716. Infanterie-Division was raised in 1941.' } },
-    { q: { nl: 'Onder welke divisie stonden I. en III./GR 726 op D-Day bij Omaha?', de: 'Welcher Division unterstanden I. und III./GR 726 am D-Day bei Omaha?', en: 'Which division were I. and III./GR 726 under at Omaha on D-Day?' },
-      a: ['352. Infanterie-Division', '716. Infanterie-Division', '21. Panzer-Division', '91. Luftlande-Division'],
-      x: { nl: 'Ze waren toegewezen aan de buurdivisie, de 352.', de: 'Sie waren der Nachbardivision, der 352., unterstellt.', en: 'They were under the neighbouring 352nd Division.' } },
     { q: { nl: 'Bij „Rührt euch!“ zet je welke voet naar voren?', de: 'Bei „Rührt euch!“ setzt du welchen Fuß vor?', en: 'At "Rührt euch!" which foot goes forward?' },
       a: [{ nl: 'Links', de: 'Links', en: 'Left' }, { nl: 'Rechts', de: 'Rechts', en: 'Right' }, { nl: 'Geen van beide', de: 'Keinen', en: 'Neither' }, { nl: 'Beide uit elkaar', de: 'Beide auseinander', en: 'Both apart' }],
       x: { nl: 'Linkervoet naar voren, wel stil blijven en niet praten.', de: 'Linken Fuß vor, aber still bleiben und nicht sprechen.', en: 'Left foot forward, but stay still and silent.' } },
@@ -168,5 +208,5 @@ window.QUIZ = (function () {
       x: { nl: 'In het foedraal op de linkerheup, onder de bajonet.', de: 'Im Futteral auf der linken Hüfte, unter dem Seitengewehr.', en: 'In its carrier on the left hip, under the bayonet.' } },
   ];
 
-  return { RANGEN, KOMMANDOS, ZEICHEN, BUCHSTABEN, UITRUSTING, FEITEN };
+  return { RANGEN, KOMMANDOS, ZEICHEN, BUCHSTABEN, UITRUSTING, FEITEN, EENHEDEN, GLIEDERUNG_FEITEN };
 })();

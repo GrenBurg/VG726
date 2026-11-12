@@ -37,9 +37,6 @@
   .board .empty{padding:14px 16px;font-size:14px;color:var(--muted)}
   .board .foot{padding:8px 16px 12px;border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.04em}
   /* aftekenen */
-  .tally{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px;padding:10px 14px;border:1px dashed var(--line);font-size:14px}
-  .tally b{font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.06em}
-  .cat.done::after{content:"✓";position:absolute;top:10px;right:12px;font-family:"IBM Plex Mono",monospace;color:var(--ok);font-size:16px}
   .submit{margin:0 0 18px;padding:16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent)}
   .submit h3{margin:0 0 4px;font-size:18px}
   .submit p{margin:0 0 10px;font-size:14px;color:var(--muted)}
@@ -59,13 +56,18 @@
 
   /* keuze */
   .cats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .cat{all:unset;position:relative;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);transition:border-color .15s,background .15s}
+  .cat{all:unset;box-sizing:border-box;position:relative;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);transition:border-color .15s,background .15s}
   .cat:hover,.cat:focus-visible{border-left-color:var(--accent);background:#f3eddb}
   .cat:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
   .cat b{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:24px;line-height:1.1}
   .cat span{font-size:14px;color:var(--muted)}
   .cat small{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);letter-spacing:.06em;margin-top:4px}
-  .cat.all{grid-column:1/-1;border-left-color:var(--accent)}
+  .cat.exam{width:100%;border-left-color:var(--accent);border-top:3px double var(--accent);padding:18px}
+  .cat.exam b{font-size:34px}
+  .cat.exam .mono{font-size:11px;color:var(--accent)}
+  .ex{color:var(--accent);font-weight:500}
+  .examq{border-left-color:var(--accent)}
+  .result .submit{text-align:left;margin:16px auto 6px;max-width:440px}
   @media (max-width:460px){.cats{grid-template-columns:1fr}}
 
   /* vraag */
@@ -109,7 +111,7 @@
   <header>
     <div class="kicker">Prüfung · Wissensabfrage</div>
     <h1 data-i18n>Quiz</h1>
-    <p class="lead" data-i18n>Test wat je weet. Tien vragen per ronde.</p>
+    <p class="lead" data-i18n>Oefen per onderdeel en doe dan het examen.</p>
   </header>
   <div class="cols">
     <main id="app" aria-live="polite"></main>
@@ -122,104 +124,126 @@
 (function(){
   const T = s => (window.VG726 ? VG726.t(s) : s);
   const L = () => (window.VG726 ? VG726.lang : 'nl');
-  const tr = v => v == null ? '' : (typeof v === 'string' ? v : (v[L()] || v.nl));   // tekst in de huidige taal
+  const tr = v => v == null ? '' : (typeof v === 'string' ? v : (v[L()] || v.nl));
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const pick = (a, n) => shuffle(a).slice(0, n);
+  const rnd = a => a[Math.random() * a.length | 0];
   const $ = s => document.querySelector(s);
+  const key = v => JSON.stringify(v);
   const Q = window.QUIZ;
-  const PER_RONDE = 10;
+  const OEFEN = 10, EXAMEN = 30;
 
-  /* Adres van het Google-script dat de highscores bewaart (zie quiz/highscore-google-sheet.gs).
-     Leeg = lijst nog niet gekoppeld. */
+  /* Adres van het Google-script dat de highscores bewaart (zie highscore-google-sheet.gs). */
   const HIGHSCORE_URL = window.QUIZ_HIGHSCORE_URL || '';
-  const NK = 'vg726.quiz.naam', SK = 'vg726.quiz.ingezonden';
+  const NK = 'vg726.quiz.naam';
 
-  // maak een vraag met 4 opties uit een lijst; key = vergelijkingswaarde
-  function mc(cat, question, right, wrongPool, opts = {}) {
-    const wrongs = pick(wrongPool.filter(w => JSON.stringify(w) !== JSON.stringify(right)), 3);
+  function mc(cat, question, right, pool, opts = {}) {
+    const wrongs = pick(pool.filter(w => key(w) !== key(right)), 3);
     return { cat, q: question, big: opts.big, right, options: shuffle([right, ...wrongs]), x: opts.x };
   }
+  function feit(cat, list, used) {
+    const free = list.filter(f => !used.has(f)), f = rnd(free.length ? free : list);
+    used.add(f);
+    return { cat, q: f.q, right: f.a[0], options: shuffle(f.a), x: f.x };
+  }
+  const ordered = (list, R) => list.slice().sort((a, b) => R.indexOf(a) - R.indexOf(b));
 
-  /* -------- vraaggenerators per categorie -------- */
+  /* -------- onderdelen -------- */
   const CATS = {
     rangen: { name: { nl: 'Dienstgrade', de: 'Dienstgrade', en: 'Ranks' }, desc: { nl: 'Welke rang is hoger?', de: 'Welcher Dienstgrad ist höher?', en: 'Which rank is higher?' },
       make() {
-        const R = Q.RANGEN, i = Math.random() < .5;
-        if (i) { // hoogste van vier
-          const four = pick(R, 4), hi = four.reduce((a, b) => R.indexOf(a) > R.indexOf(b) ? a : b);
+        const R = Q.RANGEN;
+        if (Math.random() < .5) {
+          const four = pick(R, 4), hi = ordered(four, R)[3], o = ordered(four, R).join(' → ');
           return { cat: 'rangen', q: { nl: 'Welke rang is het hoogst?', de: 'Welcher Dienstgrad ist am höchsten?', en: 'Which rank is the highest?' }, right: hi, options: shuffle(four),
-            x: { nl: 'Van laag naar hoog: ' + four.slice().sort((a, b) => R.indexOf(a) - R.indexOf(b)).join(' → '), de: 'Von niedrig nach hoch: ' + four.slice().sort((a, b) => R.indexOf(a) - R.indexOf(b)).join(' → '), en: 'From low to high: ' + four.slice().sort((a, b) => R.indexOf(a) - R.indexOf(b)).join(' → ') } };
+            x: { nl: 'Van laag naar hoog: ' + o, de: 'Von niedrig nach hoch: ' + o, en: 'From low to high: ' + o } };
         }
         const k = Math.random() * (R.length - 1) | 0;
         return mc('rangen', { nl: 'Welke rang komt direct boven ' + R[k] + '?', de: 'Welcher Dienstgrad kommt direkt über ' + R[k] + '?', en: 'Which rank comes directly above ' + R[k] + '?' },
-          R[k + 1], R.slice(Math.max(0, k - 3), k + 6).filter(r => r !== R[k]),
-          { x: { nl: R[k] + ' → ' + R[k + 1], de: R[k] + ' → ' + R[k + 1], en: R[k] + ' → ' + R[k + 1] } });
+          R[k + 1], R.slice(Math.max(0, k - 3), k + 6).filter(r => r !== R[k]), { x: R[k] + ' → ' + R[k + 1] });
+      } },
+    gliederung: { name: { nl: 'Gliederung', de: 'Gliederung', en: 'Organisation' }, desc: { nl: 'Van Heeresgruppe tot Trupp', de: 'Von der Heeresgruppe bis zum Trupp', en: 'From army group to team' },
+      make(used) {
+        const E = Q.EENHEDEN, N = E.map(e => e[0]), r = Math.random();
+        if (r < .22) {
+          const four = pick(N, 4), big = ordered(four, N)[0], o = ordered(four, N).join(' → ');
+          return { cat: 'gliederung', q: { nl: 'Welke eenheid is het grootst?', de: 'Welcher Verband ist am größten?', en: 'Which unit is the largest?' }, right: big, options: shuffle(four),
+            x: { nl: 'Van groot naar klein: ' + o, de: 'Von groß nach klein: ' + o, en: 'From large to small: ' + o } };
+        }
+        if (r < .40) {
+          const k = Math.random() * (N.length - 1) | 0;
+          return mc('gliederung', { nl: 'Welke eenheid komt direct onder een ' + N[k] + '?', de: 'Welcher Verband kommt direkt unter ' + (N[k] === 'Division' || N[k] === 'Brigade' || N[k] === 'Kompanie' || N[k] === 'Gruppe' || N[k] === 'Armee' || N[k] === 'Heeresgruppe' ? 'einer ' : 'einem ') + N[k] + '?', en: 'Which unit comes directly below a ' + N[k] + '?' },
+            N[k + 1], N.filter(n => n !== N[k]), { x: N[k] + ' → ' + N[k + 1] });
+        }
+        if (r < .58) {
+          const e = rnd(E.slice(1, 9));
+          return mc('gliederung', { nl: 'Hoeveel man telde een ' + e[0] + ' ongeveer?', de: 'Wie viele Mann hatte ' + (['Division', 'Brigade', 'Kompanie', 'Armee'].includes(e[0]) ? 'eine ' : 'ein ') + e[0] + ' ungefähr?', en: 'About how many men were in a ' + e[0] + '?' },
+            e[2], E.slice(1, 10).map(x => x[2]), { x: { nl: 'In theorie, volgens Reibert Online.', de: 'In der Theorie, laut Reibert Online.', en: 'In theory, according to Reibert Online.' } });
+        }
+        if (r < .72) {
+          // vertaling: in het Duits vragen we naar de Engelse naam, anders zou het antwoord gelijk zijn aan de vraag
+          const nm = x => ({ nl: x[1].nl, de: x[1].en, en: x[1].en });
+          const e = rnd(E.filter(x => x[1].nl !== x[0] && x[1].en !== x[0]));
+          return mc('gliederung', { nl: 'Hoe heet dit in het Nederlands?', de: 'Wie heißt das auf Englisch?', en: 'What is this in English?' }, nm(e), E.map(nm), { big: e[0] });
+        }
+        return feit('gliederung', Q.GLIEDERUNG_FEITEN, used);
       } },
     kommandos: { name: { nl: 'Kommandos', de: 'Kommandos', en: 'Commands' }, desc: { nl: 'Exercitie en geweergrepen', de: 'Exerzieren und Griffe', en: 'Drill and rifle drill' },
       make() {
-        const [cmd, m] = Q.KOMMANDOS[Math.random() * Q.KOMMANDOS.length | 0];
+        const [cmd, m] = rnd(Q.KOMMANDOS);
         if (Math.random() < .55) return mc('kommandos', { nl: 'Wat betekent dit commando?', de: 'Was bedeutet dieses Kommando?', en: 'What does this command mean?' }, m, Q.KOMMANDOS.map(k => k[1]), { big: cmd });
         return mc('kommandos', { nl: 'Welk commando hoort hierbij?', de: 'Welches Kommando gehört dazu?', en: 'Which command is this?' }, cmd, Q.KOMMANDOS.map(k => k[0]), { big: m });
       } },
     zeichen: { name: { nl: 'Führungszeichen', de: 'Führungszeichen', en: 'Hand signals' }, desc: { nl: 'Arm- en geweertekens', de: 'Arm- und Gerätezeichen', en: 'Arm and equipment signals' },
       make() {
-        const [d, m] = Q.ZEICHEN[Math.random() * Q.ZEICHEN.length | 0];
+        const [d, m] = rnd(Q.ZEICHEN);
         if (Math.random() < .6) return mc('zeichen', { nl: 'Wat betekent dit teken?', de: 'Was bedeutet dieses Zeichen?', en: 'What does this signal mean?' }, m, Q.ZEICHEN.map(z => z[1]), { big: d });
         return mc('zeichen', { nl: 'Welk teken geef je voor dit bevel?', de: 'Welches Zeichen gibst du für diesen Befehl?', en: 'Which signal do you give for this order?' }, d, Q.ZEICHEN.map(z => z[0]), { big: m });
       } },
     buchstaben: { name: { nl: 'Buchstabiertafel', de: 'Buchstabiertafel', en: 'Spelling alphabet' }, desc: { nl: 'Spellen aan de telefoon (1934)', de: 'Buchstabieren am Fernsprecher (1934)', en: 'Spelling on the telephone (1934)' },
       make() {
-        const B = Q.BUCHSTABEN, [l, w] = B[Math.random() * B.length | 0];
+        const B = Q.BUCHSTABEN, [l, w] = rnd(B);
         if (Math.random() < .6) return mc('buchstaben', { nl: 'Hoe spel je deze letter?', de: 'Wie buchstabierst du diesen Buchstaben?', en: 'How do you spell this letter?' }, w, B.map(b => b[1]), { big: l });
         return mc('buchstaben', { nl: 'Welke letter is dit?', de: 'Welcher Buchstabe ist das?', en: 'Which letter is this?' }, l, B.map(b => b[0]), { big: w });
       } },
     uitrusting: { name: { nl: 'Ausrüstung', de: 'Ausrüstung', en: 'Equipment' }, desc: { nl: 'Wat is wat?', de: 'Was ist was?', en: 'What is what?' },
       make() {
-        const U = Q.UITRUSTING, [n, m] = U[Math.random() * U.length | 0];
+        const U = Q.UITRUSTING, [n, m] = rnd(U);
         if (Math.random() < .6) return mc('uitrusting', { nl: 'Wat is dit?', de: 'Was ist das?', en: 'What is this?' }, m, U.map(u => u[1]), { big: n });
         return mc('uitrusting', { nl: 'Hoe heet dit in het Duits?', de: 'Wie heißt das im Dienst?', en: 'What is this called in German?' }, n, U.map(u => u[0]), { big: m });
       } },
     dienst: { name: { nl: 'Dienst & Gefecht', de: 'Dienst & Gefecht', en: 'Duty & combat' }, desc: { nl: 'Gedrag, verkennen, ingraven', de: 'Benehmen, Aufklärung, Eingraben', en: 'Conduct, scouting, digging in' },
-      pool: Q.FEITEN,
-      make(used) {
-        const free = Q.FEITEN.filter(f => !used.has(f));
-        const f = (free.length ? free : Q.FEITEN)[Math.random() * (free.length || Q.FEITEN.length) | 0];
-        used.add(f);
-        return { cat: 'dienst', q: f.q, right: f.a[0], options: shuffle(f.a), x: f.x };
-      } },
+      make(used) { return feit('dienst', Q.FEITEN, used); } },
   };
-  const ORDER = ['rangen', 'kommandos', 'zeichen', 'buchstaben', 'uitrusting', 'dienst'];
+  const ORDER = ['rangen', 'gliederung', 'kommandos', 'zeichen', 'buchstaben', 'uitrusting', 'dienst'];
 
   /* -------- beste scores (op dit toestel) -------- */
   const BK = 'vg726.quiz.best';
   let best = {}; try { best = JSON.parse(localStorage.getItem(BK) || '{}'); } catch (e) {}
   const saveBest = (c, s) => { if (!(best[c] >= s)) { best[c] = s; try { localStorage.setItem(BK, JSON.stringify(best)); } catch (e) {} } };
 
-  /* -------- toestand -------- */
+  /* -------- rondes -------- */
   let view = 'menu', round = null;
-
   function buildRound(cat) {
+    const exam = cat === 'examen', n = exam ? EXAMEN : OEFEN;
+    // examen: zo gelijk mogelijk verdeeld over alle onderdelen
+    const plan = exam ? shuffle(Array.from({ length: n }, (_, i) => ORDER[i % ORDER.length])) : Array(n).fill(cat);
     const qs = [], seen = new Set(), used = new Set();
-    let guard = 0;
-    while (qs.length < PER_RONDE && guard++ < 400) {
-      const c = cat === 'alles' ? ORDER[Math.random() * ORDER.length | 0] : cat;
-      const q = CATS[c].make(used);
-      const id = c + '|' + JSON.stringify(q.q) + JSON.stringify(q.big || '') + JSON.stringify(q.right);
-      if (seen.has(id)) continue;
-      seen.add(id); qs.push(q);
+    for (const c of plan) {
+      for (let tries = 0; tries < 60; tries++) {
+        const q = CATS[c].make(used), id = c + key(q.q) + key(q.big || '') + key(q.right);
+        if (seen.has(id)) continue;
+        seen.add(id); qs.push(q); break;
+      }
     }
-    return { cat, qs, i: 0, score: 0, answered: null, wrong: [] };
+    return { cat, exam, qs, i: 0, score: 0, answered: null, answers: [], wrong: [], sent: false, msg: '' };
   }
+  const pct = r => Math.round(r.score / r.qs.length * 100);
 
-  /* -------- highscores -------- */
-  const total = () => ORDER.reduce((a, c) => a + (best[c] || 0), 0);
-  const doneCount = () => ORDER.filter(c => best[c] != null).length;
-  const MAX = ORDER.length * PER_RONDE;
+  /* -------- highscorelijst -------- */
   let board = { state: HIGHSCORE_URL ? 'laden' : 'geen', list: [] };
   let myName = ''; try { myName = localStorage.getItem(NK) || ''; } catch (e) {}
-  let sent = null; try { sent = JSON.parse(localStorage.getItem(SK) || 'null'); } catch (e) {}
-  let submitMsg = '';
   async function loadBoard() {
     if (!HIGHSCORE_URL) return renderBoard();
     try {
@@ -236,111 +260,108 @@
     else if (board.state === 'laden') body = `<div class="empty">${esc(T('Lijst wordt geladen…'))}</div>`;
     else if (board.state === 'fout') body = `<div class="empty">${esc(T('De lijst kon niet worden geladen. Probeer het later nog eens.'))}</div>`;
     else if (!board.list.length) body = `<div class="empty">${esc(T('Nog niemand op de lijst. Word jij de eerste?'))}</div>`;
-    else body = `<ol>${board.list.slice(0, 15).map((x, i) => `<li class="${myName && x.naam === myName ? 'me' : ''}"><span class="pl">${i + 1}.</span><span class="nm">${esc(x.naam)}</span><span class="sc">${esc(x.score)}/${MAX}</span></li>`).join('')}</ol>`;
-    el.innerHTML = `<h2>${esc(T('Bestenliste'))}</h2><div class="sub">${esc(T('Opgeteld: de beste score van elk onderdeel.'))}</div>${body}<div class="foot">${esc(T('Alle onderdelen afgetekend? Dan kun je je score invoeren.'))}</div>`;
+    else body = `<ol>${board.list.slice(0, 15).map((x, i) => `<li class="${myName && String(x.naam).toLowerCase() === myName.toLowerCase() ? 'me' : ''}"><span class="pl">${i + 1}.</span><span class="nm">${esc(x.naam)}</span><span class="sc">${esc(x.score)}%</span></li>`).join('')}</ol>`;
+    el.innerHTML = `<h2>${esc(T('Bestenliste'))}</h2><div class="sub">${esc(T('Beste examenscore per naam.'))}</div>${body}<div class="foot">${esc(T('Doe het examen en zet je score op de lijst.'))}</div>`;
   }
   async function submitScore(naam) {
+    const r = round;
     naam = naam.replace(/\s+/g, ' ').trim().slice(0, 24);
-    if (!naam) { submitMsg = T('Vul eerst je naam in.'); return render(); }
-    if (!HIGHSCORE_URL) { submitMsg = T('De gedeelde lijst is nog niet gekoppeld.'); return render(); }
+    if (!naam) { r.msg = T('Vul eerst je naam in.'); return render(); }
+    if (!HIGHSCORE_URL) { r.msg = T('De gedeelde lijst is nog niet gekoppeld.'); return render(); }
     myName = naam; try { localStorage.setItem(NK, naam); } catch (e) {}
-    submitMsg = T('Bezig met invoeren…'); render();
+    r.msg = T('Bezig met invoeren…'); r.busy = true; render();
     try {
-      const detail = Object.fromEntries(ORDER.map(c => [c, best[c] || 0]));
       // text/plain: geen extra toestemmingsvraag (preflight) nodig bij Google
-      const r = await fetch(HIGHSCORE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ naam, score: total(), detail }) });
-      const j = await r.json();
+      const res = await fetch(HIGHSCORE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ naam, score: pct(r), detail: { goed: r.score, vragen: r.qs.length } }) });
+      const j = await res.json();
       if (!j.ok) throw new Error(j.error || 'fout');
-      sent = { naam, score: total() }; try { localStorage.setItem(SK, JSON.stringify(sent)); } catch (e) {}
-      submitMsg = T('Ingevoerd! Je staat op de lijst.');
+      r.sent = true; r.msg = T('Ingevoerd! Je staat op de lijst.');
       if (Array.isArray(j.list)) board = { state: 'ok', list: j.list };
-    } catch (e) { submitMsg = T('Invoeren lukte niet. Probeer het later nog eens.'); }
-    render(); renderBoard();
-  }
-  function submitBox() {
-    const d = doneCount(), all = d === ORDER.length;
-    let h = `<div class="tally"><span>${esc(T('Afgetekend'))}: <b>${d} / ${ORDER.length}</b></span><span>${esc(T('Totaal'))}: <b>${total()} / ${MAX}</b></span></div>`;
-    if (!all) return h;
-    const already = sent && sent.score >= total();
-    h += `<div class="submit"><h3>${esc(T('Alles afgetekend!'))}</h3>
-      <p>${esc(already ? T('Je score staat op de lijst. Haal je ergens een hogere score, dan kun je hem opnieuw invoeren.') : T('Vul je naam in en zet je score op de lijst.'))}</p>
-      ${already ? '' : `<form id="hsform" autocomplete="off"><input id="hsname" name="naam" maxlength="24" placeholder="${esc(T('Je naam'))}" value="${esc(myName)}" required><button class="btn" type="submit">${esc(T('Invoeren'))}</button></form>`}
-      ${submitMsg ? `<div class="msg">${esc(submitMsg)}</div>` : ''}</div>`;
-    return h;
+    } catch (e) { r.msg = T('Invoeren lukte niet. Probeer het later nog eens.'); }
+    r.busy = false; render(); renderBoard();
   }
 
+  /* -------- weergave -------- */
   function render() {
     const app = $('#app');
     if (view === 'menu') {
-      app.innerHTML = submitBox() + `<p class="label">${esc(T('Kies een onderdeel'))}</p><div class="cats">` +
-        ORDER.map(c => `<button class="cat${best[c] != null ? ' done' : ''}" data-cat="${c}" type="button"><b>${esc(tr(CATS[c].name))}</b><span>${esc(tr(CATS[c].desc))}</span>${best[c] != null ? `<small>${esc(T('Beste score'))}: ${best[c]}/${PER_RONDE}</small>` : ''}</button>`).join('') +
-        `<button class="cat all" data-cat="alles" type="button"><b>${esc(T('Alles door elkaar'))}</b><span>${esc(T('Van elk onderdeel wat'))}</span>${best.alles != null ? `<small>${esc(T('Beste score'))}: ${best.alles}/${PER_RONDE}</small>` : ''}</button></div>`;
+      app.innerHTML = `
+        <button class="cat exam" data-cat="examen" type="button"><span class="mono">${esc(T('Examen'))}</span><b>Prüfung</b><span>${esc(T('30 vragen uit alle onderdelen. Je uitslag in procenten kan op de Bestenliste.'))}</span>${best.examen != null ? `<small>${esc(T('Beste score'))}: ${best.examen}%</small>` : ''}</button>
+        <p class="label" style="margin-top:22px">${esc(T('Oefenen per onderdeel'))}</p>
+        <div class="cats">` + ORDER.map(c => `<button class="cat" data-cat="${c}" type="button"><b>${esc(tr(CATS[c].name))}</b><span>${esc(tr(CATS[c].desc))}</span>${best[c] != null ? `<small>${esc(T('Beste score'))}: ${best[c]}/${OEFEN}</small>` : ''}</button>`).join('') + `</div>`;
       return;
     }
     if (view === 'q') {
-      const r = round, q = r.qs[r.i], a = r.answered;
-      const key = v => JSON.stringify(v);
+      const r = round, q = r.qs[r.i], a = r.answered, showFb = a && !r.exam;
       app.innerHTML = `
-        <div class="bar"><span>${esc(T('Vraag'))} ${r.i + 1} / ${r.qs.length}</span><span>${esc(T('Goed'))}: ${r.score}</span></div>
+        <div class="bar"><span>${r.exam ? '<b class="ex">' + esc(T('Examen')) + '</b> · ' : ''}${esc(T('Vraag'))} ${r.i + 1} / ${r.qs.length}</span><span>${r.exam ? '' : esc(T('Goed')) + ': ' + r.score}</span></div>
         <div class="prog"><i style="width:${(r.i + (a ? 1 : 0)) / r.qs.length * 100}%"></i></div>
-        <div class="qcard">
+        <div class="qcard${r.exam ? ' examq' : ''}">
           <div class="qcat">${esc(tr(CATS[q.cat].name))}</div>
           <p class="q">${esc(tr(q.q))}</p>
           ${q.big ? `<span class="big">${esc(tr(q.big))}</span>` : ''}
           <div class="opts">${q.options.map((o, n) => {
             let cls = '';
-            if (a) { if (key(o) === key(q.right)) cls = ' ok'; else if (key(o) === key(a)) cls = ' bad'; }
+            if (showFb) { if (key(o) === key(q.right)) cls = ' ok'; else if (key(o) === key(a)) cls = ' bad'; }
             return `<button class="opt${cls}" type="button" data-n="${n}" ${a ? 'disabled' : ''}><span class="k">${'ABCD'[n]}</span><span>${esc(tr(o))}</span></button>`;
           }).join('')}</div>
-          ${a ? `<div class="fb ${key(a) === key(q.right) ? '' : 'bad'}"><b>${esc(T(key(a) === key(q.right) ? 'Goed!' : 'Fout'))}</b>${key(a) === key(q.right) ? '' : ` — ${esc(T('het goede antwoord is'))}: <strong>${esc(tr(q.right))}</strong>`}${q.x ? `<div>${esc(tr(q.x))}</div>` : ''}</div>` : ''}
+          ${showFb ? `<div class="fb ${key(a) === key(q.right) ? '' : 'bad'}"><b>${esc(T(key(a) === key(q.right) ? 'Goed!' : 'Fout'))}</b>${key(a) === key(q.right) ? '' : ` — ${esc(T('het goede antwoord is'))}: <strong>${esc(tr(q.right))}</strong>`}${q.x ? `<div>${esc(tr(q.x))}</div>` : ''}</div>` : ''}
         </div>
-        <div class="row"><button class="btn ghost" type="button" data-stop>${esc(T('Stoppen'))}</button>${a ? `<button class="btn" type="button" data-next>${esc(T(r.i + 1 < r.qs.length ? 'Volgende' : 'Uitslag'))} →</button>` : ''}</div>`;
+        <div class="row"><button class="btn ghost" type="button" data-stop>${esc(T('Stoppen'))}</button>${showFb ? `<button class="btn" type="button" data-next>${esc(T(r.i + 1 < r.qs.length ? 'Volgende' : 'Uitslag'))} →</button>` : ''}</div>`;
       const nb = app.querySelector('[data-next]'); if (nb) nb.focus();
       return;
     }
     if (view === 'end') {
-      const r = round, s = r.score, n = r.qs.length;
-      const verdict = s === n ? 'Ausgezeichnet' : s >= 8 ? 'Sehr gut' : s >= 6 ? 'Gut' : s >= 4 ? 'Genügend' : 'Nachexerzieren!';
-      const msg = s === n ? 'Foutloos. Daar kan de Spieß niets op aanmerken.' : s >= 8 ? 'Bijna alles goed. Nog één ronde voor de volle score?' : s >= 6 ? 'Een goede basis. Kijk de fouten hieronder nog even na.' : s >= 4 ? 'Het begin is er. Lees het onderdeel in Reibert Online nog eens door.' : 'Nog even oefenen: lees het onderdeel in Reibert Online en probeer het opnieuw.';
+      const r = round, s = r.score, n = r.qs.length, p = pct(r);
+      let verdict, msg;
+      if (r.exam) {
+        verdict = p >= 90 ? 'Ausgezeichnet' : p >= 75 ? 'Sehr gut' : p >= 60 ? 'Bestanden' : 'Nicht bestanden';
+        msg = p >= 90 ? 'Uitstekend. Daar kan de Spieß niets op aanmerken.' : p >= 75 ? 'Zeer goed. Kijk de fouten nog even na.' : p >= 60 ? 'Geslaagd. Met wat oefenen per onderdeel haal je meer.' : 'Niet geslaagd. Oefen eerst de onderdelen en probeer het opnieuw.';
+      } else {
+        verdict = s === n ? 'Ausgezeichnet' : s >= 8 ? 'Sehr gut' : s >= 6 ? 'Gut' : s >= 4 ? 'Genügend' : 'Nachexerzieren!';
+        msg = s === n ? 'Foutloos. Daar kan de Spieß niets op aanmerken.' : s >= 8 ? 'Bijna alles goed. Nog één ronde voor de volle score?' : s >= 6 ? 'Een goede basis. Kijk de fouten hieronder nog even na.' : s >= 4 ? 'Het begin is er. Lees het onderdeel in Reibert Online nog eens door.' : 'Nog even oefenen: lees het onderdeel in Reibert Online en probeer het opnieuw.';
+      }
       app.innerHTML = `<div class="result">
-          <div class="label">${esc(tr(r.cat === 'alles' ? { nl: T('Alles door elkaar') } : CATS[r.cat].name))}</div>
-          <div class="score">${s} / ${n}</div>
+          <div class="label">${esc(r.exam ? T('Examen') : tr(CATS[r.cat].name))}</div>
+          <div class="score">${r.exam ? p + '%' : s + ' / ' + n}</div>
+          ${r.exam ? `<div class="mono" style="font-size:12px">${s} / ${n} ${esc(T('goed'))}</div>` : ''}
           <div class="stamp">${esc(verdict)}</div>
           <p>${esc(T(msg))}</p>
-          ${doneCount() === ORDER.length && !(sent && sent.score >= total()) ? `<p><strong>${esc(T('Alle onderdelen afgetekend! Je kunt nu je score op de lijst zetten.'))}</strong></p>` : ''}
-          <div class="row" style="justify-content:center"><button class="btn" type="button" data-again>${esc(T('Nog een ronde'))}</button><button class="btn ghost" type="button" data-menu>${esc(T(doneCount() === ORDER.length && !(sent && sent.score >= total()) ? 'Score invoeren' : 'Ander onderdeel'))}</button></div>
+          ${r.exam ? `<div class="submit">
+              ${r.sent ? '' : `<p>${esc(T('Zet je uitslag op de Bestenliste:'))}</p><form id="hsform" autocomplete="off"><input id="hsname" name="naam" maxlength="24" placeholder="${esc(T('Je naam'))}" value="${esc(myName)}" required ${r.busy ? 'disabled' : ''}><button class="btn" type="submit" ${r.busy ? 'disabled' : ''}>${esc(T('Invoeren'))}</button></form>`}
+              ${r.msg ? `<div class="msg">${esc(r.msg)}</div>` : ''}</div>` : ''}
+          <div class="row" style="justify-content:center"><button class="btn${r.exam ? ' ghost' : ''}" type="button" data-again>${esc(T(r.exam ? 'Nieuw examen' : 'Nog een ronde'))}</button><button class="btn ghost" type="button" data-menu>${esc(T('Terug naar het overzicht'))}</button></div>
         </div>
-        ${r.wrong.length ? `<div class="review"><p class="label">${esc(T('Nakijken'))}</p><ol>${r.wrong.map(w => `<li>${esc(tr(w.q.q))}${w.q.big ? ` <strong>${esc(tr(w.q.big))}</strong>` : ''}<br><span class="was">✗ ${esc(tr(w.a))}</span> · <span class="is">✓ ${esc(tr(w.q.right))}</span></li>`).join('')}</ol></div>` : ''}`;
+        ${r.wrong.length ? `<div class="review"><p class="label">${esc(T('Nakijken'))}</p><ol>${r.wrong.map(w => `<li>${esc(tr(w.q.q))}${w.q.big ? ` <strong>${esc(tr(w.q.big))}</strong>` : ''}<br><span class="was">✗ ${esc(tr(w.a))}</span> · <span class="is">✓ ${esc(tr(w.q.right))}</span>${r.exam && w.q.x ? `<br><small>${esc(tr(w.q.x))}</small>` : ''}</li>`).join('')}</ol></div>` : ''}`;
     }
   }
 
+  function next() {
+    round.i++; round.answered = null;
+    if (round.i >= round.qs.length) { saveBest(round.cat, round.exam ? pct(round) : round.score); view = 'end'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    render();
+  }
   document.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b || b.closest('.vg-lang')) return;
     if (b.dataset.cat) { round = buildRound(b.dataset.cat); view = 'q'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     if (b.dataset.n != null && round && !round.answered) {
       const q = round.qs[round.i], a = q.options[+b.dataset.n];
       round.answered = a;
-      if (JSON.stringify(a) === JSON.stringify(q.right)) round.score++; else round.wrong.push({ q, a });
-      render(); return;
+      if (key(a) === key(q.right)) round.score++; else round.wrong.push({ q, a });
+      if (round.exam) { render(); setTimeout(next, 250); } else render();
+      return;
     }
-    if (b.hasAttribute('data-next')) {
-      round.i++; round.answered = null;
-      if (round.i >= round.qs.length) { saveBest(round.cat, round.score); submitMsg = ''; view = 'end'; }
-      render(); return;
-    }
+    if (b.hasAttribute('data-next')) return next();
     if (b.hasAttribute('data-stop') || b.hasAttribute('data-menu')) { view = 'menu'; round = null; render(); return; }
     if (b.hasAttribute('data-again')) { round = buildRound(round.cat); view = 'q'; render(); }
   });
-  // toetsenbord: 1–4 of A–D kiezen, Enter = volgende
   document.addEventListener('keydown', e => {
     if (view !== 'q' || e.target.closest('input,textarea')) return;
     const m = '1234abcd'.indexOf(e.key.toLowerCase());
     if (m >= 0 && !round.answered) { const b = document.querySelector(`.opt[data-n="${m % 4}"]`); if (b) b.click(); }
   });
-  document.addEventListener('submit', e => {
-    if (e.target.id !== 'hsform') return;
-    e.preventDefault(); submitScore($('#hsname').value);
-  });
+  document.addEventListener('submit', e => { if (e.target.id !== 'hsform') return; e.preventDefault(); submitScore($('#hsname').value); });
   window.addEventListener('vg726:lang', () => { render(); renderBoard(); });
   render(); renderBoard(); loadBoard();
 })();

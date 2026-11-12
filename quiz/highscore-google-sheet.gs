@@ -16,7 +16,7 @@
  */
 
 const TAB = 'Highscores';
-const MAX_SCORE = 60;      // 6 onderdelen × 10 vragen
+const MAX_SCORE = 100;     // examenscore in procenten
 const TOP = 25;            // zoveel namen gaan terug naar de site
 
 function tab_() {
@@ -24,7 +24,7 @@ function tab_() {
   let sh = ss.getSheetByName(TAB);
   if (!sh) {
     sh = ss.insertSheet(TAB);
-    sh.appendRow(['Naam', 'Score', 'Datum', 'Per onderdeel']);
+    sh.appendRow(['Naam', 'Score (%)', 'Datum', 'Details']);
     sh.setFrozenRows(1);
   }
   return sh;
@@ -55,7 +55,7 @@ function doGet() {
   return antwoord_({ ok: true, list: lijst_() });
 }
 
-// Score invoeren: { naam, score, detail }
+// Score invoeren: { naam, score (procent), detail }
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
