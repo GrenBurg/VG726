@@ -143,3 +143,17 @@ window.VG726 && VG726.add({
 window.VG726 && VG726.add({"de": {"Oefen per onderdeel en doe dan het examen.": "Übe nach Bereich und mach dann die Prüfung."}, "en": {"Oefen per onderdeel en doe dan het examen.": "Practise by topic, then take the exam."}});
 
 window.VG726 && VG726.add({"de": {"Er ging iets mis bij het laden van de vragen. Ververs de pagina (Ctrl+F5, of op de telefoon de pagina sluiten en opnieuw openen).": "Beim Laden der Fragen ist etwas schiefgegangen. Lade die Seite neu (Strg+F5, oder auf dem Handy die Seite schließen und neu öffnen)."}, "en": {"Er ging iets mis bij het laden van de vragen. Ververs de pagina (Ctrl+F5, of op de telefoon de pagina sluiten en opnieuw openen).": "Something went wrong loading the questions. Refresh the page (Ctrl+F5, or on a phone close the page and open it again)."}});
+
+/* Slagingsregel */
+window.VG726 && VG726.add({
+ "de": {
+  "35 vragen: 5 per onderdeel. Geslaagd als je in elk onderdeel minstens 60 % goed hebt. Je uitslag in procenten kan op de Bestenliste.": "35 Fragen: 5 pro Bereich. Bestanden, wenn du in jedem Bereich mindestens 60 % richtig hast. Dein Ergebnis in Prozent kann auf die Bestenliste.",
+  "Niet geslaagd: je moet in elk onderdeel minstens 60 % goed hebben. Oefen de onderdelen met een ✗ en probeer het opnieuw.": "Nicht bestanden: Du brauchst in jedem Bereich mindestens 60 % richtig. Übe die Bereiche mit ✗ und versuch es noch einmal.",
+  "Geslaagd: in elk onderdeel minstens 60 % goed.": "Bestanden: in jedem Bereich mindestens 60 % richtig."
+ },
+ "en": {
+  "35 vragen: 5 per onderdeel. Geslaagd als je in elk onderdeel minstens 60 % goed hebt. Je uitslag in procenten kan op de Bestenliste.": "35 questions: 5 per topic. You pass if you get at least 60 % right in every topic. Your result as a percentage can go on the Bestenliste.",
+  "Niet geslaagd: je moet in elk onderdeel minstens 60 % goed hebben. Oefen de onderdelen met een ✗ en probeer het opnieuw.": "Not passed: you need at least 60 % right in every topic. Practise the topics marked ✗ and try again.",
+  "Geslaagd: in elk onderdeel minstens 60 % goed.": "Passed: at least 60 % right in every topic."
+ }
+});
