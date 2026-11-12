@@ -9,10 +9,10 @@
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
-<script src="../i18n.js?v=202611121223"></script>
-<script src="vertalingen.js?v=202611121223"></script>
-<script src="vragen.js?v=202611121223"></script>
-<script src="highscore-adres.js?v=202611121223"></script>
+<script src="../i18n.js?v=202611121352"></script>
+<script src="vertalingen.js?v=202611121352"></script>
+<script src="vragen.js?v=202611121352"></script>
+<script src="highscore-adres.js?v=202611121352"></script>
 <style>
   :root{--paper:#e4dbc2;--card:#efe8d4;--ink:#24231d;--muted:#625c4a;--line:#a99d7c;--accent:#8e2316;--soft:rgba(142,35,22,.08);--ok:#3d5a2a;--okbg:#dfe5cf;--bad:#8e2316;--badbg:#f1dccf}
   *{box-sizing:border-box}
@@ -89,6 +89,10 @@
   .opt:hover:not([disabled]),.opt:focus-visible{border-color:var(--ink);background:#f3eddb}
   .opt:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
   .opt[disabled]{cursor:default}
+  .opt.sel,.opt.sel:hover:not([disabled]){border-color:var(--accent);background:#d8c9a2;box-shadow:inset 4px 0 0 var(--accent)}
+  .opt.sel .k{color:var(--accent);font-weight:600}
+  .row .nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .hint-in{margin:10px 0 0;font-size:14px;color:var(--muted);text-align:right}
   .opt.ok{border-color:var(--ok);background:var(--okbg)}
   .opt.bad{border-color:var(--bad);background:var(--badbg)}
   .fb{margin-top:14px;padding:12px 14px;border-left:3px solid var(--ok);background:var(--okbg);font-size:15px}
@@ -264,7 +268,7 @@
         seen.add(id); qs.push(q); break;
       }
     }
-    return { cat, exam, qs, i: 0, score: 0, answered: null, answers: [], wrong: [], per: {}, sent: false, msg: '' };
+    return { cat, exam, qs, i: 0, score: 0, answered: null, ans: qs.map(() => null), wrong: [], per: {}, sent: false, msg: '' };
   }
   const pct = r => Math.round(r.score / r.qs.length * 100);
 
@@ -320,22 +324,43 @@
       return;
     }
     if (view === 'q') {
-      const r = round, q = r.qs[r.i], a = r.answered, showFb = a && !r.exam;
+      const r = round, q = r.qs[r.i];
+      if (r.exam) {
+        // examen: antwoord kiezen (blijft te wijzigen), nakijken pas bij inleveren
+        const sel = r.ans[r.i], last = r.i === r.qs.length - 1, done = r.ans.filter(x => x != null).length;
+        app.innerHTML = `
+          <div class="bar"><span><b class="ex">${esc(T('Examen'))}</b> · ${esc(T('Vraag'))} ${r.i + 1} / ${r.qs.length}</span><span>${esc(T('Beantwoord'))}: ${done} / ${r.qs.length}</span></div>
+          <div class="prog"><i style="width:${done / r.qs.length * 100}%"></i></div>
+          <div class="qcard examq">
+            <div class="qcat">${esc(tr(CATS[q.cat].name))}</div>
+            <p class="q">${esc(tr(q.q))}</p>
+            ${q.big ? `<span class="big">${esc(tr(q.big))}</span>` : ''}
+            <div class="opts">${q.options.map((o, n) => `<button class="opt${sel === n ? ' sel' : ''}" type="button" data-n="${n}" aria-pressed="${sel === n}"><span class="k">${'ABCD'[n]}</span><span>${esc(tr(o))}</span></button>`).join('')}</div>
+          </div>
+          <div class="row">
+            <span><button class="btn ghost" type="button" data-stop>${esc(T('Stoppen'))}</button></span>
+            <span class="nav">${r.i > 0 ? `<button class="btn ghost" type="button" data-prev>← ${esc(T('Vorige'))}</button>` : ''}${!last && sel != null ? `<button class="btn ghost" type="button" data-fwd>${esc(T('Volgende'))} →</button>` : ''}${last && done === r.qs.length ? `<button class="btn" type="button" data-hand>${esc(T('Inleveren'))}</button>` : ''}</span>
+          </div>
+          ${last && done === r.qs.length ? `<p class="hint-in">${esc(T('Alles beantwoord. Controleer eventueel je antwoorden met ← Vorige, en lever dan in.'))}</p>` : ''}`;
+        const hb = app.querySelector('[data-hand]'); if (hb) hb.focus();
+        return;
+      }
+      const a = r.answered;
       app.innerHTML = `
-        <div class="bar"><span>${r.exam ? '<b class="ex">' + esc(T('Examen')) + '</b> · ' : ''}${esc(T('Vraag'))} ${r.i + 1} / ${r.qs.length}</span><span>${r.exam ? '' : esc(T('Goed')) + ': ' + r.score}</span></div>
+        <div class="bar"><span>${esc(T('Vraag'))} ${r.i + 1} / ${r.qs.length}</span><span>${esc(T('Goed'))}: ${r.score}</span></div>
         <div class="prog"><i style="width:${(r.i + (a ? 1 : 0)) / r.qs.length * 100}%"></i></div>
-        <div class="qcard${r.exam ? ' examq' : ''}">
+        <div class="qcard">
           <div class="qcat">${esc(tr(CATS[q.cat].name))}</div>
           <p class="q">${esc(tr(q.q))}</p>
           ${q.big ? `<span class="big">${esc(tr(q.big))}</span>` : ''}
           <div class="opts">${q.options.map((o, n) => {
             let cls = '';
-            if (showFb) { if (key(o) === key(q.right)) cls = ' ok'; else if (key(o) === key(a)) cls = ' bad'; }
+            if (a) { if (key(o) === key(q.right)) cls = ' ok'; else if (key(o) === key(a)) cls = ' bad'; }
             return `<button class="opt${cls}" type="button" data-n="${n}" ${a ? 'disabled' : ''}><span class="k">${'ABCD'[n]}</span><span>${esc(tr(o))}</span></button>`;
           }).join('')}</div>
-          ${showFb ? `<div class="fb ${key(a) === key(q.right) ? '' : 'bad'}"><b>${esc(T(key(a) === key(q.right) ? 'Goed!' : 'Fout'))}</b>${key(a) === key(q.right) ? '' : ` — ${esc(T('het goede antwoord is'))}: <strong>${esc(tr(q.right))}</strong>`}${q.x ? `<div>${esc(tr(q.x))}</div>` : ''}</div>` : ''}
+          ${a ? `<div class="fb ${key(a) === key(q.right) ? '' : 'bad'}"><b>${esc(T(key(a) === key(q.right) ? 'Goed!' : 'Fout'))}</b>${key(a) === key(q.right) ? '' : ` — ${esc(T('het goede antwoord is'))}: <strong>${esc(tr(q.right))}</strong>`}${q.x ? `<div>${esc(tr(q.x))}</div>` : ''}</div>` : ''}
         </div>
-        <div class="row"><button class="btn ghost" type="button" data-stop>${esc(T('Stoppen'))}</button>${showFb ? `<button class="btn" type="button" data-next>${esc(T(r.i + 1 < r.qs.length ? 'Volgende' : 'Uitslag'))} →</button>` : ''}</div>`;
+        <div class="row"><span><button class="btn ghost" type="button" data-stop>${esc(T('Stoppen'))}</button></span><span class="nav">${a ? `<button class="btn ghost" type="button" data-undo>↶ ${esc(T('Ander antwoord'))}</button><button class="btn" type="button" data-next>${esc(T(r.i + 1 < r.qs.length ? 'Volgende' : 'Uitslag'))} →</button>` : ''}</span></div>`;
       const nb = app.querySelector('[data-next]'); if (nb) nb.focus();
       return;
     }
@@ -368,6 +393,15 @@
     }
   }
 
+  function inleveren() {
+    const r = round; r.score = 0; r.wrong = []; r.per = {};
+    r.qs.forEach((q, i) => {
+      const a = q.options[r.ans[i]], ok = key(a) === key(q.right);
+      if (ok) r.score++; else r.wrong.push({ q, a });
+      const pc = r.per[q.cat] = r.per[q.cat] || { goed: 0, n: 0 }; pc.n++; if (ok) pc.goed++;
+    });
+    saveBest(r.cat, pct(r)); view = 'end'; render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
   function next() {
     round.i++; round.answered = null;
     if (round.i >= round.qs.length) { saveBest(round.cat, round.exam ? pct(round) : round.score); view = 'end'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -380,15 +414,26 @@
       catch (err) { console.error(err); view = 'menu'; render(); $('#app').insertAdjacentHTML('afterbegin', `<div class="fb bad" style="margin-bottom:14px">${esc(T('Er ging iets mis bij het laden van de vragen. Ververs de pagina (Ctrl+F5, of op de telefoon de pagina sluiten en opnieuw openen).'))}</div>`); }
       return;
     }
+    if (b.dataset.n != null && round && round.exam) {
+      const i = round.i; round.ans[i] = +b.dataset.n; render();
+      clearTimeout(round.t);
+      if (i < round.qs.length - 1) round.t = setTimeout(() => { if (round && view === 'q' && round.i === i) { round.i++; render(); } }, 350);
+      return;
+    }
     if (b.dataset.n != null && round && !round.answered) {
       const q = round.qs[round.i], a = q.options[+b.dataset.n];
       round.answered = a;
-      const ok = key(a) === key(q.right);
-      if (ok) round.score++; else round.wrong.push({ q, a });
-      const pc = round.per[q.cat] = round.per[q.cat] || { goed: 0, n: 0 }; pc.n++; if (ok) pc.goed++;
-      if (round.exam) { render(); setTimeout(next, 250); } else render();
-      return;
+      if (key(a) === key(q.right)) round.score++; else round.wrong.push({ q, a });
+      render(); return;
     }
+    if (b.hasAttribute('data-undo') && round && round.answered) {
+      const q = round.qs[round.i];
+      if (key(round.answered) === key(q.right)) round.score--; else round.wrong.pop();
+      round.answered = null; render(); return;
+    }
+    if (b.hasAttribute('data-prev') && round && round.i > 0) { clearTimeout(round.t); round.i--; render(); return; }
+    if (b.hasAttribute('data-fwd') && round && round.i < round.qs.length - 1) { clearTimeout(round.t); round.i++; render(); return; }
+    if (b.hasAttribute('data-hand') && round) { inleveren(); return; }
     if (b.hasAttribute('data-next')) return next();
     if (b.hasAttribute('data-stop') || b.hasAttribute('data-menu')) { view = 'menu'; round = null; render(); return; }
     if (b.hasAttribute('data-again')) { round = buildRound(round.cat); view = 'q'; render(); }
@@ -396,7 +441,9 @@
   document.addEventListener('keydown', e => {
     if (view !== 'q' || e.target.closest('input,textarea')) return;
     const m = '1234abcd'.indexOf(e.key.toLowerCase());
-    if (m >= 0 && !round.answered) { const b = document.querySelector(`.opt[data-n="${m % 4}"]`); if (b) b.click(); }
+    if (m >= 0 && (round.exam || !round.answered)) { const b = document.querySelector(`.opt[data-n="${m % 4}"]`); if (b) b.click(); }
+    if (round.exam && e.key === 'ArrowLeft') { const b = document.querySelector('[data-prev]'); if (b) b.click(); }
+    if (round.exam && e.key === 'ArrowRight') { const b = document.querySelector('[data-fwd]'); if (b) b.click(); }
   });
   document.addEventListener('submit', e => { if (e.target.id !== 'hsform') return; e.preventDefault(); submitScore($('#hsname').value); });
   window.addEventListener('vg726:lang', () => { render(); renderBoard(); });

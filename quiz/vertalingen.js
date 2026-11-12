@@ -157,3 +157,21 @@ window.VG726 && VG726.add({
   "Geslaagd: in elk onderdeel minstens 60 % goed.": "Passed: at least 60 % right in every topic."
  }
 });
+
+/* Terug / inleveren */
+window.VG726 && VG726.add({
+ "de": {
+  "Beantwoord": "Beantwortet",
+  "Vorige": "Zurück",
+  "Inleveren": "Abgeben",
+  "Alles beantwoord. Controleer eventueel je antwoorden met ← Vorige, en lever dan in.": "Alles beantwortet. Prüfe deine Antworten bei Bedarf mit ← Zurück und gib dann ab.",
+  "Ander antwoord": "Andere Antwort"
+ },
+ "en": {
+  "Beantwoord": "Answered",
+  "Vorige": "Previous",
+  "Inleveren": "Hand in",
+  "Alles beantwoord. Controleer eventueel je antwoorden met ← Vorige, en lever dan in.": "All answered. Check your answers with ← Previous if you like, then hand in.",
+  "Ander antwoord": "Change answer"
+ }
+});
