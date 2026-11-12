@@ -30,3 +30,7 @@ Alles behalve online morsen werkt zonder sleutel.
 ## Tarntafel
 
 De generator draait volledig in de browser. Dezelfde **sleutel** met dezelfde invoer geeft altijd dezelfde tafel, dus de leiding kan de tafel delen met een link (knop *Link kopiëren*, de invoer zit in de link na `#`). Afdrukken op A4 zonder marges; de Excel-sleutel bevat de Nederlandse vertaling van alle begrippen.
+
+## Talen
+
+De site is er in het Nederlands, Duits en Engels (Reibert blijft Nederlands). `i18n.js` zet de vlaggetjes rechtsboven en onthoudt de gekozen taal. Elke pagina laadt daarnaast een `vertalingen.js` met de Duitse en Engelse teksten; de sleutel is steeds de Nederlandse tekst. Nieuwe tekst toevoegen: geef het element `data-i18n` en zet de vertaling in `vertalingen.js`.
