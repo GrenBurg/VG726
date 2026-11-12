@@ -63,3 +63,15 @@ VG726.add({
   "Om zelf af te drukken: infobladen (Buchstabiertafel, Führungszeichen), kaarten in Meßtischblatt-stijl en ons liedboekje.": "To print yourself: info sheets (Buchstabiertafel, Führungszeichen), maps in Meßtischblatt style and our songbook."
  }
 });
+
+/* Quiz-tegel */
+VG726.add({
+ "de": {
+  "Quiz": "Quiz",
+  "Test je kennis: rangen, commando's, Führungszeichen, spellen, morse, uitrusting en dienst.": "Prüfe dein Wissen: Dienstgrade, Kommandos, Führungszeichen, Buchstabieren, Morsen, Ausrüstung und Dienst."
+ },
+ "en": {
+  "Quiz": "Quiz",
+  "Test je kennis: rangen, commando's, Führungszeichen, spellen, morse, uitrusting en dienst.": "Test your knowledge: ranks, commands, hand signals, spelling, Morse, equipment and duty."
+ }
+});

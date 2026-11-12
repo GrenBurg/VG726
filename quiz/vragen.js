@@ -1,0 +1,178 @@
+/* VG726 — vragenbank voor de quiz
+ *
+ * Bronnen: Reibert Online (rangen, Benehmen, Exerzieren, Führungszeichen, Spähtrupp, Gefecht, Organisatie),
+ * het Merkblatt Buchstabiertafel, de morsetabel van de Funkgerät-simulator en de uitrustingsgids.
+ *
+ * Tekst in drie talen: { nl, de, en }. Een gewone tekst (string) is in alle talen gelijk.
+ * Een vraag toevoegen bij "Dienst & Gefecht": zet een nieuw object in FEITEN; het eerste antwoord is het goede.
+ */
+window.QUIZ = (function () {
+
+  /* ---------------- Dienstgrade (laag → hoog) ---------------- */
+  const RANGEN = ['Grenadier', 'Obergrenadier', 'Gefreiter', 'Obergefreiter', 'Stabsgefreiter',
+    'Unteroffizier', 'Unterfeldwebel', 'Feldwebel', 'Oberfeldwebel', 'Stabsfeldwebel',
+    'Leutnant', 'Oberleutnant', 'Hauptmann', 'Major', 'Oberstleutnant', 'Oberst'];
+
+  /* ---------------- Kommandos ---------------- */
+  const KOMMANDOS = [
+    ['Stillgestanden!', { nl: 'In de houding: hakken tegen elkaar, borst vooruit, recht vooruit kijken', de: 'Grundstellung: Hacken zusammen, Brust heraus, geradeaus sehen', en: 'Attention: heels together, chest out, eyes front' }],
+    ['Rührt euch!', { nl: 'Op de plaats rust: linkervoet naar voren, stil blijven staan', de: 'Bequem stehen: linken Fuß vor, stillstehen', en: 'Stand at ease: left foot forward, stay still' }],
+    ['Das Gewehr — über!', { nl: 'Geweer schuin op de linkerschouder', de: 'Gewehr schräg auf die linke Schulter', en: 'Rifle sloped on the left shoulder' }],
+    ['Gewehr — ab!', { nl: 'Geweer van de schouder rechtop naast de rechtervoet', de: 'Gewehr von der Schulter senkrecht neben den rechten Fuß', en: 'Rifle down from the shoulder, upright beside the right foot' }],
+    ['Präsentiert das — Gewehr!', { nl: 'Eregroet: geweer met beide handen voor het midden van het lichaam', de: 'Ehrenbezeigung: Gewehr mit beiden Händen vor der Körpermitte', en: 'Present arms: rifle held with both hands in front of the body' }],
+    ['Gewehr — umhängen!', { nl: 'Geweer aan de riem over de rechterschouder', de: 'Gewehr am Riemen über die rechte Schulter', en: 'Sling the rifle over the right shoulder' }],
+    ['Seitengewehr pflanzt — auf!', { nl: 'Bajonet op het geweer zetten', de: 'Seitengewehr auf das Gewehr setzen', en: 'Fix bayonets' }],
+    ['Seitengewehr an — Ort!', { nl: 'Bajonet terug in de schede', de: 'Seitengewehr zurück in die Scheide', en: 'Bayonet back in its scabbard' }],
+    ['In Linie zu einem Gliede — Angetreten!', { nl: 'Aantreden in één lijn naast elkaar', de: 'In einer Linie nebeneinander antreten', en: 'Fall in side by side in a single line' }],
+    ['In Reihe — Angetreten!', { nl: 'Aantreden in een rij achter elkaar', de: 'In einer Reihe hintereinander antreten', en: 'Fall in one behind the other' }],
+    ['Sammeln!', { nl: 'Snel verzamelen rond de commandant', de: 'Schnell um den Führer sammeln', en: 'Quickly gather round the commander' }],
+    ['Richt euch!', { nl: 'Richten op de man rechts', de: 'Nach dem rechten Mann ausrichten', en: 'Dress on the man to the right' }],
+    ['Ganze Kehrt — um!', { nl: 'Rechtsomkeert: 180 graden, over links', de: 'Kehrtwendung um 180 Grad, über links', en: 'About turn: 180 degrees, over the left' }],
+    ['Rechts — um!', { nl: 'Kwartslag (90 graden) naar rechts op de hiel', de: 'Vierteldrehung (90 Grad) nach rechts auf dem Absatz', en: 'Right turn: 90 degrees on the heel' }],
+    ['Im Gleichschritt — Marsch!', { nl: 'Voorwaarts mars, in de pas', de: 'Im Gleichschritt losmarschieren', en: 'Quick march, in step' }],
+    ['Ohne Tritt — Marsch!', { nl: 'Voorwaarts mars zonder in de pas te lopen', de: 'Losmarschieren ohne Gleichschritt', en: 'March off out of step' }],
+    ['Abteilung — Halt!', { nl: 'De eenheid stopt meteen', de: 'Die Abteilung bleibt sofort stehen', en: 'The unit halts at once' }],
+    ['Laufschritt — Marsch!', { nl: 'In looppas verder', de: 'Im Laufschritt weiter', en: 'Double time: carry on at a run' }],
+    ['Augen — rechts!', { nl: 'Hoofd naar rechts draaien, naar de meerdere', de: 'Kopf nach rechts zum Vorgesetzten drehen', en: 'Eyes right: turn your head towards the superior' }],
+  ];
+
+  /* ---------------- Führungszeichen ---------------- */
+  const ZEICHEN = [
+    [{ nl: 'Arm hoog opgestoken', de: 'Arm hoch erhoben', en: 'Arm raised high' }, 'Achtung!'],
+    [{ nl: 'Opgestoken arm een of meer keren omhoog stoten', de: 'Erhobenen Arm ein- oder mehrmals nach oben stoßen', en: 'Raised arm thrust upwards once or more' }, 'Antreten! / Schneller!'],
+    [{ nl: 'Opgestoken arm heen en weer zwaaien', de: 'Erhobenen Arm hin und her schwenken', en: 'Raised arm swung to and fro' }, 'Rührt euch! / Nicht verstanden!'],
+    [{ nl: 'Opgestoken arm een paar keer langzaam opzij laten zakken', de: 'Erhobenen Arm mehrmals langsam seitwärts senken', en: 'Raised arm slowly lowered sideways several times' }, 'Langsamer!'],
+    [{ nl: 'Opgestoken arm een paar keer kort naar beneden stoten', de: 'Erhobenen Arm mehrmals kurz nach unten stoßen', en: 'Raised arm thrust sharply down several times' }, 'Halten! / Absitzen!'],
+    [{ nl: 'Vuist voor de borst, arm een paar keer kort opzij zwaaien', de: 'Faust vor der Brust, Arm mehrmals kurz seitwärts schwenken', en: 'Fist in front of the chest, arm swung sharply sideways several times' }, 'Straße frei! / Fliegerdeckung!'],
+    [{ nl: 'Arm horizontaal boven het hoofd rondzwaaien', de: 'Arm waagerecht über dem Kopf kreisen', en: 'Arm circled horizontally above the head' }, 'Entfalten! (nächsthöhere Gefechtsbereitschaft)'],
+    [{ nl: 'Arm opzij uitgestrekt, vanuit de schouder zijwaarts rondzwaaien', de: 'Arm seitwärts gestreckt, aus der Schulter seitlich kreisen', en: 'Arm stretched sideways, circled from the shoulder' }, 'Sammeln!'],
+    [{ nl: 'Armen gekruist voor de borst', de: 'Arme vor der Brust gekreuzt', en: 'Arms crossed in front of the chest' }, 'Gewehre zusammensetzen!'],
+    [{ nl: 'Opgestoken, gespreide hand rondzwaaien', de: 'Erhobene, gespreizte Hand kreisen', en: 'Raised, spread hand circled' }, 'Unterführer zu mir!'],
+    [{ nl: 'Opgestoken arm een paar keer diep naar voren laten zakken', de: 'Erhobenen Arm mehrmals tief nach vorn senken', en: 'Raised arm lowered deep forwards several times' }, 'Hinlegen! / Deckung!'],
+    [{ nl: 'Met de arm een richting aanwijzen', de: 'Mit dem Arm in eine Richtung zeigen', en: 'Pointing in a direction with the arm' }, 'Folgen! Richtung …!'],
+    [{ nl: 'Beide armen tegelijk zijwaarts op schouderhoogte strekken', de: 'Beide Arme gleichzeitig seitwärts in Schulterhöhe strecken', en: 'Both arms stretched sideways at shoulder height' }, 'Stellung!'],
+    [{ nl: 'Hoofddeksel omhoog houden', de: 'Kopfbedeckung hochhalten', en: 'Headgear held up' }, 'Wir sind hier!'],
+    [{ nl: 'Geweer verticaal boven het hoofd', de: 'Gewehr senkrecht über dem Kopf', en: 'Rifle held vertically above the head' }, 'Gelände frei vom Feinde!'],
+    [{ nl: 'Geweer horizontaal boven het hoofd', de: 'Gewehr waagerecht über dem Kopf', en: 'Rifle held horizontally above the head' }, 'Gelände nicht frei vom Feinde!'],
+    [{ nl: 'Schep omhoog houden', de: 'Spaten hochhalten', en: 'Spade held up' }, 'Eingraben!'],
+    [{ nl: 'Munitiekist omhoog houden', de: 'Munitionskasten hochhalten', en: 'Ammunition box held up' }, 'Munition vor!'],
+    [{ nl: 'Gasmasker uit de bus halen, omhoog houden en ermee zwaaien', de: 'Gasmaske aus der Büchse nehmen, hochhalten und schwenken', en: 'Gas mask taken out, held up and waved' }, 'Gasmaske aufsetzen!'],
+  ];
+
+  /* ---------------- Buchstabiertafel (Merkblatt, Stand 1934) ---------------- */
+  const BUCHSTABEN = [['A', 'Anton'], ['Ä', 'Ärger'], ['B', 'Bruno'], ['C', 'Cäsar'], ['Ch', 'Charlotte'], ['D', 'Dora'],
+    ['E', 'Emil'], ['F', 'Fritz'], ['G', 'Gustav'], ['H', 'Heinz'], ['I', 'Ida'], ['J', 'Jot'], ['K', 'Kurfürst'],
+    ['L', 'Ludwig'], ['M', 'Marie'], ['N', 'Nordpol'], ['O', 'Otto'], ['Ö', 'Öse'], ['P', 'Paula'], ['Q', 'Quelle'],
+    ['R', 'Richard'], ['S', 'Siegfried'], ['Sch', 'Schule'], ['T', 'Toni'], ['U', 'Ulrich'], ['Ü', 'Übel'],
+    ['V', 'Viktor'], ['W', 'Wilhelm'], ['X', 'Xantippe'], ['Y', 'Ypern'], ['Z', 'Zeppelin']];
+
+  /* ---------------- Morse (zoals in de Funkgerät-simulator) ---------------- */
+  const MORSE = { A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---',
+    K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-',
+    V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..', 'Ä': '.-.-', 'Ö': '---.', 'Ü': '..--', CH: '----',
+    '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----' };
+
+  /* ---------------- Ausrüstung ---------------- */
+  const UITRUSTING = [
+    ['Einheitsfeldmütze M43', { nl: 'Veldpet met klep', de: 'Feldmütze mit Schirm', en: 'Peaked field cap' }],
+    ['Feldbluse', { nl: 'Veldjas', de: 'Uniformjacke aus feldgrauem Tuch', en: 'Field tunic' }],
+    ['Keilhose', { nl: 'Veldbroek met toelopende pijpen', de: 'Feldhose mit verjüngten Beinen', en: 'Field trousers with tapered legs' }],
+    ['Diensthemd', { nl: 'Overhemd onder de veldjas', de: 'Hemd unter der Feldbluse', en: 'Shirt worn under the tunic' }],
+    ['Hosenträger', { nl: 'Bretels', de: 'Träger, die die Hose halten', en: 'Braces' }],
+    ['Litzen', { nl: 'Kraagspiegels', de: 'Abzeichen am Kragen', en: 'Collar patches' }],
+    ['Schulterklappen', { nl: 'Schouderstukken', de: 'Abzeichen auf den Schultern', en: 'Shoulder straps' }],
+    ['Schnürschuhe', { nl: 'Veterschoenen met nagels', de: 'Genagelte Schuhe zum Schnüren', en: 'Hobnailed lace-up ankle boots' }],
+    ['Gamaschen', { nl: 'Beenkappen van canvas', de: 'Segeltuchschutz über Knöchel und Schuh', en: 'Canvas gaiters' }],
+    ['Stahlhelm', { nl: 'Stalen helm', de: 'Helm aus Stahl', en: 'Steel helmet' }],
+    ['Koppel', { nl: 'Koppelriem', de: 'Lederriemen für die Ausrüstung', en: 'Equipment belt' }],
+    ['Koppelschloss', { nl: 'Koppelslot (riemgesp)', de: 'Schnalle des Koppels', en: 'Belt buckle' }],
+    ['Patronentaschen', { nl: 'Patroontassen', de: 'Taschen für die Ladestreifen', en: 'Ammunition pouches' }],
+    ['Koppeltraggestell (Y-Riemen)', { nl: 'Y-draagstel', de: 'Y-förmiges Tragegestell über den Schultern', en: 'Y-straps' }],
+    ['Brotbeutel', { nl: 'Broodzak', de: 'Beutel für Essen und persönliche Sachen', en: 'Bread bag' }],
+    ['Feldflasche', { nl: 'Veldfles', de: 'Trinkflasche mit Becher', en: 'Canteen' }],
+    ['Kochgeschirr', { nl: 'Eetketel', de: 'Essgeschirr mit Deckel', en: 'Mess tin' }],
+    ['Gefechtsgepäck', { nl: 'Gevechtspakket', de: 'Rahmen für Kochgeschirr und Zeltbahn', en: 'Combat pack' }],
+    ['Zeltbahn', { nl: 'Zeildoek (poncho en tent)', de: 'Regenumhang und Zeltteil', en: 'Shelter quarter (poncho and tent)' }],
+    ['Gasmaskenbüchse', { nl: 'Gasmaskerbus', de: 'Metallbehälter für die Gasmaske', en: 'Gas mask canister' }],
+    ['Seitengewehr', { nl: 'Bajonet', de: 'Bajonett', en: 'Bayonet' }],
+    ['Kleines Schanzzeug', { nl: 'Korte schep', de: 'Kurzer Spaten', en: 'Entrenching tool' }],
+  ];
+
+  /* ---------------- Dienst & Gefecht: losse vragen (eerste antwoord = goed) ---------------- */
+  const FEITEN = [
+    { q: { nl: 'Hoe spreek je een Unteroffizier aan?', de: 'Wie sprichst du einen Unteroffizier an?', en: 'How do you address an Unteroffizier?' },
+      a: ['„Herr Unteroffizier“', '„Unteroffizier“', '„Kamerad“', '„Sie“'],
+      x: { nl: 'Een meerdere spreek je altijd aan met „Herr“ en zijn rang.', de: 'Vorgesetzte werden immer mit „Herr“ und dem Dienstgrad angesprochen.', en: 'You always address a superior as "Herr" plus his rank.' } },
+    { q: { nl: 'Hoeveel passen vóór een meerdere begin je met groeten als je doorloopt?', de: 'Wie viele Schritte vor einem Vorgesetzten beginnst du im Gehen mit dem Gruß?', en: 'How many paces before a superior do you start saluting while walking?' },
+      a: ['6', '2', '3', '10'],
+      x: { nl: 'Je begint zes passen ervoor en stopt twee passen erna.', de: 'Sechs Schritte vorher beginnen, zwei Schritte danach beenden.', en: 'Start six paces before and stop two paces after.' } },
+    { q: { nl: 'Een meerdere roept je. Op hoeveel passen afstand blijf je staan?', de: 'Ein Vorgesetzter ruft dich. In wie vielen Schritten Abstand bleibst du stehen?', en: 'A superior calls you. How many paces away do you stop?' },
+      a: ['3', '1', '5', '10'],
+      x: { nl: 'Kortste weg ernaartoe, drie passen ervoor in de houding.', de: 'Auf kürzestem Weg hin, drei Schritte davor Stillgestanden.', en: 'Shortest route there, stop three paces away at attention.' } },
+    { q: { nl: 'Wat doe je met een bevel voordat je het uitvoert?', de: 'Was tust du mit einem Befehl, bevor du ihn ausführst?', en: 'What do you do with an order before carrying it out?' },
+      a: [{ nl: 'Woordelijk herhalen', de: 'Wörtlich wiederholen', en: 'Repeat it word for word' }, { nl: 'Opschrijven', de: 'Aufschreiben', en: 'Write it down' }, { nl: 'Doorgeven aan de buurman', de: 'An den Nebenmann weitergeben', en: 'Pass it to the man next to you' }, { nl: 'Salueren en wegtreden', de: 'Grüßen und wegtreten', en: 'Salute and dismiss' }],
+      x: { nl: 'Zo weet je zeker dat er geen misverstand is.', de: 'So ist sicher, dass es kein Missverständnis gibt.', en: 'That way there can be no misunderstanding.' } },
+    { q: { nl: 'Welke groet gebruikt onze groep?', de: 'Welchen Gruß verwendet unsere Gruppe?', en: 'Which salute does our group use?' },
+      a: [{ nl: 'Hand aan het hoofddeksel', de: 'Hand an die Kopfbedeckung', en: 'Hand to the headgear' }, { nl: 'De Deutscher Gruß', de: 'Den Deutschen Gruß', en: 'The Deutscher Gruß' }, { nl: 'Knikken met het hoofd', de: 'Kopfnicken', en: 'A nod of the head' }, { nl: 'Geen groet', de: 'Keinen Gruß', en: 'No salute' }],
+      x: { nl: 'Na juli 1944 werd de Deutscher Gruß verplicht, maar onze groep gebruikt die nooit.', de: 'Ab Juli 1944 wurde der Deutsche Gruß Pflicht, aber unsere Gruppe verwendet ihn nie.', en: 'From July 1944 the Deutscher Gruß became compulsory, but our group never uses it.' } },
+    { q: { nl: 'Bij „Ganze Kehrt — um!“ draai je over …', de: 'Bei „Ganze Kehrt — um!“ drehst du dich über …', en: 'At "Ganze Kehrt — um!" you turn over …' },
+      a: [{ nl: 'links', de: 'links', en: 'the left' }, { nl: 'rechts', de: 'rechts', en: 'the right' }, { nl: 'maakt niet uit', de: 'egal', en: "it doesn't matter" }, { nl: 'twee kwartslagen met een pauze', de: 'zwei Vierteldrehungen mit Pause', en: 'two quarter turns with a pause' }],
+      x: { nl: 'In het Duitse leger ging de rechtsomkeert over links.', de: 'Im deutschen Heer erfolgte die Kehrtwendung über links.', en: 'In the German army the about-turn was made over the left.' } },
+    { q: { nl: 'Wat is de grondregel van een Spähtrupp?', de: 'Was ist der Grundsatz eines Spähtrupps?', en: 'What is the basic rule of a Spähtrupp?' },
+      a: ['„Sehen, ohne gesehen zu werden“', '„Wirkung geht vor Deckung“', '„Angriff ist die beste Verteidigung“', '„Erst schießen, dann melden“'],
+      x: { nl: 'Zien zonder gezien te worden: informatie halen, geen gevecht zoeken.', de: 'Aufklären, ohne gesehen zu werden; Kampf vermeiden.', en: 'See without being seen: gather information, avoid a fight.' } },
+    { q: { nl: 'Welke vier W\'s horen in een melding?', de: 'Welche vier W gehören in eine Meldung?', en: 'Which four Ws belong in a report?' },
+      a: ['Wann, Was, Wie, Wo', 'Wer, Was, Wann, Warum', 'Wo, Wohin, Woher, Wann', 'Was, Wer, Wie viel, Wo'],
+      x: { nl: 'Wanneer, wat, hoe (wat deden ze) en waar.', de: 'Wann, was, wie (was taten sie) und wo.', en: 'When, what, how (what they were doing) and where.' } },
+    { q: { nl: 'Wat is de grondregel in het gevecht?', de: 'Was ist der Grundsatz im Gefecht?', en: 'What is the basic rule in combat?' },
+      a: ['„Wirkung geht vor Deckung“', '„Sehen, ohne gesehen zu werden“', '„Deckung geht vor Wirkung“', '„Munition sparen um jeden Preis“'],
+      x: { nl: 'Effect gaat voor dekking: gebruik het terrein om de vijand uit te schakelen.', de: 'Das Gelände nutzen, um den Feind zu bekämpfen.', en: 'Use the terrain to defeat the enemy.' } },
+    { q: { nl: 'Hoe diep is een Schützenmulde ongeveer?', de: 'Wie tief ist eine Schützenmulde ungefähr?', en: 'About how deep is a Schützenmulde?' },
+      a: ['30–40 cm', '10 cm', '1,10 m', '2 m'],
+      x: { nl: 'Een ondiepe kuil om in te liggen; de aarde wordt een borstwering.', de: 'Eine flache Mulde zum Liegen; die Erde wird zur Brustwehr.', en: 'A shallow pit to lie in; the earth becomes a parapet.' } },
+    { q: { nl: 'Hoe diep is een Schützenloch ongeveer?', de: 'Wie tief ist ein Schützenloch ungefähr?', en: 'About how deep is a Schützenloch?' },
+      a: ['1,10 m', '40 cm', '60 cm', '2,50 m'],
+      x: { nl: 'Diep genoeg om te knielen of te staan en weg te duiken voor tanks.', de: 'Tief genug zum Knien oder Stehen und zum Ducken vor Panzern.', en: 'Deep enough to kneel or stand in and duck below tanks.' } },
+    { q: { nl: 'Sinds wanneer heet de Schütze bij de infanterie Grenadier?', de: 'Seit wann heißt der Schütze bei der Infanterie Grenadier?', en: 'Since when has the infantry Schütze been called Grenadier?' },
+      a: [{ nl: '15 oktober 1942', de: '15. Oktober 1942', en: '15 October 1942' }, { nl: '1 september 1939', de: '1. September 1939', en: '1 September 1939' }, { nl: '6 juni 1944', de: '6. Juni 1944', en: '6 June 1944' }, { nl: '1935', de: '1935', en: '1935' }],
+      x: { nl: 'Toen werden de infanterieregimenten Grenadier-Regimenter.', de: 'Damals wurden die Infanterie-Regimenter zu Grenadier-Regimentern.', en: 'That is when infantry regiments became Grenadier-Regimenter.' } },
+    { q: { nl: 'Wat is een „Landser“?', de: 'Was ist ein „Landser“?', en: 'What is a "Landser"?' },
+      a: [{ nl: 'Soldatenslang voor een soldaat, geen rang', de: 'Soldatensprache für einen Soldaten, kein Dienstgrad', en: 'Soldiers\' slang for a soldier, not a rank' }, { nl: 'De laagste rang', de: 'Der niedrigste Dienstgrad', en: 'The lowest rank' }, { nl: 'Een soldaat bij de cavalerie', de: 'Ein Soldat der Kavallerie', en: 'A cavalry soldier' }, { nl: 'Een rekruut in opleiding', de: 'Ein Rekrut in Ausbildung', en: 'A recruit in training' }],
+      x: { nl: '„Landser“ is geen rang.', de: '„Landser“ ist kein Dienstgrad.', en: '"Landser" is not a rank.' } },
+    { q: { nl: 'Met welke rang beginnen de Unteroffiziere mit Portepee?', de: 'Mit welchem Dienstgrad beginnen die Unteroffiziere mit Portepee?', en: 'With which rank do the Unteroffiziere mit Portepee begin?' },
+      a: ['Feldwebel', 'Unteroffizier', 'Unterfeldwebel', 'Stabsgefreiter'],
+      x: { nl: 'Unteroffizier en Unterfeldwebel zijn zonder Portepee; vanaf Feldwebel met.', de: 'Unteroffizier und Unterfeldwebel sind ohne Portepee, ab Feldwebel mit.', en: 'Unteroffizier and Unterfeldwebel are without Portepee; from Feldwebel up, with.' } },
+    { q: { nl: 'Hoeveel man telt een Gruppe ongeveer?', de: 'Wie viele Mann hat eine Gruppe ungefähr?', en: 'About how many men are in a Gruppe?' },
+      a: ['10', '4', '30', '100'],
+      x: { nl: 'Ongeveer tien man onder een Gruppenführer.', de: 'Etwa zehn Mann unter einem Gruppenführer.', en: 'About ten men under a Gruppenführer.' } },
+    { q: { nl: 'Hoeveel man telt een Zug ongeveer?', de: 'Wie viele Mann hat ein Zug ungefähr?', en: 'About how many men are in a Zug?' },
+      a: ['30–40', '10', '100–200', '500'],
+      x: { nl: 'Een Zug bestaat uit een paar Gruppen.', de: 'Ein Zug besteht aus einigen Gruppen.', en: 'A Zug consists of a few Gruppen.' } },
+    { q: { nl: 'Hoeveel infanteriebataljons had een Volksgrenadier-Division?', de: 'Wie viele Infanterie-Bataillone hatte eine Volksgrenadier-Division?', en: 'How many infantry battalions did a Volksgrenadier-Division have?' },
+      a: ['6', '9', '3', '12'],
+      x: { nl: 'Zes in plaats van de gewone negen, met meer automatische wapens.', de: 'Sechs statt der üblichen neun, dafür mehr automatische Waffen.', en: 'Six instead of the usual nine, with more automatic weapons.' } },
+    { q: { nl: 'Bij welke divisie hoorde Grenadier-Regiment 726?', de: 'Zu welcher Division gehörte das Grenadier-Regiment 726?', en: 'Which division did Grenadier-Regiment 726 belong to?' },
+      a: ['716. Infanterie-Division', '352. Infanterie-Division', '21. Panzer-Division', '12. Volksgrenadier-Division'],
+      x: { nl: 'Al in 1941 bij de opbouw van de 716. Infanterie-Division.', de: 'Schon 1941 bei der Aufstellung der 716. Infanterie-Division.', en: 'Since the 716. Infanterie-Division was raised in 1941.' } },
+    { q: { nl: 'Onder welke divisie stonden I. en III./GR 726 op D-Day bij Omaha?', de: 'Welcher Division unterstanden I. und III./GR 726 am D-Day bei Omaha?', en: 'Which division were I. and III./GR 726 under at Omaha on D-Day?' },
+      a: ['352. Infanterie-Division', '716. Infanterie-Division', '21. Panzer-Division', '91. Luftlande-Division'],
+      x: { nl: 'Ze waren toegewezen aan de buurdivisie, de 352.', de: 'Sie waren der Nachbardivision, der 352., unterstellt.', en: 'They were under the neighbouring 352nd Division.' } },
+    { q: { nl: 'Bij „Rührt euch!“ zet je welke voet naar voren?', de: 'Bei „Rührt euch!“ setzt du welchen Fuß vor?', en: 'At "Rührt euch!" which foot goes forward?' },
+      a: [{ nl: 'Links', de: 'Links', en: 'Left' }, { nl: 'Rechts', de: 'Rechts', en: 'Right' }, { nl: 'Geen van beide', de: 'Keinen', en: 'Neither' }, { nl: 'Beide uit elkaar', de: 'Beide auseinander', en: 'Both apart' }],
+      x: { nl: 'Linkervoet naar voren, wel stil blijven en niet praten.', de: 'Linken Fuß vor, aber still bleiben und nicht sprechen.', en: 'Left foot forward, but stay still and silent.' } },
+    { q: { nl: 'In welke zak draag je het Soldbuch?', de: 'In welcher Tasche trägst du das Soldbuch?', en: 'Which pocket holds the Soldbuch?' },
+      a: [{ nl: 'Rechter borstzak', de: 'Rechte Brusttasche', en: 'Right breast pocket' }, { nl: 'Linker borstzak', de: 'Linke Brusttasche', en: 'Left breast pocket' }, { nl: 'Binnenzak', de: 'Innentasche', en: 'Inside pocket' }, { nl: 'Broodzak', de: 'Brotbeutel', en: 'Bread bag' }],
+      x: { nl: 'Het verbandpakje zit in de binnenzak.', de: 'Das Verbandpäckchen steckt in der Innentasche.', en: 'The field dressing goes in the inside pocket.' } },
+    { q: { nl: 'Hoeveel patronen gaan er samen in beide patroontassen?', de: 'Wie viele Patronen passen zusammen in beide Patronentaschen?', en: 'How many rounds fit in both ammunition pouches together?' },
+      a: ['60', '30', '45', '120'],
+      x: { nl: '2 tassen × 3 vakjes × 2 laders × 5 patronen.', de: '2 Taschen × 3 Fächer × 2 Ladestreifen × 5 Patronen.', en: '2 pouches × 3 pockets × 2 clips × 5 rounds.' } },
+    { q: { nl: 'Welke kant hangt de broodzak?', de: 'Auf welcher Seite hängt der Brotbeutel?', en: 'Which side does the bread bag hang on?' },
+      a: [{ nl: 'Rechterheup', de: 'Rechte Hüfte', en: 'Right hip' }, { nl: 'Linkerheup', de: 'Linke Hüfte', en: 'Left hip' }, { nl: 'Op de rug', de: 'Auf dem Rücken', en: 'On the back' }, { nl: 'Voorop de buik', de: 'Vorn am Bauch', en: 'At the front' }],
+      x: { nl: 'Met twee lussen aan de koppel op de rechterheup; de veldfles hangt eraan.', de: 'Mit zwei Schlaufen am Koppel auf der rechten Hüfte; die Feldflasche hängt daran.', en: 'On two loops on the belt at the right hip; the canteen hangs from it.' } },
+    { q: { nl: 'Waar draag je de schep?', de: 'Wo trägst du den Spaten?', en: 'Where do you carry the spade?' },
+      a: [{ nl: 'Linkerheup, steel naar beneden', de: 'Linke Hüfte, Stiel nach unten', en: 'Left hip, handle down' }, { nl: 'Rechterheup, steel omhoog', de: 'Rechte Hüfte, Stiel nach oben', en: 'Right hip, handle up' }, { nl: 'Op de rug', de: 'Auf dem Rücken', en: 'On the back' }, { nl: 'Aan de broodzak', de: 'Am Brotbeutel', en: 'On the bread bag' }],
+      x: { nl: 'In het foedraal op de linkerheup, onder de bajonet.', de: 'Im Futteral auf der linken Hüfte, unter dem Seitengewehr.', en: 'In its carrier on the left hip, under the bayonet.' } },
+  ];
+
+  return { RANGEN, KOMMANDOS, ZEICHEN, BUCHSTABEN, MORSE, UITRUSTING, FEITEN };
+})();

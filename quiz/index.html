@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24231d">
+<title data-i18n>Quiz — VG726</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="../i18n.js"></script>
+<script src="vertalingen.js"></script>
+<script src="vragen.js"></script>
+<style>
+  :root{--paper:#e4dbc2;--card:#efe8d4;--ink:#24231d;--muted:#625c4a;--line:#a99d7c;--accent:#8e2316;--soft:rgba(142,35,22,.08);--ok:#3d5a2a;--okbg:#dfe5cf;--bad:#8e2316;--badbg:#f1dccf}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink)}
+  body{font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.5;
+    background-image:radial-gradient(rgba(0,0,0,.04) 1px,transparent 1px);background-size:4px 4px}
+  .wrap{max-width:640px;margin:0 auto;padding:48px 20px 48px}
+  .home{display:inline-block;margin-bottom:10px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+  .home:hover{color:var(--accent)}
+  header{border-bottom:3px double var(--ink);padding-bottom:14px;margin-bottom:24px;text-align:center}
+  .kicker,.label,.mono{font-family:"IBM Plex Mono",monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .kicker{font-size:11px;letter-spacing:.2em}
+  h1{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:clamp(52px,14vw,80px);line-height:1;margin:6px 0 4px}
+  .lead{margin:0;color:var(--muted);font-style:italic}
+  .label{font-size:11px;margin:0 0 10px}
+  button{font:inherit;color:inherit}
+
+  /* keuze */
+  .cats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cat{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);transition:border-color .15s,background .15s}
+  .cat:hover,.cat:focus-visible{border-left-color:var(--accent);background:#f3eddb}
+  .cat:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .cat b{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:24px;line-height:1.1}
+  .cat span{font-size:14px;color:var(--muted)}
+  .cat small{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);letter-spacing:.06em;margin-top:4px}
+  .cat.all{grid-column:1/-1;border-left-color:var(--accent)}
+  @media (max-width:460px){.cats{grid-template-columns:1fr}}
+
+  /* vraag */
+  .bar{display:flex;justify-content:space-between;align-items:center;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);letter-spacing:.08em;margin-bottom:8px}
+  .prog{height:4px;background:var(--line);margin-bottom:18px}.prog i{display:block;height:100%;background:var(--accent);transition:width .25s}
+  .qcard{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);padding:18px}
+  .qcat{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .q{font-size:20px;line-height:1.35;margin:6px 0 4px}
+  .big{display:block;font-family:"IBM Plex Mono",monospace;font-size:30px;letter-spacing:.12em;margin:10px 0 0;color:var(--ink)}
+  .opts{display:grid;gap:8px;margin-top:16px}
+  .opt{all:unset;cursor:pointer;display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border:1px solid var(--line);background:var(--paper);transition:border-color .12s,background .12s}
+  .opt .k{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);min-width:14px;padding-top:2px}
+  .opt:hover:not([disabled]),.opt:focus-visible{border-color:var(--ink);background:#f3eddb}
+  .opt:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .opt[disabled]{cursor:default}
+  .opt.ok{border-color:var(--ok);background:var(--okbg)}
+  .opt.bad{border-color:var(--bad);background:var(--badbg)}
+  .opt.morse{font-family:"IBM Plex Mono",monospace;font-size:20px;letter-spacing:.14em}
+  .fb{margin-top:14px;padding:12px 14px;border-left:3px solid var(--ok);background:var(--okbg);font-size:15px}
+  .fb.bad{border-left-color:var(--bad);background:var(--badbg)}
+  .fb b{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+  .row{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap}
+  .btn{all:unset;cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:11px 18px;background:var(--ink);color:var(--paper);border:1px solid var(--ink)}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn:hover{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* uitslag */
+  .result{text-align:center;background:var(--card);border:1px solid var(--line);padding:26px 18px}
+  .stamp{display:inline-block;transform:rotate(-6deg);border:3px solid var(--accent);color:var(--accent);padding:4px 16px;font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:22px;letter-spacing:.18em;text-transform:uppercase;margin:6px 0 14px;box-shadow:inset 0 0 0 2px var(--card),inset 0 0 0 3.5px var(--accent)}
+  .score{font-family:"UnifrakturMaguntia",serif;font-size:64px;line-height:1}
+  .review{margin-top:20px;text-align:left}
+  .review li{margin:0 0 10px}
+  .review .was{color:var(--bad)}
+  .review .is{color:var(--ok)}
+  footer{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);text-align:center;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="../" data-i18n>← VG726</a>
+  <header>
+    <div class="kicker">Prüfung · Wissensabfrage</div>
+    <h1 data-i18n>Quiz</h1>
+    <p class="lead" data-i18n>Test wat je weet. Tien vragen per ronde.</p>
+  </header>
+  <main id="app" aria-live="polite"></main>
+  <footer data-i18n>Vragen uit Reibert Online, de Merkblätter, de uitrustingsgids en de Funkgerät-simulator.</footer>
+</div>
+
+<script>
+(function(){
+  const T = s => (window.VG726 ? VG726.t(s) : s);
+  const L = () => (window.VG726 ? VG726.lang : 'nl');
+  const tr = v => v == null ? '' : (typeof v === 'string' ? v : (v[L()] || v.nl));   // tekst in de huidige taal
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pick = (a, n) => shuffle(a).slice(0, n);
+  const $ = s => document.querySelector(s);
+  const Q = window.QUIZ;
+  const morse = c => c.replace(/\./g, '·').replace(/-/g, '−');
+  const PER_RONDE = 10;
+
+  // maak een vraag met 4 opties uit een lijst; key = vergelijkingswaarde
+  function mc(cat, question, right, wrongPool, opts = {}) {
+    const wrongs = pick(wrongPool.filter(w => JSON.stringify(w) !== JSON.stringify(right)), 3);
+    return { cat, q: question, big: opts.big, right, options: shuffle([right, ...wrongs]), morse: !!opts.morse, x: opts.x };
+  }
+
+  /* -------- vraaggenerators per categorie -------- */
+  const CATS = {
+    rangen: { name: { nl: 'Dienstgrade', de: 'Dienstgrade', en: 'Ranks' }, desc: { nl: 'Welke rang is hoger?', de: 'Welcher Dienstgrad ist höher?', en: 'Which rank is higher?' },
+      make() {
+        const R = Q.RANGEN, i = Math.random() < .5;
+        if (i) { // hoogste van vier
+          const four = pick(R, 4), hi = four.reduce((a, b) => R.indexOf(a) > R.indexOf(b) ? a : b);
+          return { cat: 'rangen', q: { nl: 'Welke rang is het hoogst?', de: 'Welcher Dienstgrad ist am höchsten?', en: 'Which rank is the highest?' }, right: hi, options: shuffle(four),
+            x: { nl: 'Van laag naar hoog: ' + four.slice().sort((a, b) => R.indexOf(a) - R.indexOf(b)).join(' → '), de: 'Von niedrig nach hoch: ' + four.slice().sort((a, b) => R.indexOf(a) - R.indexOf(b)).join(' → '), en: 'From low to high: ' + four.slice().sort((a, b) => R.indexOf(a) - R.indexOf(b)).join(' → ') } };
+        }
+        const k = Math.random() * (R.length - 1) | 0;
+        return mc('rangen', { nl: 'Welke rang komt direct boven ' + R[k] + '?', de: 'Welcher Dienstgrad kommt direkt über ' + R[k] + '?', en: 'Which rank comes directly above ' + R[k] + '?' },
+          R[k + 1], R.slice(Math.max(0, k - 3), k + 6).filter(r => r !== R[k]),
+          { x: { nl: R[k] + ' → ' + R[k + 1], de: R[k] + ' → ' + R[k + 1], en: R[k] + ' → ' + R[k + 1] } });
+      } },
+    kommandos: { name: { nl: 'Kommandos', de: 'Kommandos', en: 'Commands' }, desc: { nl: 'Exercitie en geweergrepen', de: 'Exerzieren und Griffe', en: 'Drill and rifle drill' },
+      make() {
+        const [cmd, m] = Q.KOMMANDOS[Math.random() * Q.KOMMANDOS.length | 0];
+        if (Math.random() < .55) return mc('kommandos', { nl: 'Wat betekent dit commando?', de: 'Was bedeutet dieses Kommando?', en: 'What does this command mean?' }, m, Q.KOMMANDOS.map(k => k[1]), { big: cmd });
+        return mc('kommandos', { nl: 'Welk commando hoort hierbij?', de: 'Welches Kommando gehört dazu?', en: 'Which command is this?' }, cmd, Q.KOMMANDOS.map(k => k[0]), { big: m });
+      } },
+    zeichen: { name: { nl: 'Führungszeichen', de: 'Führungszeichen', en: 'Hand signals' }, desc: { nl: 'Arm- en geweertekens', de: 'Arm- und Gerätezeichen', en: 'Arm and equipment signals' },
+      make() {
+        const [d, m] = Q.ZEICHEN[Math.random() * Q.ZEICHEN.length | 0];
+        if (Math.random() < .6) return mc('zeichen', { nl: 'Wat betekent dit teken?', de: 'Was bedeutet dieses Zeichen?', en: 'What does this signal mean?' }, m, Q.ZEICHEN.map(z => z[1]), { big: d });
+        return mc('zeichen', { nl: 'Welk teken geef je voor dit bevel?', de: 'Welches Zeichen gibst du für diesen Befehl?', en: 'Which signal do you give for this order?' }, d, Q.ZEICHEN.map(z => z[0]), { big: m });
+      } },
+    buchstaben: { name: { nl: 'Buchstabiertafel', de: 'Buchstabiertafel', en: 'Spelling alphabet' }, desc: { nl: 'Spellen aan de telefoon (1934)', de: 'Buchstabieren am Fernsprecher (1934)', en: 'Spelling on the telephone (1934)' },
+      make() {
+        const B = Q.BUCHSTABEN, [l, w] = B[Math.random() * B.length | 0];
+        if (Math.random() < .6) return mc('buchstaben', { nl: 'Hoe spel je deze letter?', de: 'Wie buchstabierst du diesen Buchstaben?', en: 'How do you spell this letter?' }, w, B.map(b => b[1]), { big: l });
+        return mc('buchstaben', { nl: 'Welke letter is dit?', de: 'Welcher Buchstabe ist das?', en: 'Which letter is this?' }, l, B.map(b => b[0]), { big: w });
+      } },
+    morse: { name: { nl: 'Morse', de: 'Morsen', en: 'Morse' }, desc: { nl: 'Letters en cijfers seinen', de: 'Buchstaben und Ziffern geben', en: 'Letters and numbers' },
+      make() {
+        const keys = Object.keys(Q.MORSE), k = keys[Math.random() * keys.length | 0], c = morse(Q.MORSE[k]);
+        if (Math.random() < .5) return mc('morse', { nl: 'Welk teken is dit?', de: 'Welches Zeichen ist das?', en: 'Which character is this?' }, k, keys, { big: c });
+        return mc('morse', { nl: 'Hoe sein je dit teken?', de: 'Wie gibst du dieses Zeichen?', en: 'How do you send this character?' }, c, keys.map(x => morse(Q.MORSE[x])), { big: k, morse: true });
+      } },
+    uitrusting: { name: { nl: 'Ausrüstung', de: 'Ausrüstung', en: 'Equipment' }, desc: { nl: 'Wat is wat?', de: 'Was ist was?', en: 'What is what?' },
+      make() {
+        const U = Q.UITRUSTING, [n, m] = U[Math.random() * U.length | 0];
+        if (Math.random() < .6) return mc('uitrusting', { nl: 'Wat is dit?', de: 'Was ist das?', en: 'What is this?' }, m, U.map(u => u[1]), { big: n });
+        return mc('uitrusting', { nl: 'Hoe heet dit in het Duits?', de: 'Wie heißt das im Dienst?', en: 'What is this called in German?' }, n, U.map(u => u[0]), { big: m });
+      } },
+    dienst: { name: { nl: 'Dienst & Gefecht', de: 'Dienst & Gefecht', en: 'Duty & combat' }, desc: { nl: 'Gedrag, verkennen, ingraven', de: 'Benehmen, Aufklärung, Eingraben', en: 'Conduct, scouting, digging in' },
+      pool: Q.FEITEN,
+      make(used) {
+        const free = Q.FEITEN.filter(f => !used.has(f));
+        const f = (free.length ? free : Q.FEITEN)[Math.random() * (free.length || Q.FEITEN.length) | 0];
+        used.add(f);
+        return { cat: 'dienst', q: f.q, right: f.a[0], options: shuffle(f.a), x: f.x };
+      } },
+  };
+  const ORDER = ['rangen', 'kommandos', 'zeichen', 'buchstaben', 'morse', 'uitrusting', 'dienst'];
+
+  /* -------- beste scores (op dit toestel) -------- */
+  const BK = 'vg726.quiz.best';
+  let best = {}; try { best = JSON.parse(localStorage.getItem(BK) || '{}'); } catch (e) {}
+  const saveBest = (c, s) => { if (!(best[c] >= s)) { best[c] = s; try { localStorage.setItem(BK, JSON.stringify(best)); } catch (e) {} } };
+
+  /* -------- toestand -------- */
+  let view = 'menu', round = null;
+
+  function buildRound(cat) {
+    const qs = [], seen = new Set(), used = new Set();
+    let guard = 0;
+    while (qs.length < PER_RONDE && guard++ < 400) {
+      const c = cat === 'alles' ? ORDER[Math.random() * ORDER.length | 0] : cat;
+      const q = CATS[c].make(used);
+      const id = c + '|' + JSON.stringify(q.q) + JSON.stringify(q.big || '') + JSON.stringify(q.right);
+      if (seen.has(id)) continue;
+      seen.add(id); qs.push(q);
+    }
+    return { cat, qs, i: 0, score: 0, answered: null, wrong: [] };
+  }
+
+  function render() {
+    const app = $('#app');
+    if (view === 'menu') {
+      app.innerHTML = `<p class="label">${esc(T('Kies een onderdeel'))}</p><div class="cats">` +
+        ORDER.map(c => `<button class="cat" data-cat="${c}" type="button"><b>${esc(tr(CATS[c].name))}</b><span>${esc(tr(CATS[c].desc))}</span>${best[c] != null ? `<small>${esc(T('Beste score'))}: ${best[c]}/${PER_RONDE}</small>` : ''}</button>`).join('') +
+        `<button class="cat all" data-cat="alles" type="button"><b>${esc(T('Alles door elkaar'))}</b><span>${esc(T('Van elk onderdeel wat'))}</span>${best.alles != null ? `<small>${esc(T('Beste score'))}: ${best.alles}/${PER_RONDE}</small>` : ''}</button></div>`;
+      return;
+    }
+    if (view === 'q') {
+      const r = round, q = r.qs[r.i], a = r.answered;
+      const key = v => JSON.stringify(v);
+      app.innerHTML = `
+        <div class="bar"><span>${esc(T('Vraag'))} ${r.i + 1} / ${r.qs.length}</span><span>${esc(T('Goed'))}: ${r.score}</span></div>
+        <div class="prog"><i style="width:${(r.i + (a ? 1 : 0)) / r.qs.length * 100}%"></i></div>
+        <div class="qcard">
+          <div class="qcat">${esc(tr(CATS[q.cat].name))}</div>
+          <p class="q">${esc(tr(q.q))}</p>
+          ${q.big ? `<span class="big">${esc(tr(q.big))}</span>` : ''}
+          <div class="opts">${q.options.map((o, n) => {
+            let cls = '';
+            if (a) { if (key(o) === key(q.right)) cls = ' ok'; else if (key(o) === key(a)) cls = ' bad'; }
+            return `<button class="opt${q.morse ? ' morse' : ''}${cls}" type="button" data-n="${n}" ${a ? 'disabled' : ''}><span class="k">${'ABCD'[n]}</span><span>${esc(tr(o))}</span></button>`;
+          }).join('')}</div>
+          ${a ? `<div class="fb ${key(a) === key(q.right) ? '' : 'bad'}"><b>${esc(T(key(a) === key(q.right) ? 'Goed!' : 'Fout'))}</b>${key(a) === key(q.right) ? '' : ` — ${esc(T('het goede antwoord is'))}: <strong>${esc(tr(q.right))}</strong>`}${q.x ? `<div>${esc(tr(q.x))}</div>` : ''}</div>` : ''}
+        </div>
+        <div class="row"><button class="btn ghost" type="button" data-stop>${esc(T('Stoppen'))}</button>${a ? `<button class="btn" type="button" data-next>${esc(T(r.i + 1 < r.qs.length ? 'Volgende' : 'Uitslag'))} →</button>` : ''}</div>`;
+      const nb = app.querySelector('[data-next]'); if (nb) nb.focus();
+      return;
+    }
+    if (view === 'end') {
+      const r = round, s = r.score, n = r.qs.length;
+      const verdict = s === n ? 'Ausgezeichnet' : s >= 8 ? 'Sehr gut' : s >= 6 ? 'Gut' : s >= 4 ? 'Genügend' : 'Nachexerzieren!';
+      const msg = s === n ? 'Foutloos. Daar kan de Spieß niets op aanmerken.' : s >= 8 ? 'Bijna alles goed. Nog één ronde voor de volle score?' : s >= 6 ? 'Een goede basis. Kijk de fouten hieronder nog even na.' : s >= 4 ? 'Het begin is er. Lees het onderdeel in Reibert Online nog eens door.' : 'Nog even oefenen: lees het onderdeel in Reibert Online en probeer het opnieuw.';
+      app.innerHTML = `<div class="result">
+          <div class="label">${esc(tr(r.cat === 'alles' ? { nl: T('Alles door elkaar') } : CATS[r.cat].name))}</div>
+          <div class="score">${s} / ${n}</div>
+          <div class="stamp">${esc(verdict)}</div>
+          <p>${esc(T(msg))}</p>
+          <div class="row" style="justify-content:center"><button class="btn" type="button" data-again>${esc(T('Nog een ronde'))}</button><button class="btn ghost" type="button" data-menu>${esc(T('Ander onderdeel'))}</button></div>
+        </div>
+        ${r.wrong.length ? `<div class="review"><p class="label">${esc(T('Nakijken'))}</p><ol>${r.wrong.map(w => `<li>${esc(tr(w.q.q))}${w.q.big ? ` <strong>${esc(tr(w.q.big))}</strong>` : ''}<br><span class="was">✗ ${esc(tr(w.a))}</span> · <span class="is">✓ ${esc(tr(w.q.right))}</span></li>`).join('')}</ol></div>` : ''}`;
+    }
+  }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || b.closest('.vg-lang')) return;
+    if (b.dataset.cat) { round = buildRound(b.dataset.cat); view = 'q'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (b.dataset.n != null && round && !round.answered) {
+      const q = round.qs[round.i], a = q.options[+b.dataset.n];
+      round.answered = a;
+      if (JSON.stringify(a) === JSON.stringify(q.right)) round.score++; else round.wrong.push({ q, a });
+      render(); return;
+    }
+    if (b.hasAttribute('data-next')) {
+      round.i++; round.answered = null;
+      if (round.i >= round.qs.length) { saveBest(round.cat, round.score); view = 'end'; }
+      render(); return;
+    }
+    if (b.hasAttribute('data-stop') || b.hasAttribute('data-menu')) { view = 'menu'; round = null; render(); return; }
+    if (b.hasAttribute('data-again')) { round = buildRound(round.cat); view = 'q'; render(); }
+  });
+  // toetsenbord: 1–4 of A–D kiezen, Enter = volgende
+  document.addEventListener('keydown', e => {
+    if (view !== 'q' || e.target.closest('input,textarea')) return;
+    const m = '1234abcd'.indexOf(e.key.toLowerCase());
+    if (m >= 0 && !round.answered) { const b = document.querySelector(`.opt[data-n="${m % 4}"]`); if (b) b.click(); }
+  });
+  window.addEventListener('vg726:lang', render);
+  render();
+})();
+</script>
+</body>
+</html>
