@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Carpoolkaart 2026</title>
+<title data-i18n>Carpoolkaart 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -42,12 +42,14 @@
   li .p{color:var(--muted);font-size:13px;text-align:right}
   footer{color:var(--muted);font-size:12px;padding:10px 18px 18px}
 </style>
+<script src="../i18n.js"></script>
+<script src="vertalingen.js"></script>
 </head>
 <body>
 <header>
   <a class="home" href="../">← VG726</a>
-  <h1>Carpoolkaart 2026</h1>
-  <span class="sub">29 deelnemers met toestemming · alleen woonplaats · <span style="display:inline-block;width:18px;height:5px;background:#d40f1c;opacity:.5;border-radius:3px;vertical-align:middle"></span> snelwegen (huidig)</span>
+  <h1 data-i18n>Carpoolkaart 2026</h1>
+  <span class="sub" data-i18n>29 deelnemers met toestemming · alleen woonplaats · <span style="display:inline-block;width:18px;height:5px;background:#d40f1c;opacity:.5;border-radius:3px;vertical-align:middle"></span> snelwegen (huidig)</span>
 </header>
 <div class="wrap">
   <div id="mapbox">
@@ -61,20 +63,20 @@
       </g>
     </svg>
     <div class="views">
-      <button data-v="nl" class="on">Nederland</button>
-      <button data-v="all">Alles</button>
+      <button data-v="nl" class="on" data-i18n>Nederland</button>
+      <button data-v="all" data-i18n>Alles</button>
     </div>
     <div class="ctrl">
-      <button id="zin" aria-label="Inzoomen">+</button>
-      <button id="zout" aria-label="Uitzoomen">−</button>
+      <button id="zin" aria-label="Inzoomen" data-i18n-attr="aria-label">+</button>
+      <button id="zout" aria-label="Uitzoomen" data-i18n-attr="aria-label">−</button>
     </div>
   </div>
   <aside>
-    <div class="search"><input id="q" type="search" placeholder="Zoek naam of plaats…" autocomplete="off"></div>
+    <div class="search"><input id="q" type="search" placeholder="Zoek naam of plaats…" autocomplete="off" data-i18n-attr="placeholder"></div>
     <ul id="list"></ul>
   </aside>
 </div>
-<footer>Achtergrond: Großdeutsches Reich – Politische Übersicht, 1:4.500.000, Stand vom 1.10.1941. Stippen zijn op de oude kaart ingepast; afwijking enkele kilometers. Zoom met knijpen of scrollen; tik op een stip of naam voor details.</footer>
+<footer data-i18n>Achtergrond: Großdeutsches Reich – Politische Übersicht, 1:4.500.000, Stand vom 1.10.1941. Stippen zijn op de oude kaart ingepast; afwijking enkele kilometers. Zoom met knijpen of scrollen; tik op een stip of naam voor details.</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script>
