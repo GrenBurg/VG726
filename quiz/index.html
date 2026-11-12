@@ -203,9 +203,28 @@
       } },
     buchstaben: { name: { nl: 'Buchstabiertafel', de: 'Buchstabiertafel', en: 'Spelling alphabet' }, desc: { nl: 'Spellen aan de telefoon (1934)', de: 'Buchstabieren am Fernsprecher (1934)', en: 'Spelling on the telephone (1934)' },
       make() {
-        const B = Q.BUCHSTABEN, [l, w] = rnd(B);
-        if (Math.random() < .6) return mc('buchstaben', { nl: 'Hoe spel je deze letter?', de: 'Wie buchstabierst du diesen Buchstaben?', en: 'How do you spell this letter?' }, w, B.map(b => b[1]), { big: l });
-        return mc('buchstaben', { nl: 'Welke letter is dit?', de: 'Welcher Buchstabe ist das?', en: 'Which letter is this?' }, l, B.map(b => b[0]), { big: w });
+        const B = Q.BUCHSTABEN, F = Q.BUCHSTABEN_FOUT, goed = Object.fromEntries(B);
+        if (Math.random() < .55) {
+          // één letter: alle keuzes beginnen met dezelfde letter
+          const [l, w] = rnd(B);
+          return { cat: 'buchstaben', q: { nl: 'Hoe spel je deze letter?', de: 'Wie buchstabierst du diesen Buchstaben?', en: 'How do you spell this letter?' },
+            big: l, right: w, options: shuffle([w, ...pick(F[l], 3)]),
+            x: { nl: 'Tabel van 1934: ' + l + ' = ' + w, de: 'Tafel von 1934: ' + l + ' = ' + w, en: '1934 table: ' + l + ' = ' + w } };
+        }
+        // een heel woord: drie bijna-goede reeksen met één fout woord
+        const woord = rnd(Q.SPELWOORDEN), tekens = [];
+        for (let i = 0; i < woord.length;) {
+          const t = woord.startsWith('SCH', i) ? 'Sch' : woord.startsWith('CH', i) ? 'Ch' : woord[i];
+          tekens.push(t); i += t.length;
+        }
+        const reeks = tekens.map(t => goed[t]), right = reeks.join(' – ');
+        const fout = new Set();
+        for (let n = 0; fout.size < 3 && n < 50; n++) {
+          const i = Math.random() * tekens.length | 0, r = reeks.slice();
+          r[i] = rnd(F[tekens[i]]); fout.add(r.join(' – '));
+        }
+        return { cat: 'buchstaben', q: { nl: 'Hoe spel je dit woord?', de: 'Wie buchstabierst du dieses Wort?', en: 'How do you spell this word?' },
+          big: woord, right, options: shuffle([right, ...fout]) };
       } },
     uitrusting: { name: { nl: 'Ausrüstung', de: 'Ausrüstung', en: 'Equipment' }, desc: { nl: 'Wat is wat?', de: 'Was ist was?', en: 'What is what?' },
       make() {

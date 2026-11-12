@@ -66,6 +66,24 @@ window.QUIZ = (function () {
     ['R', 'Richard'], ['S', 'Siegfried'], ['Sch', 'Schule'], ['T', 'Toni'], ['U', 'Ulrich'], ['Ü', 'Übel'],
     ['V', 'Viktor'], ['W', 'Wilhelm'], ['X', 'Xantippe'], ['Y', 'Ypern'], ['Z', 'Zeppelin']];
 
+
+  // Misleidende woorden per letter: andere (oudere of latere) spellingstabellen en gewone namen.
+  const BUCHSTABEN_FOUT = {
+    'A': ['August', 'Albert', 'Anna'], 'Ä': ['Ähre', 'Ärmel', 'Äther'], 'B': ['Berta', 'Bernhard', 'Balduin'],
+    'C': ['Carl', 'Clara', 'Cornelius'], 'Ch': ['Christian', 'Chemnitz', 'Chor'], 'D': ['David', 'Dietrich', 'Detlef'],
+    'E': ['Eduard', 'Erich', 'Ernst'], 'F': ['Friedrich', 'Franz', 'Ferdinand'], 'G': ['Georg', 'Gerhard', 'Gottfried'],
+    'H': ['Heinrich', 'Hermann', 'Hans'], 'I': ['Isidor', 'Ingrid', 'Irma'], 'J': ['Julius', 'Johann', 'Jakob'],
+    'K': ['Kaufmann', 'Konrad', 'Karl'], 'L': ['Leopold', 'Lothar', 'Lina'], 'M': ['Martha', 'Max', 'Moritz'],
+    'N': ['Nathan', 'Norbert', 'Nikolaus'], 'O': ['Oskar', 'Olga', 'Oswald'], 'Ö': ['Ökonom', 'Österreich', 'Ödipus'],
+    'P': ['Peter', 'Paul', 'Prinz'], 'Q': ['Quirin', 'Quarz', 'Quittung'], 'R': ['Rudolf', 'Robert', 'Rosa'],
+    'S': ['Samuel', 'Sophie', 'Stefan'], 'Sch': ['Schiller', 'Schwester', 'Schmied'], 'T': ['Theodor', 'Thomas', 'Thea'],
+    'U': ['Ursula', 'Uhu', 'Udo'], 'Ü': ['Übermut', 'Überfall', 'Übung'], 'V': ['Valentin', 'Vogel', 'Volker'],
+    'W': ['Walter', 'Werner', 'Wolfgang'], 'X': ['Xaver', 'Xylophon', 'Xenia'], 'Y': ['Ypsilon', 'Yacht', 'Yvonne'],
+    'Z': ['Zacharias', 'Zitrone', 'Zander'],
+  };
+  // Woorden om te spellen (Ch en Sch tellen als één teken).
+  const SPELWOORDEN = ['ZUG', 'HALT', 'FUNK', 'TRUPP', 'STAB', 'FEIND', 'KOPPEL', 'MARSCH', 'LOCH', 'HELM', 'SPATEN', 'KARTE', 'MELDUNG', 'WACHE', 'POSTEN'];
+
   /* ---------------- Ausrüstung ---------------- */
   const UITRUSTING = [
     ['Einheitsfeldmütze M43', { nl: 'Veldpet met klep', de: 'Feldmütze mit Schirm', en: 'Peaked field cap' }],
@@ -208,5 +226,5 @@ window.QUIZ = (function () {
       x: { nl: 'In het foedraal op de linkerheup, onder de bajonet.', de: 'Im Futteral auf der linken Hüfte, unter dem Seitengewehr.', en: 'In its carrier on the left hip, under the bayonet.' } },
   ];
 
-  return { RANGEN, KOMMANDOS, ZEICHEN, BUCHSTABEN, UITRUSTING, FEITEN, EENHEDEN, GLIEDERUNG_FEITEN };
+  return { RANGEN, KOMMANDOS, ZEICHEN, BUCHSTABEN, BUCHSTABEN_FOUT, SPELWOORDEN, UITRUSTING, FEITEN, EENHEDEN, GLIEDERUNG_FEITEN };
 })();
