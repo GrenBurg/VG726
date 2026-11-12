@@ -57,9 +57,13 @@ en: {
 /* Downloads-tegel, bijgewerkt */
 VG726.add({
  "de": {
+  "Melden oefenen": "Meldungen üben",
+  "Oefen een vijandmelding in het Duits: Wann, Wer, Wie, Wo, op de kaartbladen Wilp en Haaksbergen.": "Übe eine Feindmeldung auf Deutsch: Wann, Wer, Wie, Wo, auf den Kartenblättern Wilp und Haaksbergen.",
   "Om zelf af te drukken: infobladen (Buchstabiertafel, Führungszeichen), kaarten in Meßtischblatt-stijl en ons liedboekje.": "Zum Selbstausdrucken: Merkblätter (Buchstabiertafel, Führungszeichen), Karten im Stil des Meßtischblatts und unser Liederheft."
  },
  "en": {
+  "Melden oefenen": "Reporting practice",
+  "Oefen een vijandmelding in het Duits: Wann, Wer, Wie, Wo, op de kaartbladen Wilp en Haaksbergen.": "Practise an enemy report in German: Wann, Wer, Wie, Wo, on the Wilp and Haaksbergen map sheets.",
   "Om zelf af te drukken: infobladen (Buchstabiertafel, Führungszeichen), kaarten in Meßtischblatt-stijl en ons liedboekje.": "To print yourself: info sheets (Buchstabiertafel, Führungszeichen), maps in Meßtischblatt style and our songbook."
  }
 });

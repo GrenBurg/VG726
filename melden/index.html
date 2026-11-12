@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24231d">
+<title data-i18n>Melden oefenen — VG726</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&family=Cutive+Mono&display=swap">
+<style>
+  :root{--paper:#e4dbc2;--card:#efe8d4;--ink:#24231d;--muted:#625c4a;--line:#a99d7c;--accent:#8e2316;--ok:#3d5a2a;--warn:#8a6312}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink)}
+  body{font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.5;
+    background-image:radial-gradient(rgba(0,0,0,.04) 1px,transparent 1px);background-size:4px 4px;
+    padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 48px}
+  .home{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-decoration:none;margin-bottom:18px}
+  .home:hover,.home:focus-visible{color:var(--ink);outline:none}
+  header{border-bottom:3px double var(--ink);padding-bottom:14px;margin-bottom:22px;text-align:center}
+  .kicker,.label{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .label{letter-spacing:.16em;margin:0 0 8px}
+  h1{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:clamp(44px,12vw,68px);line-height:1;margin:6px 0 4px}
+  .lead{margin:0;color:var(--muted);font-style:italic}
+
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+  .tab{all:unset;box-sizing:border-box;cursor:pointer;padding:6px 10px;border:1px solid var(--line);background:var(--card);
+       font:12px/1.3 "IBM Plex Mono",monospace;position:relative}
+  .tab:hover,.tab:focus-visible{border-color:var(--ink)}
+  .tab[aria-selected=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .tab .n{color:var(--accent);margin-right:4px}
+  .tab[aria-selected=true] .n{color:#e9b9a8}
+  .tab.done::after{content:"✓";margin-left:6px;color:var(--ok)}
+  .tab[aria-selected=true].done::after{color:#bcd6a8}
+
+  .sit{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);padding:14px 18px;margin-bottom:18px}
+  .sit h2{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:28px;margin:0 0 4px}
+  .sit p{margin:6px 0 0}
+  .blad{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+  /* Meldeblock */
+  .block{background:#f4efdc;border:1px solid var(--ink);box-shadow:3px 3px 0 rgba(0,0,0,.12);padding:0;font-family:"Cutive Mono","IBM Plex Mono",monospace}
+  .block .head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding:8px 14px}
+  .block .head b{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:26px}
+  .block .head span{font-size:12px;color:var(--muted)}
+  .frow{display:grid;grid-template-columns:150px 1fr;border-bottom:1px solid var(--line)}
+  .frow:last-child{border-bottom:0}
+  .frow label{padding:10px 12px;border-right:1px solid var(--line);font-size:14px;font-weight:600}
+  .frow label small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+  .frow textarea,.frow input{width:100%;border:0;background:transparent;padding:10px 12px;font:16px/1.4 "Cutive Mono","IBM Plex Mono",monospace;color:var(--ink);resize:vertical;min-height:44px}
+  .frow textarea:focus,.frow input:focus{outline:2px solid var(--accent);outline-offset:-2px;background:#fffbea}
+  .frow.ok label{color:var(--ok)}
+  .frow.bad label{color:var(--accent)}
+  @media (max-width:560px){.frow{grid-template-columns:1fr}.frow label{border-right:0;border-bottom:1px dashed var(--line);padding-bottom:4px}}
+
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+       font:13px "IBM Plex Mono",monospace;letter-spacing:.06em;cursor:pointer}
+  .btn:hover,.btn:focus-visible{background:var(--ink);color:var(--paper);outline:none}
+  .btn.main{background:var(--ink);color:var(--paper)}
+  .btn.main:hover,.btn.main:focus-visible{background:var(--accent);border-color:var(--accent)}
+
+  .result{background:var(--card);border:1px solid var(--line);padding:14px 18px;margin-bottom:16px}
+  .result[hidden],.model[hidden]{display:none}
+  .score{font-family:"IBM Plex Mono",monospace;font-size:14px;margin:0 0 10px}
+  .score b{font-size:22px}
+  .result ul{list-style:none;margin:0;padding:0}
+  .result li{padding:3px 0 3px 26px;position:relative}
+  .result li::before{position:absolute;left:4px;top:3px;font-family:"IBM Plex Mono",monospace;font-weight:600}
+  .result li.ok::before{content:"✓";color:var(--ok)}
+  .result li.bad::before{content:"✗";color:var(--accent)}
+  .result li.warn::before{content:"!";color:var(--warn)}
+  .result li.bad{color:var(--accent)}
+  .result li.warn{color:var(--warn)}
+  .result h3{font:600 12px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+  .model{margin-bottom:16px}
+  .model .block{box-shadow:none;background:#efe9d2}
+
+  details.rules{background:var(--card);border:1px solid var(--line);padding:10px 18px;margin-top:24px}
+  details.rules summary{cursor:pointer;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  details.rules ol{padding-left:20px;margin:10px 0 4px}
+  details.rules li{margin:5px 0}
+  .src{font-size:13px;color:var(--muted);font-style:italic;margin:8px 0 0}
+  footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--line);text-align:center;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;color:var(--muted)}
+</style>
+<script src="../i18n.js"></script>
+<script src="vertalingen.js?v=202611121500"></script>
+<script src="scenarios.js?v=202611121500"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="../">← VG726</a>
+  <header>
+    <div class="kicker" data-i18n>Waarnemen · Melden</div>
+    <h1>Meldungen</h1>
+    <p class="lead" data-i18n>Lees de situatie en schrijf je melding in het Duits op het Meldeblock. Daarna krijg je feedback en een voorbeeld.</p>
+  </header>
+
+  <div class="tabs" id="tabs" role="tablist"></div>
+
+  <section class="sit" id="sit"></section>
+
+  <form id="form" autocomplete="off" spellcheck="false"></form>
+
+  <div class="btns">
+    <button class="btn main" id="check" type="button" data-i18n>Controleren</button>
+    <button class="btn" id="show" type="button" data-i18n>Voorbeeld tonen</button>
+    <button class="btn" id="clear" type="button" data-i18n>Wissen</button>
+    <button class="btn" id="next" type="button" data-i18n>Volgende situatie →</button>
+  </div>
+
+  <section class="result" id="result" hidden aria-live="polite"></section>
+  <section class="model" id="model" hidden></section>
+
+  <details class="rules" id="rules">
+    <summary data-i18n>Regels voor een melding</summary>
+    <ol id="rulelist"></ol>
+    <p class="src" data-i18n>Naar „Karten und Geländekunde“ (Meldungen) en „Der Marschkompaß“ (Teilstriche bei Meldungen).</p>
+  </details>
+
+  <footer>726 Volksgrenadiere</footer>
+</div>
+
+<script>
+(function(){
+  const S = window.MELDEN || [];
+  const T = s => (window.VG726 ? VG726.t(s) : s);
+  const L = o => (o && typeof o === 'object') ? (o[(window.VG726 && VG726.lang) || 'nl'] || o.nl) : o;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // Tekst gelijk maken: kleine letters, umlauts = ae = a, verhoogde cijfers = gewone cijfers
+  const SUP = {'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9'};
+  const norm = s => String(s || '').toLowerCase()
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, c => SUP[c])
+    .replace(/ß/g, 'ss').replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u')
+    .replace(/ae/g, 'a').replace(/oe/g, 'o').replace(/ue/g, 'u')
+    .replace(/[–—]/g, '-');
+  const R = src => new RegExp(norm(src), 'i');
+
+  const FIELDS = [
+    { k: 'abs',  de: 'Absendende Dienststelle', ph: 'z. B. Spähtrupp Müller' },
+    { k: 'an',   de: 'An', ph: 'z. B. 2. Kompanie' },
+    { k: 'wann', de: 'Wann?', sub: 'Datum, Zeit', ph: 'z. B. 4. 11. 44, 09¹⁵' },
+    { k: 'wer',  de: 'Wer?', sub: 'wen bzw. was gesehen', ph: 'z. B. Zehn feindliche Reiter' },
+    { k: 'wie',  de: 'Wie?', sub: 'was tut der Feind', ph: 'z. B. auf dem Marsch von A-Dorf nach D-Dorf' },
+    { k: 'wo',   de: 'Wo?', sub: 'Ort, Himmelsrichtung, Entfernung', ph: 'z. B. 400 Meter westlich Bergfelde' },
+    { k: 'zus',  de: 'Zusatz', sub: 'Quelle, Vermutung, Gelände', ph: '' },
+    { k: 'sig',  de: 'Unterschrift', sub: 'voller Name', ph: '' }
+  ];
+
+  // Algemene waarschuwingen (gelden voor elke situatie)
+  const WARN = [
+    { f: ['wann'], re: '\\buhr\\b|vormittag|nachmittag|abends|morgens|mittags|früh', l: { nl: 'Schrijf de tijd in 24 uur zonder „Uhr“ of „vormittags/nachmittags“, bijv. 14²⁰ of 1420.', de: 'Zeit in 24 Stunden ohne „Uhr“ oder „vormittags/nachmittags“, z. B. 14²⁰ oder 1420.', en: 'Write the time in 24 hours without “Uhr” or “vormittags/nachmittags”, e.g. 14²⁰ or 1420.' } },
+    { f: ['wer'], re: '\\b(einige|mehrere|ein paar|viele|etliche|wenige)\\b|feind gesehen', l: { nl: 'Te vaag: noem een aantal („zwölf“, „ungefähr Zugstärke“), nooit alleen „Feind gesehen“.', de: 'Zu ungenau: nenne eine Zahl („zwölf“, „ungefähr Zugstärke“), nie nur „Feind gesehen“.', en: 'Too vague: give a number (“zwölf”, “ungefähr Zugstärke”), never just “Feind gesehen”.' } },
+    { f: ['wo', 'wie'], re: '\\b(rechts|links|vor|vorn|vorne|hinter|diesseits|jenseits)\\b', l: { nl: 'Vermijd rechts/links/vor/hinter/diesseits/jenseits: die hangen af van waar je staat. Gebruik windrichtingen.', de: 'Vermeide rechts/links/vor/hinter/diesseits/jenseits: sie hängen vom Standpunkt ab. Nimm Himmelsrichtungen.', en: 'Avoid rechts/links/vor/hinter/diesseits/jenseits: they depend on where you stand. Use compass directions.' } },
+    { f: ['wo', 'wie'], re: 'östlich', l: { nl: 'Schrijf „ostwärts“ in plaats van „östlich“: dat wordt niet verward met „westlich“.', de: 'Schreibe „ostwärts“ statt „östlich“, damit es nicht mit „westlich“ verwechselt wird.', en: 'Write “ostwärts” instead of “östlich” so it cannot be mixed up with “westlich”.' } },
+    { f: ['an'], re: '\\bherr|lieb|geehrt|hallo', l: { nl: 'Geen aanhef bij „An“: alleen de eenheid.', de: 'Keine Anrede bei „An“: nur die Dienststelle.', en: 'No salutation under “An”: just the unit.' } }
+  ];
+
+  const RULES = [
+    { nl: 'Elke melding over de vijand beantwoordt de vier vragen: <b>Wann? Wer? Wie? Wo?</b>', de: 'Jede Meldung über den Feind gibt Auskunft auf die vier Fragen: <b>Wann? Wer? Wie? Wo?</b>', en: 'Every report about the enemy answers the four questions: <b>Wann? Wer? Wie? Wo?</b>' },
+    { nl: '<b>Wann:</b> datum als 4. 11. 44, een nacht als „Nacht 4./5. 11. 44“. Tijd in 24 uur met verhoogde minuten: 9¹², 18¹⁵.', de: '<b>Wann:</b> Datum als 4. 11. 44, eine Nacht als „Nacht 4./5. 11. 44“. Zeit in 24 Stunden mit hochgestellten Minuten: 9¹², 18¹⁵.', en: '<b>Wann:</b> date as 4. 11. 44, a night as “Nacht 4./5. 11. 44”. Time on the 24-hour clock with raised minutes: 9¹², 18¹⁵.' },
+    { nl: '<b>Wer:</b> wie of wat je zag, zo precies mogelijk met aantallen: „Zehn feindliche Reiter“, „Schützentrupp, ungefähr Zugstärke“. Nooit alleen „habe Feind gesehen“.', de: '<b>Wer:</b> wen bzw. was du gesehen hast, so genau wie möglich mit Zahlen: „Zehn feindliche Reiter“, „Schützentrupp, ungefähr Zugstärke“. Nie nur „habe Feind gesehen“.', en: '<b>Wer:</b> who or what you saw, as exactly as possible with numbers: “Zehn feindliche Reiter”, “Schützentrupp, ungefähr Zugstärke”. Never just “habe Feind gesehen”.' },
+    { nl: '<b>Wie:</b> wat de vijand doet: op mars van A-Dorf naar D-Dorf, bezig met camoufleren, een wegversperring aanleggen, in Schützenkette oprukken.', de: '<b>Wie:</b> was der Feind tut: auf dem Marsch von A-Dorf nach D-Dorf, beim Tarnen, beim Anlegen einer Straßensperre, beim Vorgehen in Schützenkette.', en: '<b>Wie:</b> what the enemy is doing: on the march from A-Dorf to D-Dorf, camouflaging, building a roadblock, advancing in Schützenkette.' },
+    { nl: '<b>Wo:</b> plaatsnamen precies en volledig zoals op de kaart. Gebruik windrichtingen („400 Meter westlich Bergfelde“), geen rechts/links/vor/hinter/diesseits/jenseits. Schrijf „ostwärts“ in plaats van „östlich“.', de: '<b>Wo:</b> Ortsnamen genau und vollständig wie auf der Karte. Himmelsrichtungen nehmen („400 Meter westlich Bergfelde“), kein rechts/links/vor/hinter/diesseits/jenseits. „ostwärts“ statt „östlich“ schreiben.', en: '<b>Wo:</b> place names exactly and in full as on the map. Use compass directions (“400 Meter westlich Bergfelde”), no rechts/links/vor/hinter/diesseits/jenseits. Write “ostwärts” instead of “östlich”.' },
+    { nl: 'Een weg noem je met minstens twee punten, in de marsrichting: „Straße Deventer–Twello“.', de: 'Eine Straße mit mindestens zwei Punkten bezeichnen, in Marschrichtung: „Straße Deventer–Twello“.', en: 'Name a road by at least two points, in the direction of march: “Straße Deventer–Twello”.' },
+    { nl: 'Houd feiten en vermoedens gescheiden: „anscheinend“, „vermutlich“, of noem de bron („nach Aussage eines Bauern“).', de: 'Tatsachen und Vermutungen trennen: „anscheinend“, „vermutlich“, oder die Quelle nennen („nach Aussage eines Bauern“).', en: 'Keep facts and assumptions apart: “anscheinend”, “vermutlich”, or name the source (“nach Aussage eines Bauern”).' },
+    { nl: 'Meld ook waar de vijand níet is („Twello feindfrei“), en geef informatie over het terrein.', de: 'Auch melden, wo der Feind nicht ist („Twello feindfrei“), und Angaben über das Gelände machen.', en: 'Also report where the enemy is not (“Twello feindfrei”), and give information about the terrain.' },
+    { nl: '„Absendende Dienststelle“ is de eenheid of taak („Spähtrupp Müller“), geen persoon. „An“ zonder aanhef („An 2. Kompanie“). Onderteken met je volledige naam.', de: '„Absendende Dienststelle“ ist die Einheit oder Aufgabe („Spähtrupp Müller“), keine Person. „An“ ohne Anrede („An 2. Kompanie“). Mit vollem Namen unterschreiben.', en: '“Absendende Dienststelle” is the unit or task (“Spähtrupp Müller”), not a person. “An” without salutation (“An 2. Kompanie”). Sign with your full name.' },
+    { nl: 'Schrijf met een dik potlood (kopieerpotlood alleen in nood). Verbeter door door te strepen, niet met haakjes.', de: 'Mit dickem Bleistift schreiben (Tintenstift nur im Notfall). Durch Durchstreichen verbessern, nicht mit Klammern.', en: 'Write with a thick pencil (copying pencil only in an emergency). Correct by striking through, not with brackets.' },
+    { nl: '„Abstand“ is de afstand voor–achter, „Zwischenraum“ de afstand naast elkaar. „Anfang“ en „Ende“ gaan uit van de marsrichting.', de: '„Abstand“ ist die Entfernung von vorn nach hinten, „Zwischenraum“ die nebeneinander. „Anfang“ und „Ende“ richten sich nach der Marschrichtung.', en: '“Abstand” is the front-to-back distance, “Zwischenraum” side by side. “Anfang” and “Ende” follow the direction of march.' },
+    { nl: 'Korte melding met de Marschkompaß: „Feindlicher Spähtrupp 900 Meter in 10“. Bij een Spähtrupp noem je ook je eigen standplaats.', de: 'Kurze Meldung mit dem Marschkompaß: „Feindlicher Spähtrupp 900 Meter in 10“. Beim Spähtrupp auch den eigenen Standpunkt angeben.', en: 'Short report with the Marschkompaß: “Feindlicher Spähtrupp 900 Meter in 10”. On a Spähtrupp also give your own position.' }
+  ];
+
+  let cur = 0;
+  const inputs = {};        // bewaarde invoer per situatie
+  let done = {};
+  try { done = JSON.parse(localStorage.getItem('vg726.melden') || '{}') || {}; } catch (e) {}
+  try { const h = location.hash.slice(1); const i = S.findIndex(s => s.id === h); if (i >= 0) cur = i; } catch (e) {}
+
+  function fieldsFor(s) {
+    return s.form === 'kurz'
+      ? [{ k: 'kurz', de: 'Mündliche Meldung', sub: 'kurz, ein bis zwei Sätze', ph: '' }]
+      : FIELDS;
+  }
+
+  function blockHTML(s, vals, editable, marks) {
+    const fs = fieldsFor(s);
+    let h = '<div class="block"><div class="head"><b>' + (s.form === 'kurz' ? 'Meldung' : 'Meldeblock') + '</b><span>' +
+            (editable ? esc(T('alleen Duits')) : esc(T('voorbeeld'))) + '</span></div>';
+    for (const f of fs) {
+      const v = vals[f.k] || '';
+      const cls = marks && marks[f.k] ? ' ' + marks[f.k] : '';
+      h += '<div class="frow' + cls + '"><label for="f-' + f.k + '">' + esc(f.de) + (f.sub ? '<small>' + esc(f.sub) + '</small>' : '') + '</label>';
+      if (editable) {
+        const big = (f.k === 'kurz' || f.k === 'wie' || f.k === 'wo' || f.k === 'zus' || f.k === 'wer');
+        h += big
+          ? '<textarea id="f-' + f.k + '" name="' + f.k + '" rows="' + (f.k === 'kurz' ? 3 : 1) + '" lang="de" placeholder="' + esc(f.ph) + '">' + esc(v) + '</textarea>'
+          : '<input id="f-' + f.k + '" name="' + f.k + '" lang="de" value="' + esc(v) + '" placeholder="' + esc(f.ph) + '">';
+      } else {
+        h += '<div style="padding:10px 12px;font-size:16px" lang="de">' + esc(v || '—') + '</div>';
+      }
+      h += '</div>';
+    }
+    return h + '</div>';
+  }
+
+  function renderTabs() {
+    $('tabs').innerHTML = S.map((s, i) =>
+      '<button type="button" role="tab" class="tab' + (done[s.id] ? ' done' : '') + '" aria-selected="' + (i === cur) + '" data-i="' + i + '">' +
+      '<span class="n">' + (i + 1) + '.</span>' + esc(L(s.t)) + '</button>').join('');
+  }
+
+  function renderSit() {
+    const s = S[cur];
+    $('sit').innerHTML = '<div class="blad">' + esc(T('Kaartblad')) + ': ' + esc(s.blad) + ' · ' + esc(T('Situatie')) + ' ' + (cur + 1) + '/' + S.length + '</div>' +
+      '<h2>' + esc(L(s.t)) + '</h2><p>' + esc(L(s.sit)) + '</p>';
+  }
+
+  function save() {
+    const v = {};
+    $('form').querySelectorAll('[name]').forEach(el => v[el.name] = el.value);
+    inputs[S[cur].id] = v;
+  }
+
+  function renderForm(marks) {
+    $('form').innerHTML = blockHTML(S[cur], inputs[S[cur].id] || {}, true, marks);
+  }
+
+  function renderRules() {
+    $('rulelist').innerHTML = RULES.map(r => '<li>' + L(r) + '</li>').join('');
+  }
+
+  function renderAll(keepResult) {
+    renderTabs(); renderSit(); renderForm(); renderRules();
+    if (!keepResult) { $('result').hidden = true; $('model').hidden = true; }
+    else if (lastCheck) showResult(lastCheck);
+    if (!$('model').hidden) showModel();
+  }
+
+  let lastCheck = null;
+
+  function check() {
+    save();
+    const s = S[cur], v = inputs[s.id] || {};
+    const fs = fieldsFor(s).map(f => f.k);
+    const get = f => norm(f === 'alle' ? fs.map(k => v[k] || '').join(' \n ') : f.map(k => v[k] || '').join(' \n '));
+    const res = { ok: [], bad: [], warn: [], marks: {} };
+    const markBad = f => (f === 'alle' ? [] : f).forEach(k => res.marks[k] = 'bad');
+
+    if (!fs.some(k => (v[k] || '').trim())) { lastCheck = { empty: true }; showResult(lastCheck); return; }
+
+    for (const c of s.checks) {
+      if (R(c.re).test(get(c.f))) res.ok.push(c.l);
+      else { res.bad.push(c.l); markBad(c.f); }
+    }
+    for (const w of WARN.concat(s.warn || [])) {
+      if (!w.l) continue;
+      const fl = w.f.filter(k => fs.includes(k));
+      if (!fl.length) continue;
+      const txt = get(fl);
+      if (R(w.re).test(txt) && !(w.not && R(w.not).test(txt))) res.warn.push(w.l);
+    }
+    if (s.form !== 'kurz') {
+      const sig = (v.sig || '').trim();
+      if (sig.split(/\s+/).filter(x => /[a-zäöüß]/i.test(x)).length < 2)
+        res.warn.push({ nl: 'Onderteken met je volledige naam (voor- en achternaam).', de: 'Mit vollem Namen unterschreiben (Vor- und Nachname).', en: 'Sign with your full name (first and last name).' });
+      if (/\(|\)/.test(fs.map(k => v[k] || '').join('')))
+        res.warn.push({ nl: 'Geen haakjes: verbeteren doe je door door te strepen.', de: 'Keine Klammern: verbessert wird durch Durchstreichen.', en: 'No brackets: corrections are made by striking through.' });
+    }
+    // Nederlands of Engels geschreven?
+    const all = norm(fs.map(k => v[k] || '').join(' '));
+    if (/\b(het|een|zijn|ongeveer|ten|noorden|zuiden|oosten|westen|meter van|the|about|north|south|east|west of|enemy)\b/.test(all))
+      res.warn.push({ nl: 'Dit lijkt (deels) Nederlands of Engels. Een melding schrijf je in het Duits.', de: 'Das sieht (teilweise) nach Niederländisch oder Englisch aus. Eine Meldung schreibst du auf Deutsch.', en: 'This looks (partly) Dutch or English. Write the report in German.' });
+
+    for (const k of fs) if (!res.marks[k] && (v[k] || '').trim()) res.marks[k] = 'ok';
+    res.n = s.checks.length; res.score = res.ok.length;
+    lastCheck = res;
+    if (res.score === res.n) { done[s.id] = 1; try { localStorage.setItem('vg726.melden', JSON.stringify(done)); } catch (e) {} renderTabs(); }
+    renderForm(res.marks);
+    showResult(res);
+  }
+
+  function showResult(res) {
+    const el = $('result'); el.hidden = false;
+    if (res.empty) { el.innerHTML = '<p class="score">' + esc(T('Vul eerst het Meldeblock in.')) + '</p>'; return; }
+    let h = '<p class="score"><b>' + res.score + '/' + res.n + '</b> ' + esc(T('punten in orde')) +
+            (res.score === res.n ? ' — ' + esc(T(res.warn.length ? 'Goed, let nog op de opmerkingen.' : 'Uitstekend, zo hoort een melding!')) : '') + '</p>';
+    if (res.bad.length) h += '<h3>' + esc(T('Ontbreekt of klopt niet')) + '</h3><ul>' + res.bad.map(l => '<li class="bad">' + esc(L(l)) + '</li>').join('') + '</ul>';
+    if (res.warn.length) h += '<h3>' + esc(T('Let op')) + '</h3><ul>' + res.warn.map(l => '<li class="warn">' + esc(L(l)) + '</li>').join('') + '</ul>';
+    if (res.ok.length) h += '<h3>' + esc(T('In orde')) + '</h3><ul>' + res.ok.map(l => '<li class="ok">' + esc(L(l)) + '</li>').join('') + '</ul>';
+    el.innerHTML = h;
+  }
+
+  function showModel() {
+    const s = S[cur];
+    $('model').hidden = false;
+    $('model').innerHTML = '<p class="label">' + esc(T('Voorbeeldmelding')) + '</p>' + blockHTML(s, s.model, false);
+  }
+
+  function go(i) {
+    save();
+    cur = (i + S.length) % S.length; lastCheck = null;
+    try { history.replaceState(null, '', '#' + S[cur].id); } catch (e) {}
+    renderAll(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) go(+b.dataset.i); });
+  $('check').addEventListener('click', check);
+  $('show').addEventListener('click', () => { save(); showModel(); $('model').scrollIntoView({ behavior: 'smooth', block: 'nearest' }); });
+  $('clear').addEventListener('click', () => { inputs[S[cur].id] = {}; lastCheck = null; renderAll(false); });
+  $('next').addEventListener('click', () => go(cur + 1));
+  window.addEventListener('vg726:lang', () => { save(); renderAll(true); });
+
+  if (!S.length) { $('sit').textContent = 'Situaties konden niet geladen worden.'; return; }
+  renderAll(false);
+})();
+</script>
+</body>
+</html>

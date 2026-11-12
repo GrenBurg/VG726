@@ -8,6 +8,7 @@ Klein platform met een startpagina en zeven onderdelen:
 | `uitrusting/` | Uitrustingsgids voor nieuwe leden (klikbare soldaat, voor- en achterkant) |
 | `carpoolkaart/` | Carpoolkaart: woonplaatsen van deelnemers om samen te rijden |
 | `quiz/` | Quiz voor nieuwe leden; vragen staan in `quiz/vragen.js` |
+| `melden/` | Melden oefenen: vijandmeldingen in het Duits schrijven (Wann, Wer, Wie, Wo); situaties staan in `melden/scenarios.js` |
 | `setboek/` | Setboek, de sport-app (12-weken trainingsschema, werkt offline) |
 | `reibert/` | Reibert Online: de inhoud van het boekje *Der Dienstunterricht im Heere* (2026), doorzoekbaar en met correcties |
 | `funkgeraet/` | Bediensimulator Tornisterfunkgerät d2 (Torn.Fu.d2): opbouwen, afstemmen, morse-oefenen en online morsen via Ably |
@@ -32,6 +33,10 @@ Alles behalve online morsen werkt zonder sleutel.
 ## Tarntafel
 
 De generator draait volledig in de browser. Dezelfde **sleutel** met dezelfde invoer geeft altijd dezelfde tafel, dus de leiding kan de tafel delen met een link (knop *Link kopiëren*, de invoer zit in de link na `#`). Afdrukken op A4 zonder marges; de Excel-sleutel bevat de Nederlandse vertaling van alle begrippen.
+
+## Melden oefenen
+
+De regels komen uit „Karten und Geländekunde“ (Meldungen) en „Der Marschkompaß“. Een nieuwe situatie voeg je toe in `melden/scenarios.js`: de situatietekst in nl/de/en, de verplichte punten als reguliere expressies (umlauts, ae en a tellen gelijk) en een voorbeeldmelding.
 
 ## Talen
 
