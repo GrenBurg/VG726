@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24231d">
+<meta name="description" content="Downloads — Merkblätter en kaartbladen in periodestijl, als PDF om af te drukken.">
+<title data-i18n>Drukwerken — VG726</title>
+<link rel="icon" href="../../icon-192.png">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#e4dbc2; --card:#efe8d4; --ink:#24231d; --muted:#625c4a;
+    --line:#a99d7c; --accent:#8e2316;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink)}
+  body{
+    font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.5;
+    background-image:radial-gradient(rgba(0,0,0,.04) 1px,transparent 1px);background-size:4px 4px;
+    padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:28px 20px 48px}
+  .home{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.12em;
+        text-transform:uppercase;color:var(--muted);text-decoration:none;margin-bottom:18px}
+  .home:hover,.home:focus-visible{color:var(--ink);outline:none}
+  header{border-bottom:3px double var(--ink);padding-bottom:14px;margin-bottom:26px;text-align:center}
+  .kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  h1{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:clamp(44px,12vw,68px);line-height:1;margin:6px 0 4px}
+  .lead{margin:0;color:var(--muted);font-style:italic}
+
+  .label{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;
+         text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+
+  .sheet{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);
+         margin:0 0 16px;overflow:hidden}
+  .sheet img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line);background:#fff}
+  .sheet .portrait{background:#fff;border-bottom:1px solid var(--line);padding:18px 0}
+  .sheet .portrait img{width:auto;max-width:62%;margin:0 auto;border:1px solid var(--line)}
+  .label + .label, .sheet + .label{margin-top:30px}
+  .body{padding:16px 18px}
+  .nr{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;color:var(--accent)}
+  .title{font-family:"UnifrakturMaguntia",serif;font-size:26px;line-height:1.1;margin:2px 0 6px}
+  .desc{margin:0 0 12px;font-size:15px;color:var(--muted)}
+
+  dl{display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:0 0 14px;
+     font-family:"IBM Plex Mono",monospace;font-size:12px}
+  dt{color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-size:11px;padding-top:2px}
+  dd{margin:0}
+
+  .dl{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;
+      border:1px solid var(--ink);background:var(--paper);color:inherit;text-decoration:none;
+      font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.06em;
+      transition:background .15s,border-color .15s}
+  .dl:hover,.dl:focus-visible{background:var(--ink);color:var(--paper);outline:none}
+  .dl .sz{opacity:.65;font-size:11px}
+  .dl:hover .sz{opacity:.8}
+
+  .note{margin:26px 0 0;padding:14px 16px;border:1px dashed var(--line);
+        font-size:14px;color:var(--muted)}
+  .note p{margin:0 0 8px}
+  .note p:last-child{margin:0}
+
+  footer{margin-top:32px;padding-top:12px;border-top:1px solid var(--line);text-align:center;
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;color:var(--muted)}
+  .dls{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+  .dl.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+  .dl.ghost .sz{color:var(--muted)}
+  .note ol.steps{margin:4px 0 10px;padding-left:22px}
+  .note ol.steps li{margin:0 0 6px}
+</style>
+<script src="../../i18n.js"></script>
+<script src="../../downloads/vertalingen.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="../" data-i18n>← Downloads</a>
+
+  <header>
+    <div class="kicker">Drucksachen · zum Ausdrucken</div>
+    <h1 data-i18n>Drukwerken</h1>
+    <p class="lead" data-i18n>Boekjes voor de groep, klaar om af te drukken.</p>
+  </header>
+
+  <main>
+    <p class="label">Liederbücher</p>
+
+    <article class="sheet">
+      <div class="portrait"><img src="thumb-liederbuch.jpg" alt="Omslag van Das neue Soldaten-Liederbuch: twee zingende soldaten op een blauwe achtergrond." loading="lazy" width="397" height="565" data-i18n-attr="alt"></div>
+      <div class="body">
+        <span class="nr">Heft 4.</span>
+        <h2 class="title">Das neue Soldaten-Liederbuch</h2>
+        <p class="desc" data-i18n>Ons liedboekje met de bekendste soldatenliederen: Im Wald im grünen Walde, Infanterielied, Ein Heller und ein Batzen, Wir kommen wieder, Die blonde Rie, Erika, Westerwaldlied en Wir sind des Geyers schwarzer Haufen. Achterin ruimte voor eigen aantekeningen.</p>
+        <dl>
+          <dt data-i18n>Formaat</dt><dd data-i18n>A5-boekje, 20 bladzijden</dd>
+          <dt data-i18n>Papier</dt><dd data-i18n>5 vellen A4, dubbelzijdig</dd>
+        </dl>
+        <div class="dls">
+          <a class="dl" href="soldaten-liederbuch-boekje-a4.pdf" download>
+            <span data-i18n>Boekje om te printen (A4)</span> <span class="sz">1,0 MB</span>
+          </a>
+          <a class="dl ghost" href="soldaten-liederbuch-a5.pdf" download>
+            <span data-i18n>Losse bladzijden (A5)</span> <span class="sz">0,6 MB</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <div class="note">
+      <p data-i18n><strong>Zo print je het boekje:</strong></p>
+      <ol class="steps">
+        <li data-i18n>Open <em>Boekje om te printen (A4)</em>. De bladzijden staan al in de goede volgorde.</li>
+        <li data-i18n>Kies A4, <strong>dubbelzijdig</strong>, <strong>spiegelen over de korte kant</strong> en <strong>ware grootte</strong> (100 %, niet „passend maken”).</li>
+        <li data-i18n>Leg de 5 vellen op volgorde op elkaar, met de omslag buiten, en vouw ze samen dubbel.</li>
+        <li data-i18n>Zet twee nietjes in de vouw. Heb je geen lange nietmachine: leg het open boekje op een stuk karton en duw de nietjes er van binnenuit door; buig de pootjes om.</li>
+      </ol>
+      <p data-i18n><strong>Geen dubbelzijdige printer?</strong> Print eerst de oneven pagina's, leg de stapel terug in de lade en print daarna de even pagina's. Probeer het eerst met één vel. Een copyshop doet het ook voor je: vraag om een A5-boekje met rugnieten.</p>
+      <p data-i18n><strong>Losse bladzijden (A5)</strong> is handig om op je telefoon te lezen of om één lied te printen.</p>
+    </div>
+  </main>
+
+  <footer>VG726</footer>
+</div>
+</body>
+</html>

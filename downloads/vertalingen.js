@@ -73,3 +73,47 @@ en: {
   "<strong>Let op bij de kaarten:</strong> dit zijn moderne kaarten in historische vormgeving, gemaakt voor reenactment. Het kaartbeeld komt van de actuele topografische kaart, dus wegen en bebouwing zijn van nu.": "<strong>Note on the maps:</strong> these are modern maps in a historical design, made for reenactment. The map image comes from the current topographic map, so roads and buildings are as they are today."
 }
 });
+
+/* Drukwerken */
+VG726.add({
+ "de": {
+  "Drukwerken — VG726": "Drucksachen — VG726",
+  "Drukwerken": "Drucksachen",
+  "Boekjes voor de groep: Das neue Soldaten-Liederbuch, met printinstructie.": "Hefte für die Gruppe: Das neue Soldaten-Liederbuch, mit Druckanleitung.",
+  "Boekjes voor de groep, klaar om af te drukken.": "Hefte für die Gruppe, fertig zum Ausdrucken.",
+  "Omslag van Das neue Soldaten-Liederbuch: twee zingende soldaten op een blauwe achtergrond.": "Umschlag von Das neue Soldaten-Liederbuch: zwei singende Soldaten auf blauem Grund.",
+  "Ons liedboekje met de bekendste soldatenliederen: Im Wald im grünen Walde, Infanterielied, Ein Heller und ein Batzen, Wir kommen wieder, Die blonde Rie, Erika, Westerwaldlied en Wir sind des Geyers schwarzer Haufen. Achterin ruimte voor eigen aantekeningen.": "Unser Liederheft mit den bekanntesten Soldatenliedern: Im Wald im grünen Walde, Infanterielied, Ein Heller und ein Batzen, Wir kommen wieder, Die blonde Rie, Erika, Westerwaldlied und Wir sind des Geyers schwarzer Haufen. Hinten Platz für eigene Notizen.",
+  "A5-boekje, 20 bladzijden": "A5-Heft, 20 Seiten",
+  "Papier": "Papier",
+  "5 vellen A4, dubbelzijdig": "5 Blatt A4, beidseitig",
+  "Boekje om te printen (A4)": "Heft zum Drucken (A4)",
+  "Losse bladzijden (A5)": "Einzelseiten (A5)",
+  "<strong>Zo print je het boekje:</strong>": "<strong>So druckst du das Heft:</strong>",
+  "Open <em>Boekje om te printen (A4)</em>. De bladzijden staan al in de goede volgorde.": "Öffne <em>Heft zum Drucken (A4)</em>. Die Seiten stehen schon in der richtigen Reihenfolge.",
+  "Kies A4, <strong>dubbelzijdig</strong>, <strong>spiegelen over de korte kant</strong> en <strong>ware grootte</strong> (100 %, niet „passend maken”).": "Wähle A4, <strong>beidseitig</strong>, <strong>an der kurzen Kante spiegeln</strong> und <strong>Originalgröße</strong> (100 %, nicht „An Seite anpassen“).",
+  "Leg de 5 vellen op volgorde op elkaar, met de omslag buiten, en vouw ze samen dubbel.": "Leg die 5 Blätter der Reihe nach aufeinander, mit dem Umschlag außen, und falte sie gemeinsam in der Mitte.",
+  "Zet twee nietjes in de vouw. Heb je geen lange nietmachine: leg het open boekje op een stuk karton en duw de nietjes er van binnenuit door; buig de pootjes om.": "Setze zwei Heftklammern in den Falz. Ohne Langarmhefter: Leg das offene Heft auf ein Stück Pappe, drück die Klammern von innen durch und biege die Beinchen um.",
+  "<strong>Geen dubbelzijdige printer?</strong> Print eerst de oneven pagina's, leg de stapel terug in de lade en print daarna de even pagina's. Probeer het eerst met één vel. Een copyshop doet het ook voor je: vraag om een A5-boekje met rugnieten.": "<strong>Kein Duplexdrucker?</strong> Drucke zuerst die ungeraden Seiten, leg den Stapel zurück ins Fach und drucke danach die geraden Seiten. Probier es zuerst mit einem Blatt. Ein Copyshop macht es auch für dich: frag nach einem A5-Heft mit Rückenheftung.",
+  "<strong>Losse bladzijden (A5)</strong> is handig om op je telefoon te lezen of om één lied te printen.": "<strong>Einzelseiten (A5)</strong> ist praktisch zum Lesen auf dem Handy oder um ein einzelnes Lied zu drucken."
+ },
+ "en": {
+  "Drukwerken — VG726": "Booklets — VG726",
+  "Drukwerken": "Booklets",
+  "Boekjes voor de groep: Das neue Soldaten-Liederbuch, met printinstructie.": "Booklets for the group: Das neue Soldaten-Liederbuch, with printing instructions.",
+  "Boekjes voor de groep, klaar om af te drukken.": "Booklets for the group, ready to print.",
+  "Omslag van Das neue Soldaten-Liederbuch: twee zingende soldaten op een blauwe achtergrond.": "Cover of Das neue Soldaten-Liederbuch: two singing soldiers on a blue background.",
+  "Ons liedboekje met de bekendste soldatenliederen: Im Wald im grünen Walde, Infanterielied, Ein Heller und ein Batzen, Wir kommen wieder, Die blonde Rie, Erika, Westerwaldlied en Wir sind des Geyers schwarzer Haufen. Achterin ruimte voor eigen aantekeningen.": "Our songbook with the best-known soldiers' songs: Im Wald im grünen Walde, Infanterielied, Ein Heller und ein Batzen, Wir kommen wieder, Die blonde Rie, Erika, Westerwaldlied and Wir sind des Geyers schwarzer Haufen. Space at the back for your own notes.",
+  "A5-boekje, 20 bladzijden": "A5 booklet, 20 pages",
+  "Papier": "Paper",
+  "5 vellen A4, dubbelzijdig": "5 sheets of A4, double-sided",
+  "Boekje om te printen (A4)": "Booklet to print (A4)",
+  "Losse bladzijden (A5)": "Single pages (A5)",
+  "<strong>Zo print je het boekje:</strong>": "<strong>How to print the booklet:</strong>",
+  "Open <em>Boekje om te printen (A4)</em>. De bladzijden staan al in de goede volgorde.": "Open <em>Booklet to print (A4)</em>. The pages are already in the right order.",
+  "Kies A4, <strong>dubbelzijdig</strong>, <strong>spiegelen over de korte kant</strong> en <strong>ware grootte</strong> (100 %, niet „passend maken”).": "Choose A4, <strong>double-sided</strong>, <strong>flip on short edge</strong> and <strong>actual size</strong> (100 %, not “fit to page”).",
+  "Leg de 5 vellen op volgorde op elkaar, met de omslag buiten, en vouw ze samen dubbel.": "Stack the 5 sheets in order, with the cover on the outside, and fold them in half together.",
+  "Zet twee nietjes in de vouw. Heb je geen lange nietmachine: leg het open boekje op een stuk karton en duw de nietjes er van binnenuit door; buig de pootjes om.": "Put two staples in the fold. No long-reach stapler? Lay the open booklet on a piece of cardboard, push the staples through from the inside and bend the legs over.",
+  "<strong>Geen dubbelzijdige printer?</strong> Print eerst de oneven pagina's, leg de stapel terug in de lade en print daarna de even pagina's. Probeer het eerst met één vel. Een copyshop doet het ook voor je: vraag om een A5-boekje met rugnieten.": "<strong>No double-sided printer?</strong> Print the odd pages first, put the stack back in the tray and then print the even pages. Try it with one sheet first. A print shop can also do it for you: ask for a saddle-stitched A5 booklet.",
+  "<strong>Losse bladzijden (A5)</strong> is handig om op je telefoon te lezen of om één lied te printen.": "<strong>Single pages (A5)</strong> is handy for reading on your phone or printing a single song."
+ }
+});

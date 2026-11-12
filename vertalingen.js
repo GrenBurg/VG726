@@ -53,3 +53,13 @@ en: {
   "Website": "Website"
 }
 });
+
+/* Downloads-tegel, bijgewerkt */
+VG726.add({
+ "de": {
+  "Om zelf af te drukken: infobladen (Buchstabiertafel, Führungszeichen), kaarten in Meßtischblatt-stijl en ons liedboekje.": "Zum Selbstausdrucken: Merkblätter (Buchstabiertafel, Führungszeichen), Karten im Stil des Meßtischblatts und unser Liederheft."
+ },
+ "en": {
+  "Om zelf af te drukken: infobladen (Buchstabiertafel, Führungszeichen), kaarten in Meßtischblatt-stijl en ons liedboekje.": "To print yourself: info sheets (Buchstabiertafel, Führungszeichen), maps in Meßtischblatt style and our songbook."
+ }
+});

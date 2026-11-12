@@ -12,6 +12,7 @@ Klein platform met een startpagina en zeven onderdelen:
 | `funkgeraet/` | Bediensimulator Tornisterfunkgerät d2 (Torn.Fu.d2): opbouwen, afstemmen, morse-oefenen en online morsen via Ably |
 | `downloads/` | Downloads: keuzemenu voor infobladen en kaarten |
 | `downloads/infobladen/` | Infobladen: Merkblätter om af te drukken (Buchstabiertafel A6, Führungszeichen A5 gevouwen) |
+| `downloads/drukwerken/` | Drukwerken: Das neue Soldaten-Liederbuch als A5 en als A4-boekje om te printen |
 | `downloads/kaarten/` | Kaarten: kaartbladen in Meßtischblatt-stijl als PDF (Wilp, Haaksbergen) |
 | `tarntafel/` | Tarntafel-generator: codetabel voor het Funksprechverkehr naar het systeem van de Tarntafel J.R. 726 (1942), af te drukken als PDF, met Excel-sleutel |
 
