@@ -2,12 +2,119 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Downloads zijn verhuisd — VG726</title>
-<style>body{font-family:Georgia,serif;background:#e4dbc2;color:#24231d;max-width:520px;margin:60px auto;padding:0 20px;line-height:1.6}a{color:#8e2316}</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#24231d">
+<meta name="description" content="Downloads van VG726: infobladen en kaarten om af te drukken.">
+<title>Downloads — VG726</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --paper:#e4dbc2; --card:#efe8d4; --ink:#24231d; --muted:#625c4a;
+    --line:#a99d7c; --accent:#8e2316; --soft:rgba(142,35,22,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100vh;background:var(--paper);color:var(--ink)}
+  body{
+    font-family:"Source Serif 4",Georgia,serif;font-size:16px;line-height:1.5;
+    background-image:radial-gradient(rgba(0,0,0,.04) 1px,transparent 1px);background-size:4px 4px;
+    padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:36px 20px 48px}
+  header{border-bottom:3px double var(--ink);padding-bottom:14px;margin-bottom:28px;text-align:center}
+  .kicker{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .logo{display:block;width:clamp(84px,24vw,120px);height:auto;margin:14px auto 0}
+  h1{font-family:"UnifrakturMaguntia",serif;font-weight:400;font-size:clamp(52px,14vw,84px);line-height:1;margin:6px 0 4px}
+  .lead{margin:0;color:var(--muted);font-style:italic}
+
+  .welkom{margin:0 0 28px;padding:14px 18px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent)}
+  .welkom p{margin:0}
+  .welkom .let-op{margin-top:8px;font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.04em;color:var(--accent)}
+  .label{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  nav{display:grid;gap:14px}
+  a.item{
+    display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:center;
+    padding:16px 18px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--ink);
+    color:inherit;text-decoration:none;transition:border-color .15s,background .15s,transform .15s;
+  }
+  a.item:hover,a.item:focus-visible{border-left-color:var(--accent);background:#f3eddb;transform:translateX(2px);outline:none}
+  a.item:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+  .ico{width:56px;height:56px;border:1px solid var(--line);display:grid;place-items:center;background:var(--paper)}
+  .ico svg{width:34px;height:34px;stroke:var(--ink);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .nr{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;color:var(--accent)}
+  .title{font-family:"UnifrakturMaguntia",serif;font-size:28px;line-height:1.1;margin:0}
+  .desc{margin:2px 0 0;font-size:15px;color:var(--muted)}
+  .arrow{font-family:"IBM Plex Mono",monospace;font-size:22px;color:var(--muted)}
+  a.item:hover .arrow{color:var(--accent)}
+
+  .contact{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:center;margin-top:28px;padding:12px 16px;
+    border:1px dashed var(--line);color:var(--ink);text-decoration:none;font-size:15px;transition:border-color .15s,background .15s}
+  .contact:hover,.contact:focus-visible{border-color:var(--accent);background:var(--soft);outline:none}
+  .contact b{font-weight:600}
+  .dc{width:44px;height:44px;display:grid;place-items:center;background:var(--ink);border-radius:50%}
+  .dc svg{width:26px;height:26px;fill:var(--card)}
+  .contact:hover .dc{background:var(--accent)}
+  footer{margin-top:36px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;color:var(--muted)}
+  .links{display:flex;gap:6px}
+  .links a{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--line);color:var(--muted);
+    text-decoration:none;text-transform:uppercase;transition:border-color .15s,color .15s}
+  .links a:hover,.links a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+  .links svg{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  @media (max-width:420px){.links a span{display:none}.links a{padding:8px}}
+
+  @media (max-width:420px){
+    a.item{grid-template-columns:46px 1fr;gap:12px;padding:14px}
+    .ico{width:46px;height:46px}.ico svg{width:28px;height:28px}
+    .arrow{display:none}
+    .title{font-size:24px}
+  }
+  .home{display:inline-block;margin-bottom:10px;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);text-decoration:none}
+  .home:hover{color:var(--accent)}
+</style>
 </head>
 <body>
-<p>De downloads zijn opgesplitst. Je vindt ze nu onder <a href="../infobladen/">Infobladen</a> en <a href="../kaarten/">Kaarten</a>.</p>
-<p><a href="../">← Terug naar VG726</a></p>
+<div class="wrap">
+  <a class="home" href="../">← VG726</a>
+  <header>
+    <div class="kicker">Zum Ausdrucken</div>
+    <h1>Downloads</h1>
+    <p class="lead">Kies wat je wilt afdrukken.</p>
+  </header>
+
+  <main>
+    <nav>
+      <a class="item" href="infobladen/">
+        <span class="ico" aria-hidden="true">
+          <!-- twee bladen op elkaar -->
+          <svg viewBox="0 0 40 40"><path d="M12 4h14l6 6v22H12z"/><path d="M26 4v6h6"/><path d="M8 9v27h19"/><path d="M16 15h11M16 19h11M16 23h11M16 27h7"/></svg>
+        </span>
+        <span>
+          <span class="nr">1.</span>
+          <h2 class="title">Infobladen</h2>
+          <p class="desc">Merkblätter om af te drukken: Buchstabiertafel en Führungszeichen.</p>
+        </span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="item" href="kaarten/">
+        <span class="ico" aria-hidden="true">
+          <!-- gevouwen kaart met hoogtelijnen -->
+          <svg viewBox="0 0 40 40"><path d="M5 9l10-4 10 4 10-4v26l-10 4-10-4-10 4z"/><path d="M15 5v26M25 9v26"/><path d="M8 20c3-3 5 2 8-1s5 2 8-1 5 2 8-1"/></svg>
+        </span>
+        <span>
+          <span class="nr">2.</span>
+          <h2 class="title">Kaarten</h2>
+          <p class="desc">Kaartbladen in de stijl van een Meßtischblatt (1 : 25 000), als PDF: Wilp en Haaksbergen.</p>
+        </span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+  </main>
+
+  <footer><span>VG726</span></footer>
+</div>
 </body>
 </html>
