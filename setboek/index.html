@@ -11,12 +11,14 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="../i18n.js"></script>
+<script src="vertalingen.js"></script>
 <style>
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}
 </style>
 </head>
-<body>
+<body data-i18n-auto>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Barlow+Condensed:wght@500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
@@ -297,6 +299,7 @@ table.sb th { font-family: var(--f-display); font-size: 13px; color: var(--ink);
 @media (prefers-reduced-motion: reduce) { .istamp.fresh { animation: none; } }
 </style>
 
+<div id="vg-lang" style="max-width:560px;margin:0 auto 6px;justify-content:flex-end;position:relative;z-index:2"></div>
 <div class="wrap" id="app"></div>
 <div id="overlay"></div>
 <div class="toast" id="toast" hidden></div>

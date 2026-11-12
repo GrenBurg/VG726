@@ -1,5 +1,5 @@
 /* Vertalingen uitrustingsgids — sleutel = Nederlandse tekst */
-VG726.add({
+window.VG726 && VG726.add({
  "de": {
   "Uitrusting Schütze — nieuwe leden": "Ausrüstung Schütze — neue Mitglieder",
   "Schets achteraanzicht": "Skizze Rückansicht",

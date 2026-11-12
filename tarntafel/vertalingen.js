@@ -1,5 +1,5 @@
 /* Vertalingen Tarntafel — sleutel = Nederlandse tekst */
-VG726.add({
+window.VG726 && VG726.add({
  "de": {
   "Tarntafel — VG726": "Tarntafel — VG726",
   "Vul een gebied en het aantal eenheden in. Je krijgt een codetabel zoals die van het J.R. 726 uit 1942.": "Gib ein Gebiet und die Zahl der Einheiten ein. Du bekommst eine Tarntafel wie die des J.R. 726 von 1942.",

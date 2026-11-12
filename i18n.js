@@ -24,9 +24,8 @@
 
   function t(nl) {
     if (lang === 'nl' || nl == null) return nl;
-    var k = norm(nl), d = dicts[lang];
-    if (!k) return nl;
-    if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+    var k = norm(nl); if (!k) return nl;
+    var r = tx(k); if (r != null) return r;
     missing[lang + '|' + k] = 1;
     return nl;
   }
@@ -58,11 +57,85 @@
     document.documentElement.lang = lang;
   }
 
+  // patronen met {x}: "Week {n} van {m}" past op "Week 3 van 12"
+  var pats = { de: [], en: [] };
+  var reEsc = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
   function add(d) {
     for (var l in d) {
       if (!dicts[l]) continue;
-      for (var k in d[l]) dicts[l][norm(k)] = d[l][k];
+      for (var k in d[l]) {
+        var nk = norm(k);
+        dicts[l][nk] = d[l][k];
+        if (/\{\w+\}/.test(nk)) {
+          var names = [];
+          var src = reEsc(nk).replace(/\\\{(\w+)\\\}/g, function (_, n) { names.push(n); return '(.+?)'; });
+          pats[l].push({ re: new RegExp('^' + src + '$'), names: names, out: d[l][k] });
+        }
+      }
     }
+  }
+  // vertaal één tekst, met patronen; geeft null als er niets is
+  function tx(s) {
+    var k = norm(s); if (!k) return null;
+    var d = dicts[lang];
+    if (Object.prototype.hasOwnProperty.call(d, k)) return d[k];
+    var P = pats[lang];
+    for (var i = 0; i < P.length; i++) {
+      var m = P[i].re.exec(k);
+      if (m) { var out = P[i].out; for (var j = 0; j < P[i].names.length; j++) { var c = m[j + 1], ct = (/[a-z]{3}/i.test(c) && c !== k) ? tx(c) : null; out = out.split('{' + P[i].names[j] + '}').join(ct != null ? ct : c); } return out; }
+    }
+    return null;
+  }
+
+  /* ---------- automatisch vertalen van tekst die een app zelf op het scherm zet ---------- */
+  var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, CODE: 1, NOSCRIPT: 1 };
+  var ATTRS = ['placeholder', 'aria-label', 'title', 'alt'];
+  var OT = '__vgT', OA = '__vgA', autoRoots = [];
+  function domText(n) {
+    var o = n[OT]; if (o == null) { o = n.nodeValue; n[OT] = o; }
+    var out = o;
+    if (lang !== 'nl') {
+      var t = tx(o);
+      if (t != null) { var lead = o.match(/^\s*/)[0], trail = o.match(/\s*$/)[0]; out = lead + t + trail; }
+      else if (/[a-z]{3}/i.test(o)) missing[lang + '|' + norm(o)] = 1;
+    }
+    if (n.nodeValue !== out) n.nodeValue = out;
+  }
+  function domAttrs(el) {
+    for (var i = 0; i < ATTRS.length; i++) {
+      var a = ATTRS[i]; if (!el.hasAttribute(a)) continue;
+      if (!el[OA]) el[OA] = {};
+      var cur = el.getAttribute(a);
+      // app heeft het attribuut zelf veranderd: nieuwe bron
+      if (el[OA][a] == null || (el[OA][a + '_out'] != null && cur !== el[OA][a + '_out'])) el[OA][a] = cur;
+      var o = el[OA][a], out = o;
+      if (lang !== 'nl') { var t = tx(o); if (t != null) out = t; }
+      el[OA][a + '_out'] = out;
+      if (cur !== out) el.setAttribute(a, out);
+    }
+  }
+  function skipEl(el) { return SKIP[el.tagName] || el.hasAttribute('data-noi18n') || el.hasAttribute('data-i18n') || el.classList.contains('vg-lang'); }
+  function dom(root) {
+    if (!root) return;
+    if (root.nodeType === 3) { var p = root.parentElement; if (p && !p.closest('[data-noi18n],[data-i18n],.vg-lang,script,style,textarea,code') && root.nodeValue.trim()) domText(root); return; }
+    if (root.nodeType !== 1 || root.closest('[data-noi18n],[data-i18n],.vg-lang,script,style,textarea,code')) return;
+    domAttrs(root);
+    var w = document.createTreeWalker(root, 5, { acceptNode: function (n) {
+      if (n.nodeType === 1) return skipEl(n) ? 2 : 1;
+      return n.nodeValue.trim() ? 1 : 3;
+    } }), n;
+    while ((n = w.nextNode())) { if (n.nodeType === 1) domAttrs(n); else domText(n); }
+  }
+  function auto(root) {
+    root = root || document.body;
+    autoRoots.push(root);
+    dom(root);
+    new MutationObserver(function (ms) {
+      for (var i = 0; i < ms.length; i++) {
+        var m = ms[i];
+        for (var j = 0; j < m.addedNodes.length; j++) dom(m.addedNodes[j]);
+      }
+    }).observe(root, { childList: true, subtree: true });
   }
 
   function set(l) {
@@ -71,6 +144,7 @@
     try { localStorage.setItem(KEY, l); } catch (e) {}
     api.lang = l;
     apply();
+    for (var i = 0; i < autoRoots.length; i++) dom(autoRoots[i]);
     paintFlags();
     try { window.dispatchEvent(new CustomEvent('vg726:lang', { detail: { lang: l } })); } catch (e) {}
   }
@@ -122,11 +196,11 @@
   }
 
   var api = window.VG726 = {
-    lang: lang, t: t, add: add, apply: apply, set: set,
+    lang: lang, t: t, add: add, apply: apply, set: set, dom: dom, auto: auto,
     missing: function () { return Object.keys(missing); }
   };
 
-  function init() { buildFlags(); apply(); }
+  function init() { buildFlags(); apply(); if (document.body.hasAttribute('data-i18n-auto')) auto(document.body); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
