@@ -218,7 +218,7 @@
         if (Math.random() < .6) return mc('zeichen', { nl: 'Wat betekent dit teken?', de: 'Was bedeutet dieses Zeichen?', en: 'What does this signal mean?' }, m, Q.ZEICHEN.map(z => z[1]), { big: d });
         return mc('zeichen', { nl: 'Welk teken geef je voor dit bevel?', de: 'Welches Zeichen gibst du für diesen Befehl?', en: 'Which signal do you give for this order?' }, d, Q.ZEICHEN.map(z => z[0]), { big: m });
       } },
-    buchstaben: { name: { nl: 'Buchstabiertafel', de: 'Buchstabiertafel', en: 'Spelling alphabet' }, desc: { nl: 'Spellen aan de telefoon (1934)', de: 'Buchstabieren am Fernsprecher (1934)', en: 'Spelling on the telephone (1934)' },
+    buchstaben: { name: { nl: 'Buchstabiertafel', de: 'Buchstabiertafel', en: 'Spelling alphabet' }, desc: { nl: 'Spellen aan telefoon en radio (Reibert 1943)', de: 'Buchstabieren am Fernsprecher und Funk (Reibert 1943)', en: 'Spelling on telephone and radio (Reibert 1943)' },
       make() {
         const B = Q.BUCHSTABEN, goed = Object.fromEntries(B);
         const F = Q.BUCHSTABEN_FOUT || Object.fromEntries(B.map(([l]) => [l, B.filter(x => x[0] !== l).map(x => x[1])]));
@@ -228,7 +228,7 @@
           const [l, w] = rnd(B);
           return { cat: 'buchstaben', q: { nl: 'Hoe spel je deze letter?', de: 'Wie buchstabierst du diesen Buchstaben?', en: 'How do you spell this letter?' },
             big: l, right: w, options: shuffle([w, ...pick(F[l], 3)]),
-            x: { nl: 'Tabel van 1934: ' + l + ' = ' + w, de: 'Tafel von 1934: ' + l + ' = ' + w, en: '1934 table: ' + l + ' = ' + w } };
+            x: { nl: 'Reibert 1943: ' + l + ' = ' + w, de: 'Reibert 1943: ' + l + ' = ' + w, en: 'Reibert 1943: ' + l + ' = ' + w } };
         }
         // een heel woord: drie bijna-goede reeksen met één fout woord
         const woord = rnd(WOORDEN), tekens = [];

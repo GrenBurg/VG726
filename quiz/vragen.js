@@ -51,34 +51,34 @@ window.QUIZ = (function () {
     [{ nl: 'Opgestoken arm een paar keer diep naar voren laten zakken', de: 'Erhobenen Arm mehrmals tief nach vorn senken', en: 'Raised arm lowered deep forwards several times' }, 'Hinlegen! / Deckung!'],
     [{ nl: 'Met de arm een richting aanwijzen', de: 'Mit dem Arm in eine Richtung zeigen', en: 'Pointing in a direction with the arm' }, 'Folgen! Richtung …!'],
     [{ nl: 'Beide armen tegelijk zijwaarts op schouderhoogte strekken', de: 'Beide Arme gleichzeitig seitwärts in Schulterhöhe strecken', en: 'Both arms stretched sideways at shoulder height' }, 'Stellung!'],
-    [{ nl: 'Hoofddeksel omhoog houden', de: 'Kopfbedeckung hochhalten', en: 'Headgear held up' }, 'Wir sind hier!'],
+    [{ nl: 'Hoofddeksel omhoog houden', de: 'Kopfbedeckung hochhalten', en: 'Headgear held up' }, 'Hier sind wir!'],
     [{ nl: 'Geweer verticaal boven het hoofd', de: 'Gewehr senkrecht über dem Kopf', en: 'Rifle held vertically above the head' }, 'Gelände frei vom Feinde!'],
     [{ nl: 'Geweer horizontaal boven het hoofd', de: 'Gewehr waagerecht über dem Kopf', en: 'Rifle held horizontally above the head' }, 'Gelände nicht frei vom Feinde!'],
     [{ nl: 'Schep omhoog houden', de: 'Spaten hochhalten', en: 'Spade held up' }, 'Eingraben!'],
     [{ nl: 'Munitiekist omhoog houden', de: 'Munitionskasten hochhalten', en: 'Ammunition box held up' }, 'Munition vor!'],
-    [{ nl: 'Gasmasker uit de bus halen, omhoog houden en ermee zwaaien', de: 'Gasmaske aus der Büchse nehmen, hochhalten und schwenken', en: 'Gas mask taken out, held up and waved' }, 'Gasmaske aufsetzen!'],
+    [{ nl: 'Gasmasker uit de draagbus halen, omhoog houden en ermee zwaaien (of opzetten)', de: 'Gasmaske aus der Tragebüchse ziehen, hochhalten und schwenken oder aufsetzen', en: 'Gas mask pulled from its canister, held up and waved (or put on)' }, 'Gasmaske aufsetzen!'],
   ];
 
-  /* ---------------- Buchstabiertafel (Merkblatt, Stand 1934) ---------------- */
-  const BUCHSTABEN = [['A', 'Anton'], ['Ä', 'Ärger'], ['B', 'Bruno'], ['C', 'Cäsar'], ['Ch', 'Charlotte'], ['D', 'Dora'],
-    ['E', 'Emil'], ['F', 'Fritz'], ['G', 'Gustav'], ['H', 'Heinz'], ['I', 'Ida'], ['J', 'Jot'], ['K', 'Kurfürst'],
-    ['L', 'Ludwig'], ['M', 'Marie'], ['N', 'Nordpol'], ['O', 'Otto'], ['Ö', 'Öse'], ['P', 'Paula'], ['Q', 'Quelle'],
-    ['R', 'Richard'], ['S', 'Siegfried'], ['Sch', 'Schule'], ['T', 'Toni'], ['U', 'Ulrich'], ['Ü', 'Übel'],
-    ['V', 'Viktor'], ['W', 'Wilhelm'], ['X', 'Xantippe'], ['Y', 'Ypern'], ['Z', 'Zeppelin']];
+  /* ---------------- Buchstabiertafel (Merkblatt, naar Reibert 1943, blz. 312) ---------------- */
+  const BUCHSTABEN = [['A', 'Anton'], ['Ä', 'Ärger'], ['B', 'Berta'], ['C', 'Cäsar'], ['Ch', 'Charlotte'], ['D', 'Dora'],
+    ['E', 'Emil'], ['F', 'Friedrich'], ['G', 'Gustav'], ['H', 'Heinrich'], ['I', 'Ida'], ['J', 'Julius'], ['K', 'Konrad'],
+    ['L', 'Ludwig'], ['M', 'Martha'], ['N', 'Nordpol'], ['O', 'Otto'], ['Ö', 'Ödipus'], ['P', 'Paula'], ['Q', 'Quelle'],
+    ['R', 'Richard'], ['S', 'Siegfried'], ['Sch', 'Schule'], ['T', 'Theodor'], ['U', 'Ulrich'], ['Ü', 'Übel'],
+    ['V', 'Viktor'], ['W', 'Wilhelm'], ['X', 'Xanthippe'], ['Y', 'Ypsilon'], ['Z', 'Zeppelin']];
 
 
   // Misleidende woorden per letter: andere (oudere of latere) spellingstabellen en gewone namen.
   const BUCHSTABEN_FOUT = {
-    'A': ['August', 'Albert', 'Anna'], 'Ä': ['Ähre', 'Ärmel', 'Äther'], 'B': ['Berta', 'Bernhard', 'Balduin'],
+    'A': ['August', 'Albert', 'Anna'], 'Ä': ['Ähre', 'Ärmel', 'Äther'], 'B': ['Bruno', 'Bernhard', 'Balduin'],
     'C': ['Carl', 'Clara', 'Cornelius'], 'Ch': ['Christian', 'Chemnitz', 'Chor'], 'D': ['David', 'Dietrich', 'Detlef'],
-    'E': ['Eduard', 'Erich', 'Ernst'], 'F': ['Friedrich', 'Franz', 'Ferdinand'], 'G': ['Georg', 'Gerhard', 'Gottfried'],
-    'H': ['Heinrich', 'Hermann', 'Hans'], 'I': ['Isidor', 'Ingrid', 'Irma'], 'J': ['Julius', 'Johann', 'Jakob'],
-    'K': ['Kaufmann', 'Konrad', 'Karl'], 'L': ['Leopold', 'Lothar', 'Lina'], 'M': ['Martha', 'Max', 'Moritz'],
-    'N': ['Nathan', 'Norbert', 'Nikolaus'], 'O': ['Oskar', 'Olga', 'Oswald'], 'Ö': ['Ökonom', 'Österreich', 'Ödipus'],
+    'E': ['Eduard', 'Erich', 'Ernst'], 'F': ['Fritz', 'Franz', 'Ferdinand'], 'G': ['Georg', 'Gerhard', 'Gottfried'],
+    'H': ['Heinz', 'Hermann', 'Hans'], 'I': ['Isidor', 'Ingrid', 'Irma'], 'J': ['Jot', 'Johann', 'Jakob'],
+    'K': ['Kaufmann', 'Kurfürst', 'Karl'], 'L': ['Leopold', 'Lothar', 'Lina'], 'M': ['Marie', 'Max', 'Moritz'],
+    'N': ['Nathan', 'Norbert', 'Nikolaus'], 'O': ['Oskar', 'Olga', 'Oswald'], 'Ö': ['Ökonom', 'Österreich', 'Öse'],
     'P': ['Peter', 'Paul', 'Prinz'], 'Q': ['Quirin', 'Quarz', 'Quittung'], 'R': ['Rudolf', 'Robert', 'Rosa'],
-    'S': ['Samuel', 'Sophie', 'Stefan'], 'Sch': ['Schiller', 'Schwester', 'Schmied'], 'T': ['Theodor', 'Thomas', 'Thea'],
+    'S': ['Samuel', 'Sophie', 'Stefan'], 'Sch': ['Schiller', 'Schwester', 'Schmied'], 'T': ['Toni', 'Thomas', 'Thea'],
     'U': ['Ursula', 'Uhu', 'Udo'], 'Ü': ['Übermut', 'Überfall', 'Übung'], 'V': ['Valentin', 'Vogel', 'Volker'],
-    'W': ['Walter', 'Werner', 'Wolfgang'], 'X': ['Xaver', 'Xylophon', 'Xenia'], 'Y': ['Ypsilon', 'Yacht', 'Yvonne'],
+    'W': ['Walter', 'Werner', 'Wolfgang'], 'X': ['Xaver', 'Xylophon', 'Xenia'], 'Y': ['Ypern', 'Yacht', 'Yvonne'],
     'Z': ['Zacharias', 'Zitrone', 'Zander'],
   };
   // Woorden om te spellen (Ch en Sch tellen als één teken).
