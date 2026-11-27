@@ -1,0 +1,11 @@
+Playfair Display en Unifraktur Cook staan onder de SIL Open Font License 1.1
+en mogen daarom meegeleverd worden.
+
+  Playfair Display  — Claus Eggers Sørensen
+                      https://fonts.google.com/specimen/Playfair+Display
+  UnifrakturCook    — j. 'mach' wust e.a.
+                      https://fonts.google.com/specimen/UnifrakturCook
+
+De DejaVu-serif lettertypen worden NIET meegeleverd; die komen van het
+systeem. Op Debian/Ubuntu: apt install fonts-dejavu
+fontpad.py zoekt ze op de gangbare plekken van Linux, macOS en Windows.

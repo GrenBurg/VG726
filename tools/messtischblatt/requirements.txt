@@ -1,0 +1,8 @@
+# Meßtischblatt-gereedschap
+reportlab>=4.0        # het tekenen van de PDF
+numpy>=1.24
+pillow>=10.0          # inlezen van bronkaarten (alleen bron/)
+scikit-image>=0.22    # hoogtelijnen uit het hoogteveld (terrein/)
+pikepdf>=8.0          # hercomprimeren van de kaartafbeelding (alleen bron/)
+pytesseract>=0.3      # hoogtecijfers van een stafkaart lezen (alleen bron/)
+pyproj>=3.6           # RD <-> UTM (alleen bron/)
